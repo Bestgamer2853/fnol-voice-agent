@@ -6,8 +6,8 @@ interface OpenRouterServiceOptions {
   endpointBaseUrl?: string;
 }
 
-const DEFAULT_MODEL = 'qwen/qwen3-coder:free';
-const FALLBACK_MODEL = 'deepseek/deepseek-chat-v3-0324:free';
+const DEFAULT_MODEL = 'openrouter/free';
+const FALLBACK_MODEL = 'google/gemma-4-26b-a4b-it:free';
 const DEFAULT_ENDPOINT_BASE_URL = 'https://openrouter.ai/api/v1';
 
 function readEnvironmentValue(name: string): string | undefined {

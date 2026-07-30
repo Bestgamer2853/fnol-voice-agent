@@ -1,10 +1,10 @@
 import { createExtractClaimDataService } from './src/services/extractClaimData.js';
-import { createGeminiService } from './src/llm/gemini.js';
+import { createOpenRouterService } from './src/llm/openrouter.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
 async function run() {
-  const service = createExtractClaimDataService({ llmProvider: createGeminiService() });
+  const service = createExtractClaimDataService({ llmProvider: createOpenRouterService() });
 
   const state = {
     currentClaim: {},
