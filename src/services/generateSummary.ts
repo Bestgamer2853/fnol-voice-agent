@@ -2,7 +2,7 @@ import type { ConversationState } from '../conversation/ConversationState.js';
 import type { Severity } from '../conversation/types.js';
 import type { Claim } from '../types/claim.js';
 import type { Policy } from '../types/policy.js';
-import type { GeminiClient } from './geminiClient.js';
+import type { LlmProvider } from '../llm/provider.js';
 
 export interface GenerateSummaryInput {
   claim: Claim;
@@ -23,7 +23,7 @@ export interface GenerateSummaryService {
 }
 
 interface GenerateSummaryServiceOptions {
-  geminiClient?: GeminiClient;
+  llmProvider?: LlmProvider;
 }
 
 function formatBoolean(value: boolean | undefined): string {
@@ -67,10 +67,10 @@ function buildDeterministicSummary(input: GenerateSummaryInput): string {
 
 async function buildLlmSummary(
   input: GenerateSummaryInput,
-  geminiClient: GeminiClient,
+  llmProvider: LlmProvider,
   deterministicSummary: string,
 ): Promise<string | undefined> {
-  const result = await geminiClient.generateAssistantResponse({
+  const result = await llmProvider.generateResponse({
     systemPrompt: [
       'You write concise internal insurance claim summaries.',
       'Use only the supplied deterministic claim summary.',

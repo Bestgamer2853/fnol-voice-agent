@@ -9,7 +9,7 @@ import {
 import type { ClaimLoggerService } from '../services/claimLogger.js';
 import type { ExtractClaimDataService } from '../services/extractClaimData.js';
 import type { GenerateSummaryService } from '../services/generateSummary.js';
-import type { GeminiClient } from '../services/geminiClient.js';
+import type { LlmProvider } from '../llm/provider.js';
 import type { RecommendServicesService } from '../services/recommendServices.js';
 import type { VerifyPolicyService } from '../services/verifyPolicy.js';
 import { normalizeClaimPatch } from '../services/normalizeClaimData.js';
@@ -36,7 +36,7 @@ export interface ConversationManagerDependencies {
   recommendServices: RecommendServicesService;
   generateSummary: GenerateSummaryService;
   claimLogger: ClaimLoggerService;
-  geminiClient: GeminiClient;
+  llmProvider: LlmProvider;
   claimNumberGenerator: ClaimNumberGenerator;
 }
 

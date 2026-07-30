@@ -2,7 +2,7 @@ import type { ConversationState } from '../conversation/ConversationState.js';
 import type { ConversationStep } from '../conversation/types.js';
 import type { Claim } from '../types/claim.js';
 import type { Vehicle } from '../types/common.js';
-import type { GeminiClient } from './geminiClient.js';
+import type { LlmProvider } from '../llm/provider.js';
 
 export interface ExtractClaimDataInput {
   userMessage: string;
@@ -32,7 +32,7 @@ export interface ExtractClaimDataService {
 }
 
 interface ExtractClaimDataServiceOptions {
-  geminiClient: GeminiClient;
+  llmProvider: LlmProvider;
 }
 
 type ExtractableTextField =
@@ -451,7 +451,7 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       }
     ];
 
-    const result = await this.options.geminiClient.generateAssistantResponse({
+    const result = await this.options.llmProvider.generateResponse({
       systemPrompt,
       conversationContext,
       userPrompt,

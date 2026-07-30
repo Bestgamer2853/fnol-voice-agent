@@ -13,7 +13,9 @@ import {
 } from './services/claimLogger.js';
 import { createExtractClaimDataService } from './services/extractClaimData.js';
 import { createGenerateSummaryService } from './services/generateSummary.js';
-import { createGeminiService } from './services/geminiClient.js';
+import { createGeminiService } from './llm/gemini.js';
+import { createOpenRouterService } from './llm/openrouter.js';
+import type { LlmProvider } from './llm/provider.js';
 import { createRecommendServicesService } from './services/recommendServices.js';
 import { createVerifyPolicyService } from './services/verifyPolicy.js';
 import { createClaimNumberGenerator } from './utils/claimNumber.js';
@@ -73,19 +75,25 @@ class MultiClaimLogger implements ClaimLoggerService {
 }
 
 export function createRuntimeDependencies(): ConversationManagerDependencies {
-  const geminiClient = createGeminiService();
+  let llmProvider: LlmProvider;
+  if (process.env.LLM_PROVIDER === 'openrouter') {
+    llmProvider = createOpenRouterService();
+  } else {
+    llmProvider = createGeminiService();
+  }
+
   const localLogger = createLocalJsonClaimLogger(DEFAULT_CLAIMS_FILE_PATH);
   const sheetsLogger = new GoogleSheetsClaimLogger('1bRu1nK9IL8a7DCSXSQ-jXHczpfcPNJ3PJoWw-zjzcJw');
   const claimLogger = new MultiClaimLogger([localLogger, sheetsLogger]);
 
   return {
     verifyPolicy: createVerifyPolicyService(),
-    extractClaimData: createExtractClaimDataService({ geminiClient }),
+    extractClaimData: createExtractClaimDataService({ llmProvider }),
     recommendServices: createRecommendServicesService(),
-    generateSummary: createGenerateSummaryService({ geminiClient }),
+    generateSummary: createGenerateSummaryService({ llmProvider }),
     claimLogger,
 
-    geminiClient,
+    llmProvider,
     claimNumberGenerator: createClaimNumberGenerator({
       initialSequence: readInitialClaimSequence(DEFAULT_CLAIMS_FILE_PATH),
     }),
