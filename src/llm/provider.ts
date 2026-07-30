@@ -23,6 +23,7 @@ export interface GenerateResponseResult {
   finishReason?: string;
   errorMessage?: string;
   usageMetadata?: UsageMetadata;
+  retries?: number;
 }
 
 export interface UsageMetadata {

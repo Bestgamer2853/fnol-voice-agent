@@ -510,8 +510,9 @@ export class DefaultConversationManager implements ConversationManager {
     
     let accumulatedResponse = extractionResult.responseToUser;
     
-    // Anti-repetition logic
-    if (accumulatedResponse === state.lastAssistantMessage) {
+    // Anti-repetition logic, except for connection issue fallbacks
+    const fallbackMessage = "I'm having a temporary connection issue with my AI service. Please give me a moment.";
+    if (accumulatedResponse === state.lastAssistantMessage && accumulatedResponse !== fallbackMessage) {
         accumulatedResponse = "Could you please clarify that?";
     }
     
@@ -711,6 +712,8 @@ export class DefaultConversationManager implements ConversationManager {
         rawExtractedSlots: extractionDebug?.rawExtractedSlots ?? {},
         geminiPrompt: extractionDebug?.geminiPrompt ?? '',
         geminiResponse: extractionDebug?.geminiResponse ?? '',
+        usageMetadata: extractionDebug?.usageMetadata,
+        retries: extractionDebug?.retries ?? 0,
       }
     };
   }

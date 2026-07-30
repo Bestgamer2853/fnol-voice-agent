@@ -16,6 +16,8 @@ export interface ConversationTurnResult {
     rawExtractedSlots: unknown;
     geminiPrompt: string;
     geminiResponse: string;
+    usageMetadata?: unknown;
+    retries?: number;
   };
 }
 

@@ -24,6 +24,8 @@ export interface ExtractClaimDataResult {
     rawExtractedSlots: unknown;
     geminiPrompt: string;
     geminiResponse: string;
+    usageMetadata?: unknown;
+    retries?: number;
   };
 }
 
@@ -325,6 +327,7 @@ function getFallbackResult(message: string, state: ConversationState): ExtractCl
       rawExtractedSlots: {},
       geminiPrompt: '',
       geminiResponse: '',
+      retries: 0,
     }
   };
 }
@@ -423,6 +426,8 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
         rawExtractedSlots: parsedResponse.extractedData || {},
         geminiPrompt: userPrompt,
         geminiResponse: result.assistantResponse || '',
+        usageMetadata: result.usageMetadata,
+        retries: result.retries || 0,
       },
     };
 
