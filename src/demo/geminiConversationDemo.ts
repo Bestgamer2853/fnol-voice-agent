@@ -20,7 +20,14 @@ const dependencies: ConversationManagerDependencies = {
   detectContradictions: createDetectContradictionsService(),
   extractClaimData: {
     extract() {
-      return Promise.resolve({});
+      return Promise.resolve({
+        acknowledgement: '',
+        updatedClaim: {},
+        missingFields: [],
+        conversationStage: 'collecting_fnol',
+        nextQuestion: '',
+        conversationAnalysis: 'mock'
+      });
     },
   },
   recommendServices: createRecommendServicesService(),
