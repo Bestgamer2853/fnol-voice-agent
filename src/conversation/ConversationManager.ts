@@ -525,31 +525,45 @@ export class DefaultConversationManager implements ConversationManager {
 
     const updatedClaim = mergeClaim(state.currentClaim, parsedMessage.claimPatch);
 
-    if (!state.verifiedPolicy) {
-      if (state.currentConversationStep === 'safety_check') {
-          const isSafe = /\b(yes|safe|fine|okay|we are|i am|no injuries|everyone is ok|nobody is hurt)\b/i.test(message) && !/\b(no|not safe|hurt|injured|ambulance|hospital|bleeding)\b/i.test(message);
-          const isHurt = /\b(no|not safe|hurt|injured|ambulance|hospital|bleeding|pain)\b/i.test(message);
-          
-          if (isHurt || !isSafe) {
-              return this.withAssistantAction(
-                  { ...state, conversationHistory: historyWithUser, currentConversationStep: 'escalation' },
-                  { type: 'escalate', message: 'I understand this is an emergency. Please hang up and dial emergency services immediately. An adjuster will review this urgently.', reason: 'safety_check_failed' }
-              );
-          }
-          
-          const nextState = this.updateFieldTracking({
-              ...state,
-              conversationHistory: historyWithUser,
-              currentConversationStep: 'verification',
-              lastUserMessage: message,
-          });
-          
-          return this.withAssistantAction(nextState, {
-              type: 'respond',
-              message: 'I am glad to hear everyone is safe. Please provide your policy number and caller name so we can get started.'
-          });
-      }
+    if (state.currentConversationStep === 'safety_check') {
+        const isSafe = /\b(yes|safe|fine|okay|we are|i am|no injuries|everyone is ok|nobody is hurt)\b/i.test(message) && !/\b(no|not safe|hurt|injured|ambulance|hospital|bleeding)\b/i.test(message);
+        const isHurt = /\b(no|not safe|hurt|injured|ambulance|hospital|bleeding|pain)\b/i.test(message);
+        
+        if (isHurt) {
+            return this.withAssistantAction(
+                { ...state, conversationHistory: historyWithUser, currentConversationStep: 'escalation' },
+                { type: 'escalate', message: 'I understand this is an emergency. Please hang up and dial emergency services immediately. An adjuster will review this urgently.', reason: 'safety_check_failed' }
+            );
+        } else if (isSafe) {
+            const nextState = this.updateFieldTracking({
+                ...state,
+                conversationHistory: historyWithUser,
+                currentConversationStep: 'verification',
+                lastUserMessage: message,
+            });
+            
+            return this.withAssistantAction(nextState, {
+                type: 'respond',
+                message: 'I am glad to hear everyone is safe. Please provide your policy number and caller name so we can get started.'
+            });
+        } else {
+            // Neutral/unclear response (e.g. "Hello")
+            // Acknowledge briefly and re-prompt for safety
+            return this.withAssistantAction(
+                { ...state, conversationHistory: historyWithUser },
+                { type: 'respond', message: 'Before we begin, are you and everyone else currently safe?' }
+            );
+        }
+    }
 
+    if (state.currentConversationStep === 'escalation') {
+        return this.withAssistantAction(
+            { ...state, conversationHistory: historyWithUser },
+            { type: 'escalate', message: 'Please hang up and dial emergency services immediately. An adjuster will review this claim urgently.', reason: 'safety_check_failed' }
+        );
+    }
+
+    if (!state.verifiedPolicy) {
       return this.handleVerification(state, updatedClaim, historyWithUser, message);
     }
 
@@ -591,19 +605,7 @@ export class DefaultConversationManager implements ConversationManager {
        contradictionPrefix = "Thanks for clarifying. ";
     }
 
-    if (
-      state.currentConversationStep === 'escalation' &&
-      state.missingFields.length === 0
-    ) {
-      return this.recommendServices(
-        this.updateFieldTracking({
-          ...state,
-          currentClaim: updatedClaim,
-          conversationHistory: historyWithUser,
-          lastUserMessage: message,
-        }),
-      );
-    }
+    // Escalation is handled early, so we don't need the transition block here.
 
     const severityResult = await this.dependencies.detectSeverity.detect({
       claim: updatedClaim,

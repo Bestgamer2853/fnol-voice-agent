@@ -206,6 +206,25 @@ wss.on('connection', (ws: WebSocket, req) => {
   logInfo(`Initial step: ${session.state.currentConversationStep}`);
   logInfo(`Initial greeting: ${session.state.lastAssistantMessage}`);
 
+  let hasGreeted = false;
+
+  // Send greeting immediately upon WebSocket connection as required by Retell protocol
+  logInfo(`Executing handleGreeting() (Immediate on connection)`);
+  logInfo(`Current conversation step before: ${session.state.currentConversationStep}`);
+  
+  const greetingPayload = {
+    response_type: 'response',
+    response_id: 0,
+    content: session.state.lastAssistantMessage,
+    content_complete: true,
+    end_call: false,
+  };
+  logInfo(`Outgoing JSON sent to Retell: ${JSON.stringify(greetingPayload)}`);
+  ws.send(JSON.stringify(greetingPayload));
+  hasGreeted = true;
+  
+  logInfo(`Current conversation step after: ${session.state.currentConversationStep}`);
+
   ws.on('message', (data) => {
     try {
       const event = JSON.parse(data.toString());
@@ -219,23 +238,28 @@ wss.on('connection', (ws: WebSocket, req) => {
 
       if (event.interaction_type === 'call_details') {
         logInfo(`Executing handleCallDetails()`);
-        const currentRecord = sessions.get(sessionId);
-        const greeting = currentRecord?.state.lastAssistantMessage ?? session.state.lastAssistantMessage;
         
-        logInfo(`Executing handleGreeting()`);
-        logInfo(`Current conversation step before: ${currentRecord?.state.currentConversationStep ?? session.state.currentConversationStep}`);
-        
-        const payload = {
-          response_type: 'response',
-          response_id: 0,
-          content: greeting,
-          content_complete: true,
-          end_call: false,
-        };
-        logInfo(`Outgoing JSON sent to Retell: ${JSON.stringify(payload)}`);
-        ws.send(JSON.stringify(payload));
-        
-        logInfo(`Current conversation step after: ${currentRecord?.state.currentConversationStep ?? session.state.currentConversationStep}`);
+        if (!hasGreeted) {
+          const currentRecord = sessions.get(sessionId);
+          const greeting = currentRecord?.state.lastAssistantMessage ?? session.state.lastAssistantMessage;
+          
+          logInfo(`Executing handleGreeting()`);
+          logInfo(`Current conversation step before: ${currentRecord?.state.currentConversationStep ?? session.state.currentConversationStep}`);
+          
+          const payload = {
+            response_type: 'response',
+            response_id: 0,
+            content: greeting,
+            content_complete: true,
+            end_call: false,
+          };
+          logInfo(`Outgoing JSON sent to Retell: ${JSON.stringify(payload)}`);
+          ws.send(JSON.stringify(payload));
+          hasGreeted = true;
+          logInfo(`Current conversation step after: ${currentRecord?.state.currentConversationStep ?? session.state.currentConversationStep}`);
+        } else {
+          logInfo(`Already greeted, skipping duplicate greeting on call_details.`);
+        }
         return;
       }
 
