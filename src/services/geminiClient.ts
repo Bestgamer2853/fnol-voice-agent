@@ -99,12 +99,24 @@ export class GeminiService implements GeminiClient {
   private readonly endpointBaseUrl: string;
 
   constructor(options: GeminiServiceOptions = {}) {
-    this.apiKey = options.apiKey ?? readEnvironmentValue('GROQ_API_KEY') ?? readEnvironmentValue('GEMINI_API_KEY');
-    this.model = options.model ?? readEnvironmentValue('GROQ_MODEL') ?? DEFAULT_MODEL;
+    const groqKey = readEnvironmentValue('GROQ_API_KEY');
+    const geminiKey = readEnvironmentValue('GEMINI_API_KEY');
+    
+    this.apiKey = options.apiKey ?? groqKey ?? geminiKey;
+    
+    const isGeminiOnly = !options.apiKey && !groqKey && !!geminiKey;
+    
+    const fallbackModel = isGeminiOnly ? 'gemini-3.5-flash' : DEFAULT_MODEL;
+    const fallbackEndpoint = isGeminiOnly 
+      ? 'https://generativelanguage.googleapis.com/v1beta/openai' 
+      : DEFAULT_ENDPOINT_BASE_URL;
+      
+    this.model = options.model ?? readEnvironmentValue('GROQ_MODEL') ?? readEnvironmentValue('GEMINI_MODEL') ?? fallbackModel;
     this.endpointBaseUrl =
       options.endpointBaseUrl ??
       readEnvironmentValue('GROQ_ENDPOINT_BASE_URL') ??
-      DEFAULT_ENDPOINT_BASE_URL;
+      readEnvironmentValue('GEMINI_ENDPOINT_BASE_URL') ??
+      fallbackEndpoint;
   }
 
   async generateAssistantResponse(
