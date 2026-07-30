@@ -159,6 +159,16 @@ app.post(
 
 import { WebSocketServer, WebSocket } from 'ws';
 
+// Per-session async lock to prevent race conditions
+const sessionLocks = new Map<string, Promise<void>>();
+
+function withSessionLock(sessionId: string, fn: () => Promise<void>): Promise<void> {
+  const previous = sessionLocks.get(sessionId) ?? Promise.resolve();
+  const next = previous.then(fn, fn); // always chain, even if previous rejected
+  sessionLocks.set(sessionId, next);
+  return next;
+}
+
 const port = Number(process.env.PORT ?? DEFAULT_PORT);
 
 const server = app.listen(port, () => {
@@ -168,22 +178,28 @@ const server = app.listen(port, () => {
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws: WebSocket, req) => {
-  console.log('Retell connected via WebSocket:', req.url);
+  console.log('[WS] Retell connected via WebSocket:', req.url);
   
   // Every call gets its own isolated session
   const session = createSession();
-  let responseId = 0;
+  const sessionId = session.sessionId;
+  console.log(`[WS] Session created: ${sessionId}`);
+  console.log(`[WS] Initial step: ${session.state.currentConversationStep}`);
+  console.log(`[WS] Initial greeting: ${session.state.lastAssistantMessage}`);
 
-  ws.on('message', async (data) => {
+  ws.on('message', (data) => {
     try {
       const event = JSON.parse(data.toString());
+      console.log(`[WS] Received event: interaction_type=${event.interaction_type}, response_id=${event.response_id}`);
 
-      if (event.interaction_type === 'call_details' || event.interaction_type === 'ping') {
-        // Send initial greeting on connection
+      if (event.interaction_type === 'call_details') {
+        const currentRecord = sessions.get(sessionId);
+        const greeting = currentRecord?.state.lastAssistantMessage ?? session.state.lastAssistantMessage;
+        console.log(`[WS] Sending greeting: "${greeting}"`);
         ws.send(
           JSON.stringify({
-            response_id: responseId,
-            content: session.state.lastAssistantMessage,
+            response_id: 0,
+            content: greeting,
             content_complete: true,
             end_call: false,
           })
@@ -191,59 +207,102 @@ wss.on('connection', (ws: WebSocket, req) => {
         return;
       }
 
-      if (event.interaction_type === 'response_required' || event.interaction_type === 'reminder_required') {
-        responseId = event.response_id;
-        
-        // Find the latest user message from the transcript
-        const transcript = event.transcript || [];
-        const lastUserTurn = [...transcript].reverse().find((t: any) => t.role === 'user');
-        
-        if (!lastUserTurn) {
-            // Nothing to process, just repeat assistant's last message
-            ws.send(
-              JSON.stringify({
-                response_id: responseId,
-                content: session.state.lastAssistantMessage,
-                content_complete: true,
-                end_call: false,
-              })
-            );
-            return;
-        }
-
-        const result = await conversationManager.handleUserMessage(
-          session.state,
-          lastUserTurn.content
-        );
-
-        updateSession(session.sessionId, result.state);
-
-        const isComplete = result.action.type === 'complete';
-        
+      if (event.interaction_type === 'ping') {
+        console.log('[WS] Received ping, sending pong');
         ws.send(
           JSON.stringify({
-            response_id: responseId,
-            content: result.action.message,
+            response_id: event.response_id ?? 0,
+            content: '',
             content_complete: true,
-            end_call: isComplete,
+            end_call: false,
           })
         );
+        return;
+      }
 
-        if (isComplete) {
-            console.log(`Call complete for session ${session.sessionId}`);
-        }
+      if (event.interaction_type === 'update_only') {
+        console.log('[WS] Received update_only, no response needed');
+        return;
+      }
+
+      if (event.interaction_type === 'response_required' || event.interaction_type === 'reminder_required') {
+        // CRITICAL: Serialize all async processing through a per-session lock
+        // This prevents race conditions where two messages read stale state
+        withSessionLock(sessionId, async () => {
+          const responseId = event.response_id;
+          
+          const transcript = event.transcript || [];
+          const lastUserTurn = [...transcript].reverse().find((t: any) => t.role === 'user');
+          
+          // Read FRESH state from the sessions Map
+          const currentRecord = sessions.get(sessionId);
+          if (!currentRecord) {
+            console.error(`[WS] FATAL: Session ${sessionId} not found in Map!`);
+            return;
+          }
+          const currentState = currentRecord.state;
+          
+          console.log(`[WS] Current step BEFORE processing: ${currentState.currentConversationStep}`);
+          console.log(`[WS] Collected fields: ${JSON.stringify(currentState.collectedFields)}`);
+          console.log(`[WS] Missing fields: ${JSON.stringify(currentState.missingFields)}`);
+          console.log(`[WS] Last user turn: ${lastUserTurn?.content ?? '(none)'}`);
+          
+          if (!lastUserTurn) {
+              const fallbackMsg = currentState.lastAssistantMessage ?? "I'm here to help. Could you please go ahead?";
+              console.log(`[WS] No user turn found, sending fallback: "${fallbackMsg}"`);
+              ws.send(
+                JSON.stringify({
+                  response_id: responseId,
+                  content: fallbackMsg,
+                  content_complete: true,
+                  end_call: false,
+                })
+              );
+              return;
+          }
+
+          const result = await conversationManager.handleUserMessage(
+            currentState,
+            lastUserTurn.content
+          );
+
+          // Save updated state back to the Map
+          updateSession(sessionId, result.state);
+
+          const isComplete = result.action.type === 'complete';
+          
+          console.log(`[WS] Step AFTER processing: ${result.state.currentConversationStep}`);
+          console.log(`[WS] Response action type: ${result.action.type}`);
+          console.log(`[WS] Response message: "${result.action.message}"`);
+          
+          ws.send(
+            JSON.stringify({
+              response_id: responseId,
+              content: result.action.message,
+              content_complete: true,
+              end_call: isComplete,
+            })
+          );
+
+          if (isComplete) {
+              console.log(`[WS] Call complete for session ${sessionId}`);
+          }
+        }).catch(err => {
+          console.error('[WS] Error in locked processing:', err);
+        });
       }
     } catch (err) {
-      console.error('WebSocket error processing message:', err);
+      console.error('[WS] Error processing message:', err);
     }
   });
 
   ws.on('close', () => {
-    console.log('Retell connection closed');
+    console.log(`[WS] Connection closed for session ${sessionId}`);
+    sessionLocks.delete(sessionId);
   });
   
   ws.on('error', (error) => {
-    console.error('WebSocket error:', error);
+    console.error(`[WS] Error for session ${sessionId}:`, error);
   });
 });
 
