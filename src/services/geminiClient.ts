@@ -6,12 +6,18 @@ export interface GenerateAssistantResponseInput {
   tools?: any[];
   toolConfig?: any;
   onContentChunk?: ((chunk: string) => void) | undefined;
+  toolContext?: {
+      assistantMessage: string;
+      toolCalls: { id: string, name: string, args: any }[];
+      toolResults: { id: string, name: string, result: string }[];
+  }[];
 }
 
 export interface GenerateAssistantResponseResult {
   assistantResponse: string;
   errorMessage?: string;
-  toolCalls?: any[];
+  toolCalls?: { id: string, name: string, args: any }[];
+  finishReason?: string;
 }
 
 export interface GeminiClient {
@@ -110,13 +116,40 @@ export class GeminiService implements GeminiClient {
 
     const openaiTools = translateTools(input.tools);
     
-    // Convert to OpenAI format
+    const messages: any[] = [
+      { role: 'system', content: input.systemPrompt },
+      { role: 'user', content: `Conversation context:\n${input.conversationContext}\n\nCurrent task:\n${input.userPrompt}` }
+    ];
+
+    if (input.toolContext) {
+      for (const ctx of input.toolContext) {
+        messages.push({
+          role: 'assistant',
+          content: ctx.assistantMessage || null,
+          tool_calls: ctx.toolCalls.map(tc => ({
+            id: tc.id,
+            type: 'function',
+            function: {
+              name: tc.name,
+              arguments: JSON.stringify(tc.args)
+            }
+          }))
+        });
+
+        for (const res of ctx.toolResults) {
+          messages.push({
+            role: 'tool',
+            tool_call_id: res.id,
+            name: res.name,
+            content: res.result
+          });
+        }
+      }
+    }
+    
     const requestBodyStr = JSON.stringify({
       model: this.model,
-      messages: [
-        { role: 'system', content: input.systemPrompt },
-        { role: 'user', content: `Conversation context:\n${input.conversationContext}\n\nCurrent task:\n${input.userPrompt}` }
-      ],
+      messages,
       temperature: 0.4,
       max_tokens: 250,
       stream: true,
@@ -166,7 +199,8 @@ export class GeminiService implements GeminiClient {
         const reader = response.body.getReader();
         const decoder = new TextDecoder('utf-8');
         let fullAssistantResponse = '';
-        const activeToolCalls = new Map<number, {name: string, arguments: string}>();
+        const activeToolCalls = new Map<number, {id: string, name: string, arguments: string}>();
+        let finishReason = '';
         
         let buffer = '';
         while (true) {
@@ -186,26 +220,31 @@ export class GeminiService implements GeminiClient {
                 try {
                   const data = JSON.parse(dataStr);
                   
-                  if (data.choices && data.choices[0] && data.choices[0].delta) {
-                    const delta = data.choices[0].delta;
-                    
-                    if (delta.content) {
-                      fullAssistantResponse += delta.content;
-                      if (input.onContentChunk) {
-                        input.onContentChunk(delta.content);
+                  if (data.choices && data.choices[0]) {
+                    const choice = data.choices[0];
+                    if (choice.delta) {
+                      const delta = choice.delta;
+                      if (delta.content) {
+                        fullAssistantResponse += delta.content;
+                        if (input.onContentChunk) {
+                          input.onContentChunk(delta.content);
+                        }
+                      }
+                      
+                      if (delta.tool_calls) {
+                        for (const tc of delta.tool_calls) {
+                          const idx = tc.index;
+                          if (!activeToolCalls.has(idx)) {
+                             activeToolCalls.set(idx, { id: tc.id || '', name: tc.function?.name || '', arguments: '' });
+                          }
+                          if (tc.function?.arguments) {
+                             activeToolCalls.get(idx)!.arguments += tc.function.arguments;
+                          }
+                        }
                       }
                     }
-                    
-                    if (delta.tool_calls) {
-                      for (const tc of delta.tool_calls) {
-                        const idx = tc.index;
-                        if (!activeToolCalls.has(idx)) {
-                           activeToolCalls.set(idx, { name: tc.function?.name || '', arguments: '' });
-                        }
-                        if (tc.function?.arguments) {
-                           activeToolCalls.get(idx)!.arguments += tc.function.arguments;
-                        }
-                      }
+                    if (choice.finish_reason) {
+                      finishReason = choice.finish_reason;
                     }
                   }
                 } catch (e) {
@@ -221,6 +260,7 @@ export class GeminiService implements GeminiClient {
         for (const [idx, tc] of activeToolCalls.entries()) {
           try {
             allToolCalls.push({
+              id: tc.id,
               name: tc.name,
               args: JSON.parse(tc.arguments)
             });
@@ -235,7 +275,10 @@ export class GeminiService implements GeminiClient {
           return fallbackResponse('LLM returned no assistant text and no tool calls.');
         }
 
-        const finalResponse: GenerateAssistantResponseResult = { assistantResponse: fullAssistantResponse };
+        const finalResponse: GenerateAssistantResponseResult = { 
+          assistantResponse: fullAssistantResponse,
+          finishReason
+        };
         if (allToolCalls.length > 0) finalResponse.toolCalls = allToolCalls;
         return finalResponse;
       } catch (error) {

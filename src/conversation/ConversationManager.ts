@@ -481,98 +481,100 @@ export class DefaultConversationManager implements ConversationManager {
 
     const historyWithUser = appendMessage(state.conversationHistory, 'user', message);
     
-    const extractionResult = await this.dependencies.extractClaimData.extract({
-      userMessage: message,
-      state: { ...state, conversationHistory: historyWithUser },
-      onContentChunk,
-    });
-
     let updatedClaim = state.currentClaim;
     let isEscalated = false;
     let escalationReason = '';
-    let policyVerificationTriggered = false;
-    let policyNumberToVerify = '';
-    let callerNameToVerify = '';
     let claimCompleted = false;
-
-    if (extractionResult.toolCalls) {
-       for (const call of extractionResult.toolCalls) {
-           if (call.name === 'save_claim_data' && call.args) {
-               const patch = validateClaimPatch(call.args as Partial<Claim>);
-               const normalizedPatch = normalizeClaimPatch(patch);
-               updatedClaim = mergeClaim(updatedClaim, normalizedPatch);
-           } else if (call.name === 'escalate_claim' && call.args) {
-               isEscalated = true;
-               escalationReason = (call.args.reason as string) || 'safety_check_failed';
-           } else if (call.name === 'verify_policy' && call.args) {
-               policyVerificationTriggered = true;
-               policyNumberToVerify = call.args.policyNumber as string;
-               callerNameToVerify = call.args.callerName as string;
-           } else if (call.name === 'complete_claim') {
-               claimCompleted = true;
-           }
-       }
+    let finalExtractionResult: any = null;
+    let verifiedPolicyObj = state.verifiedPolicy;
+    
+    const toolContext: { assistantMessage: string, toolCalls: any[], toolResults: any[] }[] = [];
+    
+    let iterations = 0;
+    const MAX_TOOL_ITERATIONS = 5;
+    
+    while (iterations < MAX_TOOL_ITERATIONS) {
+        iterations++;
+        const extractionResult = await this.dependencies.extractClaimData.extract({
+            userMessage: message,
+            state: { ...state, conversationHistory: historyWithUser, currentClaim: updatedClaim, verifiedPolicy: verifiedPolicyObj },
+            onContentChunk: toolContext.length === 0 ? onContentChunk : undefined,
+            toolContext: toolContext.length > 0 ? toolContext : undefined
+        });
+        
+        finalExtractionResult = extractionResult;
+        
+        if (extractionResult.toolCalls && extractionResult.toolCalls.length > 0) {
+            const results = [];
+            
+            for (const call of extractionResult.toolCalls) {
+                let toolResultStr = "Success";
+                
+                if (call.name === 'save_claim_data' && call.args) {
+                    const patch = validateClaimPatch(call.args as Partial<Claim>);
+                    const normalizedPatch = normalizeClaimPatch(patch);
+                    updatedClaim = mergeClaim(updatedClaim, normalizedPatch);
+                    toolResultStr = JSON.stringify({ success: true, savedFields: Object.keys(normalizedPatch) });
+                } else if (call.name === 'escalate_claim' && call.args) {
+                    isEscalated = true;
+                    escalationReason = (call.args.reason as string) || 'safety_check_failed';
+                    toolResultStr = JSON.stringify({ success: true, escalated: true });
+                } else if (call.name === 'verify_policy' && call.args) {
+                    const verifyResult = await this.dependencies.verifyPolicy.verify({
+                        policyNumber: call.args.policyNumber as string,
+                        callerName: call.args.callerName as string,
+                    });
+                    if (verifyResult.verified && verifyResult.policy) {
+                        verifiedPolicyObj = verifyResult.policy;
+                    }
+                    toolResultStr = JSON.stringify(verifyResult);
+                } else if (call.name === 'complete_claim') {
+                    claimCompleted = true;
+                    toolResultStr = JSON.stringify({ success: true, completed: true });
+                }
+                
+                results.push({ id: call.id, name: call.name, result: toolResultStr });
+            }
+            
+            toolContext.push({
+                assistantMessage: extractionResult.responseToUser,
+                toolCalls: extractionResult.toolCalls,
+                toolResults: results
+            });
+            
+            if (extractionResult.finishReason === 'tool_calls' || extractionResult.toolCalls.length > 0) {
+                continue;
+            }
+        }
+        
+        break;
     }
 
     if (isEscalated) {
         return this.withAssistantAction(
             { ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, currentConversationStep: 'escalation' },
-            { type: 'escalate', message: extractionResult.responseToUser || 'I understand this is an emergency. Please hang up and dial emergency services immediately.', reason: escalationReason },
-            extractionResult.debugMetrics
+            { type: 'escalate', message: finalExtractionResult.responseToUser || 'I understand this is an emergency. Please hang up and dial emergency services immediately.', reason: escalationReason },
+            finalExtractionResult.debugMetrics
         );
     }
 
-    if (policyVerificationTriggered && !state.verifiedPolicy) {
-        const verifyResult = await this.dependencies.verifyPolicy.verify({
-            policyNumber: policyNumberToVerify,
-            callerName: callerNameToVerify,
-        });
-
-        if (verifyResult.verified) {
-            const nextState = this.updateFieldTracking({
-              ...state,
-              currentClaim: updatedClaim,
-              conversationHistory: historyWithUser,
-              verifiedPolicy: verifyResult.policy,
-              lastUserMessage: message,
-            });
-
-            return this.withAssistantAction(
-                nextState,
-                { type: 'respond', message: extractionResult.responseToUser || "I've verified your policy. Please go ahead and describe the incident." },
-                extractionResult.debugMetrics
-            );
-        } else {
-            const systemNote = `[System Note]: Policy Verification Failed - Reason: ${verifyResult.message}. Gently inform the user and ask them to clarify.`;
-            const fallbackExtraction = await this.dependencies.extractClaimData.extract({
-                userMessage: message + '\n\n' + systemNote,
-                state: { ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser },
-                onContentChunk
-            });
-
-            return this.withAssistantAction(
-                { ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, lastUserMessage: message },
-                { type: 'request_clarification', message: fallbackExtraction.responseToUser || "I was unable to verify that policy number. Could you please double-check and repeat the policy number and your name?" },
-                fallbackExtraction.debugMetrics
-            );
-        }
-    }
-
     if (claimCompleted) {
-        return this.completeClaim(state, updatedClaim, historyWithUser, message, extractionResult.responseToUser, extractionResult.debugMetrics);
+        return this.completeClaim(state, updatedClaim, historyWithUser, message, finalExtractionResult.responseToUser, finalExtractionResult.debugMetrics);
     }
 
     const trackedState = this.updateFieldTracking({
       ...state,
       currentClaim: updatedClaim,
       conversationHistory: historyWithUser,
+      verifiedPolicy: verifiedPolicyObj,
       pendingClarifications: [],
       lastUserMessage: message,
     });
+    
     return this.withAssistantAction(trackedState, {
        type: 'respond',
-       message: extractionResult.responseToUser || 'I have updated your claim details.'
-    }, extractionResult.debugMetrics);
+       message: finalExtractionResult.responseToUser || 'I have updated your claim details.'
+    }, finalExtractionResult.debugMetrics);
   }
 
   private async completeClaim(

@@ -8,11 +8,17 @@ export interface ExtractClaimDataInput {
   userMessage: string;
   state: ConversationState;
   onContentChunk?: ((chunk: string) => void) | undefined;
+  toolContext?: {
+      assistantMessage: string;
+      toolCalls: { id: string, name: string, args: any }[];
+      toolResults: { id: string, name: string, result: string }[];
+  }[];
 }
 
 export interface ExtractClaimDataResult {
   responseToUser: string;
   toolCalls?: any[] | undefined;
+  finishReason?: string;
   conversationAnalysis: string;
   debugMetrics: {
     rawExtractedSlots: unknown;
@@ -318,7 +324,8 @@ function getFallbackResult(message: string, state: ConversationState): ExtractCl
 const responseCache = new Map<string, ExtractClaimDataResult>();
 
 function getCacheKey(input: ExtractClaimDataInput): string {
-  return `${input.userMessage.trim()}|${input.state.conversationHistory.length}`;
+  const toolContextLen = input.toolContext ? input.toolContext.length : 0;
+  return `${input.userMessage.trim()}|${input.state.conversationHistory.length}|${toolContextLen}`;
 }
 
 export class GeminiExtractClaimDataService implements ExtractClaimDataService {
@@ -426,6 +433,7 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       userPrompt,
       tools,
       onContentChunk: input.onContentChunk,
+      toolContext: input.toolContext,
     });
 
     if (result.errorMessage) {
@@ -436,6 +444,7 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
     const finalResult: ExtractClaimDataResult = {
       responseToUser: result.assistantResponse || 'Could you tell me more about that?',
       toolCalls: result.toolCalls,
+      finishReason: result.finishReason,
       conversationAnalysis: '',
       debugMetrics: {
         rawExtractedSlots: result.toolCalls,
