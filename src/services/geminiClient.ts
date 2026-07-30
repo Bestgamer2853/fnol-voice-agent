@@ -106,7 +106,7 @@ export class GeminiService implements GeminiClient {
     
     const isGeminiOnly = !options.apiKey && !groqKey && !!geminiKey;
     
-    const fallbackModel = isGeminiOnly ? 'gemini-3.5-flash' : DEFAULT_MODEL;
+    const fallbackModel = isGeminiOnly ? 'gemini-2.0-flash' : DEFAULT_MODEL;
     const fallbackEndpoint = isGeminiOnly 
       ? 'https://generativelanguage.googleapis.com/v1beta/openai' 
       : DEFAULT_ENDPOINT_BASE_URL;
