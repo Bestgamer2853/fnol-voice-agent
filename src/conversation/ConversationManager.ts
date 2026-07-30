@@ -444,6 +444,7 @@ function buildInitialState(): ConversationState {
     missingFields: calculateMissingFields(initialClaim),
     retryCount: 0,
     escalationRequired: false,
+    verificationAttempts: 0,
     currentConversationStep: 'safety_check',
     contradictions: [],
     followUpQuestions: [],
@@ -481,9 +482,11 @@ export class DefaultConversationManager implements ConversationManager {
     let updatedClaim = state.currentClaim;
     let isEscalated = false;
     let escalationReason = '';
+    let callbackOffered = false;
     let claimCompleted = false;
     let finalExtractionResult: any = null;
     let verifiedPolicyObj = state.verifiedPolicy;
+    let verificationAttempts = state.verificationAttempts || 0;
     
     const toolContext: { assistantMessage: string, toolCalls: any[], toolResults: any[] }[] = [];
     
@@ -503,7 +506,9 @@ export class DefaultConversationManager implements ConversationManager {
         console.log(`[ConversationManager] Iteration ${iterations} finishReason: ${extractionResult.finishReason}`);
         console.log(`[ConversationManager] Iteration ${iterations} toolCalls count: ${extractionResult.toolCalls?.length || 0}`);
         
-        accumulatedResponse += extractionResult.responseToUser;
+        if (extractionResult.responseToUser) {
+            accumulatedResponse += (accumulatedResponse ? ' ' : '') + extractionResult.responseToUser;
+        }
         finalExtractionResult = extractionResult;
         
         if (extractionResult.toolCalls && extractionResult.toolCalls.length > 0) {
@@ -530,8 +535,16 @@ export class DefaultConversationManager implements ConversationManager {
                     });
                     if (verifyResult.verified && verifyResult.policy) {
                         verifiedPolicyObj = verifyResult.policy;
+                    } else {
+                        verificationAttempts++;
+                        if (verificationAttempts >= 2) {
+                            callbackOffered = true;
+                            toolResultStr = JSON.stringify({ error: 'Maximum verification attempts reached. You MUST apologize and inform the user that a human agent will call them back to assist further. Do NOT ask for policy details again.' });
+                        }
                     }
-                    toolResultStr = JSON.stringify(verifyResult);
+                    if (!callbackOffered) {
+                        toolResultStr = JSON.stringify(verifyResult);
+                    }
                 } else if (call.name === 'complete_claim') {
                     const missing = calculateMissingFields(updatedClaim);
                     if (missing.length === 0) {
@@ -568,6 +581,14 @@ export class DefaultConversationManager implements ConversationManager {
         );
     }
 
+    if (callbackOffered) {
+        return this.withAssistantAction(
+            { ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, currentConversationStep: 'callback_offer', verificationAttempts },
+            { type: 'complete', message: accumulatedResponse.trim() || 'I apologize, but I am unable to verify your policy details at this time. A claims agent will call you back shortly to assist you. Goodbye.' },
+            finalExtractionResult.debugMetrics
+        );
+    }
+
     if (claimCompleted) {
         return this.completeClaim(state, updatedClaim, historyWithUser, message, accumulatedResponse.trim(), finalExtractionResult.debugMetrics);
     }
@@ -579,6 +600,7 @@ export class DefaultConversationManager implements ConversationManager {
       verifiedPolicy: verifiedPolicyObj,
       pendingClarifications: [],
       lastUserMessage: message,
+      verificationAttempts,
     });
     
     console.log(`[ConversationManager] EXITING handleUserMessage normally. Action message: "${accumulatedResponse.trim()}"`);

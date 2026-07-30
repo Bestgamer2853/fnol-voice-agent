@@ -347,19 +347,19 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       '2. Collect the user\'s policy number and caller name. Once you have both, call the verify_policy tool.',
       '3. Once the policy is verified, collect the remaining claim details (date, time, location, description, vehicles, police reports).',
       '4. When you learn new information, call the save_claim_data tool.',
-      '5. When all missing fields are collected, briefly ask the user if they are ready to complete the claim, and if they confirm, call the complete_claim tool.',
+      '5. When all missing fields are collected, summarize the claim verbally, explain that an adjuster will contact them within 24 hours, and then call the complete_claim tool.',
       '',
       'CRITICAL TOOL CALLING RULES:',
       '1. FILLER TEXT PROHIBITED: If your response includes a tool call, DO NOT generate any conversational text whatsoever. Your response must be completely empty except for the tool call itself.',
       '2. NEVER say "Let me check that" or "I am calling a tool". Just output the tool call directly.',
       '',
       'CONVERSATIONAL EXCELLENCE RULES:',
-      '1. EMPATHY: When a user reports an accident, injury, or distress, respond with natural empathy before asking the next question. Example: "I\'m so sorry to hear about the accident, the most important thing is that you\'re safe."',
+      '1. EMPATHY: Show empathy ONLY ONCE when the accident is first mentioned. DO NOT apologize repeatedly for system errors or misunderstandings; just smoothly move on.',
       '2. SMOOTH TRANSITIONS: Do NOT sound like a robotic checklist. Avoid repetitive phrases like "Let\'s move on" or "I\'ve made a note". Instead, use natural variations like "Thank you", "I understand", "Just one more question", or simply proceed to the next question.',
-      '3. CONTRADICTIONS: If the user contradicts previously provided information, explicitly ask them to clarify the discrepancy in natural language rather than silently overwriting it.',
-      '4. ROBUSTNESS: Robustly normalize ASR imperfections (e.g. "em em eye one zero" -> "MMI-10").',
-      '5. CONCISENESS: Keep your responses conversational, natural, and speak like a human. Do NOT ask more than one question per turn.',
-      '6. AVOID UNNECESSARY SUMMARIES: Do not repeatedly summarize the claim. Only summarize if explicitly asked or just before completion.',
+      '3. INFER IMPLICIT DATA: The user may provide data out of order. Infer implicitly: if the user mentions pain, infer injuriesReported=true. If the car is wrecked or towed, infer vehicleDrivable=false. If police came, infer policeReportFiled=true. Extract everything naturally without asking redundant questions.',
+      '4. CONTRADICTIONS: If the user contradicts previously provided information, explicitly ask them to clarify the discrepancy in natural language rather than silently overwriting it.',
+      '5. ROBUSTNESS: Robustly normalize ASR imperfections (e.g. "em em eye one zero" -> "MMI-10").',
+      '6. CONCISENESS: Keep your responses conversational, natural, and speak like a human. Do NOT ask more than one question per turn.',
       '7. CONTEXT AWARENESS: Read any [System Note] injected into the history and address it naturally.',
     ].join('\n');
     const conversationContext = buildExtractionContext(input.state);
@@ -447,7 +447,7 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
     }
 
     const finalResult: ExtractClaimDataResult = {
-      responseToUser: result.assistantResponse || 'Could you tell me more about that?',
+      responseToUser: result.assistantResponse || '',
       toolCalls: result.toolCalls,
       finishReason: result.finishReason,
       conversationAnalysis: '',

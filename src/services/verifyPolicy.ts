@@ -40,7 +40,38 @@ function normalizeWhitespace(value: string): string {
 }
 
 function normalizePolicyNumber(policyNumber: string): string {
-  return normalizeWhitespace(policyNumber).toUpperCase();
+  const wordToNumber: Record<string, string> = {
+    zero: '0', one: '1', two: '2', three: '3', four: '4',
+    five: '5', six: '6', seven: '7', eight: '8', nine: '9'
+  };
+  
+  let normalized = policyNumber.toLowerCase();
+  
+  for (const [word, num] of Object.entries(wordToNumber)) {
+    const regex = new RegExp(`\\b${word}\\b`, 'gi');
+    normalized = normalized.replace(regex, num);
+  }
+  
+  return normalized.replace(/[^a-z0-9]/gi, '').toUpperCase();
+}
+
+function nameFuzzyMatch(spokenName: string, expectedName: string): boolean {
+  const spokenTokens = spokenName.toLowerCase().replace(/[^a-z ]/gi, '').split(/\s+/).filter(Boolean);
+  const expectedTokens = expectedName.toLowerCase().replace(/[^a-z ]/gi, '').split(/\s+/).filter(Boolean);
+  
+  if (expectedTokens.length === 0) return false;
+
+  let matchedTokens = 0;
+  for (const exp of expectedTokens) {
+    if (spokenTokens.includes(exp)) {
+      matchedTokens++;
+    }
+  }
+  
+  if (matchedTokens === expectedTokens.length) return true;
+  if (matchedTokens >= 2 && matchedTokens >= expectedTokens.length - 1) return true;
+  
+  return false;
 }
 
 function normalizeCallerName(callerName: string): string {
@@ -117,9 +148,9 @@ function verifyAgainstPolicies(
     };
   }
 
-  const expectedCallerName = normalizeCallerName(matchedPolicy.policyholderName);
+  const expectedCallerName = matchedPolicy.policyholderName;
 
-  if (expectedCallerName !== callerName) {
+  if (!nameFuzzyMatch(input.callerName, expectedCallerName)) {
     return {
       verified: false,
       reason: 'caller_name_mismatch',
