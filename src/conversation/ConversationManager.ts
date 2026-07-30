@@ -492,16 +492,18 @@ export class DefaultConversationManager implements ConversationManager {
     
     let iterations = 0;
     const MAX_TOOL_ITERATIONS = 5;
+    let accumulatedResponse = '';
     
     while (iterations < MAX_TOOL_ITERATIONS) {
         iterations++;
         const extractionResult = await this.dependencies.extractClaimData.extract({
             userMessage: message,
             state: { ...state, conversationHistory: historyWithUser, currentClaim: updatedClaim, verifiedPolicy: verifiedPolicyObj },
-            onContentChunk: toolContext.length === 0 ? onContentChunk : undefined,
+            onContentChunk: onContentChunk,
             toolContext: toolContext.length > 0 ? toolContext : undefined
         });
         
+        accumulatedResponse += extractionResult.responseToUser;
         finalExtractionResult = extractionResult;
         
         if (extractionResult.toolCalls && extractionResult.toolCalls.length > 0) {
@@ -553,13 +555,13 @@ export class DefaultConversationManager implements ConversationManager {
     if (isEscalated) {
         return this.withAssistantAction(
             { ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, currentConversationStep: 'escalation' },
-            { type: 'escalate', message: finalExtractionResult.responseToUser || 'I understand this is an emergency. Please hang up and dial emergency services immediately.', reason: escalationReason },
+            { type: 'escalate', message: accumulatedResponse.trim() || 'I understand this is an emergency. Please hang up and dial emergency services immediately.', reason: escalationReason },
             finalExtractionResult.debugMetrics
         );
     }
 
     if (claimCompleted) {
-        return this.completeClaim(state, updatedClaim, historyWithUser, message, finalExtractionResult.responseToUser, finalExtractionResult.debugMetrics);
+        return this.completeClaim(state, updatedClaim, historyWithUser, message, accumulatedResponse.trim(), finalExtractionResult.debugMetrics);
     }
 
     const trackedState = this.updateFieldTracking({
@@ -573,7 +575,7 @@ export class DefaultConversationManager implements ConversationManager {
     
     return this.withAssistantAction(trackedState, {
        type: 'respond',
-       message: finalExtractionResult.responseToUser || 'I have updated your claim details.'
+       message: accumulatedResponse.trim() || 'I have updated your claim details.'
     }, finalExtractionResult.debugMetrics);
   }
 
