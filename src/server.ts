@@ -159,20 +159,50 @@ app.post(
 );
 
 import { WebSocketServer, WebSocket } from 'ws';
+import { AsyncLocalStorage } from 'node:async_hooks';
+
+export const requestContext = new AsyncLocalStorage<string>();
+
+const originalConsoleLog = console.log;
+const originalConsoleError = console.error;
+
+function formatLogMsg(msg: string) {
+  const reqId = requestContext.getStore();
+  const prefix = reqId ? `[Request ${reqId}] ` : '';
+  return `${prefix}${msg}`;
+}
+
+console.log = function(...args) {
+  if (typeof args[0] === 'string') {
+    args[0] = formatLogMsg(args[0]);
+  }
+  originalConsoleLog.apply(console, args);
+};
+
+console.error = function(...args) {
+  if (typeof args[0] === 'string') {
+    args[0] = formatLogMsg(args[0]);
+  }
+  originalConsoleError.apply(console, args);
+};
 
 // Global log buffer for /view-logs endpoint
 const runtimeLogs: string[] = [];
 
 function logInfo(msg: string) {
-  const formatted = `[INFO] [${new Date().toISOString()}] ${msg}`;
+  const reqId = requestContext.getStore();
+  const prefix = reqId ? `[Request ${reqId}] ` : '';
+  const formatted = `[INFO] [${new Date().toISOString()}] ${prefix}${msg}`;
   runtimeLogs.push(formatted);
-  console.log(formatted);
+  originalConsoleLog(formatted);
 }
 
 function logError(msg: string, err?: any) {
-  const formatted = `[ERROR] [${new Date().toISOString()}] ${msg}${err ? ' ' + String(err?.stack || err) : ''}`;
+  const reqId = requestContext.getStore();
+  const prefix = reqId ? `[Request ${reqId}] ` : '';
+  const formatted = `[ERROR] [${new Date().toISOString()}] ${prefix}${msg}${err ? ' ' + String(err?.stack || err) : ''}`;
   runtimeLogs.push(formatted);
-  console.error(formatted);
+  originalConsoleError(formatted);
 }
 
 function sendWsJson(ws: WebSocket, payload: any, tag: string) {
@@ -197,11 +227,11 @@ const processingTurn = new Set<string>();
 const port = Number(process.env.PORT ?? DEFAULT_PORT);
 
 const server = app.listen(port, () => {
-  logInfo(`\n===================================`);
-  logInfo(`Provider: Gemini`);
-  logInfo(`Model: gemini-2.5-flash`);
-  logInfo(`Billing: Using configured API key`);
-  logInfo(`===================================\n`);
+  logInfo(`\n====================================`);
+  logInfo(`Provider : Gemini`);
+  logInfo(`Model : gemini-2.5-flash`);
+  logInfo(`Billing : Paid`);
+  logInfo(`====================================\n`);
   logInfo(`FNOL backend listening on port ${port}`);
 });
 
@@ -305,9 +335,12 @@ wss.on('connection', (ws: WebSocket, req) => {
         
         processingTurn.add(sessionId);
 
-        (async () => {
-          try {
-            const responseId = event.response_id;
+        const requestId = crypto.randomBytes(3).toString('hex');
+
+        requestContext.run(requestId, () => {
+          (async () => {
+            try {
+              const responseId = event.response_id;
             
             const transcript = event.transcript || [];
             const lastUserTurn = [...transcript].reverse().find((t: any) => t.role === 'user');
@@ -378,6 +411,7 @@ wss.on('connection', (ws: WebSocket, req) => {
             const turnLog = [
               `\n==================================`,
               `TURN # ${currentState.conversationHistory.length / 2 + 1}`,
+              `Request ID: ${requestId}`,
               `Interaction Type: ${event.interaction_type}`,
               `LLM Calls: ${numLlmCalls}`,
               `Prompt Tokens: ${(result.debugMetrics?.usageMetadata as any)?.promptTokenCount ?? 0}`,
@@ -434,11 +468,12 @@ wss.on('connection', (ws: WebSocket, req) => {
             }
           } catch (err) {
             logError('Error in processing turn:', err);
-          } finally {
-            processingTurn.delete(sessionId);
-            logInfo(`Locked processing finished (resolved or rejected) for response_id ${event.response_id}`);
-          }
-        })();
+            } finally {
+              processingTurn.delete(sessionId);
+              logInfo(`Locked processing finished (resolved or rejected) for response_id ${event.response_id}`);
+            }
+          })();
+        });
       }
     } catch (err) {
       logError('Error processing message:', err);
