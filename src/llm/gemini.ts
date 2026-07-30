@@ -6,8 +6,8 @@ interface GeminiServiceOptions {
   endpointBaseUrl?: string;
 }
 
-const DEFAULT_MODEL = 'llama-3.3-70b-versatile';
-const DEFAULT_ENDPOINT_BASE_URL = 'https://api.groq.com/openai/v1';
+const DEFAULT_MODEL = 'gemini-2.0-flash';
+const DEFAULT_ENDPOINT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai';
 
 function readEnvironmentValue(name: string): string | undefined {
   const value = process.env[name];
@@ -73,24 +73,13 @@ export class GeminiService implements LlmProvider {
   private readonly endpointBaseUrl: string;
 
   constructor(options: GeminiServiceOptions = {}) {
-    const groqKey = readEnvironmentValue('GROQ_API_KEY');
-    const geminiKey = readEnvironmentValue('GEMINI_API_KEY');
-    
-    this.apiKey = options.apiKey ?? groqKey ?? geminiKey;
-    
-    const isGeminiOnly = !options.apiKey && !groqKey && !!geminiKey;
-    
-    const fallbackModel = isGeminiOnly ? 'gemini-2.0-flash' : DEFAULT_MODEL;
-    const fallbackEndpoint = isGeminiOnly 
-      ? 'https://generativelanguage.googleapis.com/v1beta/openai' 
-      : DEFAULT_ENDPOINT_BASE_URL;
+    this.apiKey = options.apiKey ?? readEnvironmentValue('GEMINI_API_KEY');
       
-    this.model = options.model ?? readEnvironmentValue('GROQ_MODEL') ?? readEnvironmentValue('GEMINI_MODEL') ?? fallbackModel;
+    this.model = options.model ?? readEnvironmentValue('GEMINI_MODEL') ?? DEFAULT_MODEL;
     this.endpointBaseUrl =
       options.endpointBaseUrl ??
-      readEnvironmentValue('GROQ_ENDPOINT_BASE_URL') ??
       readEnvironmentValue('GEMINI_ENDPOINT_BASE_URL') ??
-      fallbackEndpoint;
+      DEFAULT_ENDPOINT_BASE_URL;
   }
 
   async generateResponse(
