@@ -472,7 +472,7 @@ export class DefaultConversationManager implements ConversationManager {
     if (state.currentConversationStep === 'completed') {
       return this.withAssistantAction(
         { ...state, lastUserMessage: message },
-        { type: 'complete', message: 'Goodbye, have a great day.' },
+        { type: 'complete', message: 'Goodbye, have a great day.', claim: state.currentClaim },
         {}
       );
     }
@@ -499,9 +499,14 @@ export class DefaultConversationManager implements ConversationManager {
         console.log(`\n[ConversationManager] ====== LOOP ITERATION ${iterations} ======`);
         const extractionResult = await this.dependencies.extractClaimData.extract({
             userMessage: message,
-            state: { ...state, conversationHistory: historyWithUser, currentClaim: updatedClaim, verifiedPolicy: verifiedPolicyObj },
+            state: { 
+                ...state, 
+                conversationHistory: historyWithUser, 
+                currentClaim: updatedClaim, 
+                ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}) 
+            },
             onContentChunk: onContentChunk,
-            toolContext: toolContext.length > 0 ? toolContext : undefined
+            ...(toolContext.length > 0 ? { toolContext } : {})
         });
         console.log(`[ConversationManager] Iteration ${iterations} finishReason: ${extractionResult.finishReason}`);
         console.log(`[ConversationManager] Iteration ${iterations} toolCalls count: ${extractionResult.toolCalls?.length || 0}`);
@@ -584,7 +589,7 @@ export class DefaultConversationManager implements ConversationManager {
     if (callbackOffered) {
         return this.withAssistantAction(
             { ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, currentConversationStep: 'callback_offer', verificationAttempts },
-            { type: 'complete', message: accumulatedResponse.trim() || 'I apologize, but I am unable to verify your policy details at this time. A claims agent will call you back shortly to assist you. Goodbye.' },
+            { type: 'complete', message: accumulatedResponse.trim() || 'I apologize, but I am unable to verify your policy details at this time. A claims agent will call you back shortly to assist you. Goodbye.', claim: updatedClaim },
             finalExtractionResult.debugMetrics
         );
     }
@@ -597,7 +602,7 @@ export class DefaultConversationManager implements ConversationManager {
       ...state,
       currentClaim: updatedClaim,
       conversationHistory: historyWithUser,
-      verifiedPolicy: verifiedPolicyObj,
+      ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}),
       pendingClarifications: [],
       lastUserMessage: message,
       verificationAttempts,

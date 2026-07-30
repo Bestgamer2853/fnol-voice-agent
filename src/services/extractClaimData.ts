@@ -437,8 +437,8 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       conversationContext,
       userPrompt,
       tools,
-      onContentChunk: input.onContentChunk,
-      toolContext: input.toolContext,
+      ...(input.toolContext ? { toolContext: input.toolContext } : {}),
+      ...(input.onContentChunk ? { onContentChunk: input.onContentChunk } : {}),
     });
 
     if (result.errorMessage) {
@@ -448,14 +448,14 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
 
     const finalResult: ExtractClaimDataResult = {
       responseToUser: result.assistantResponse || '',
-      toolCalls: result.toolCalls,
-      finishReason: result.finishReason,
+      ...(result.toolCalls ? { toolCalls: result.toolCalls } : {}),
+      finishReason: result.finishReason || '',
       conversationAnalysis: '',
       debugMetrics: {
         rawExtractedSlots: result.toolCalls,
-        geminiPrompt: systemPrompt + '\n' + conversationContext + '\n' + userPrompt,
-        geminiResponse: result.assistantResponse,
-      }
+        geminiPrompt: userPrompt,
+        geminiResponse: result.assistantResponse || '',
+      },
     };
 
     responseCache.set(cacheKey, finalResult);

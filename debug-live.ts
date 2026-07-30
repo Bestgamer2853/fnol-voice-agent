@@ -19,6 +19,7 @@ async function run() {
     followUpQuestions: [],
     pendingClarifications: [],
     empathyPhrasesUsed: [],
+    verificationAttempts: 0,
   };
 
   console.log('Sending to Gemini...');
