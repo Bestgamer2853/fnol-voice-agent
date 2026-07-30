@@ -59,6 +59,7 @@ export class GoogleSheetsClaimLogger implements ClaimLoggerService {
     if (this.initialized) return;
 
     try {
+      console.log('Checking Google Sheets initialization status...');
       const range = `Sheet1!A1:${String.fromCharCode(64 + HEADERS.length)}1`; // 'A1:W1'
       
       const response = await this.sheets.spreadsheets.values.get({
@@ -66,68 +67,102 @@ export class GoogleSheetsClaimLogger implements ClaimLoggerService {
         range,
       });
 
-      if (!response.data.values || response.data.values.length === 0) {
-        // Sheet is empty, write headers
-        await this.sheets.spreadsheets.values.update({
-          spreadsheetId: this.spreadsheetId,
-          range,
-          valueInputOption: 'USER_ENTERED',
-          requestBody: {
-            values: [HEADERS],
-          },
-        });
+      const values = response.data.values;
+      const isEmpty = !values || values.length === 0;
+      const isAlreadyInitialized = !isEmpty && values?.[0]?.[0] === HEADERS[0];
+      const isPopulatedWithoutHeaders = !isEmpty && values?.[0]?.[0] !== HEADERS[0];
 
-        // Get sheetId for batch updates
-        const spreadsheet = await this.sheets.spreadsheets.get({
-            spreadsheetId: this.spreadsheetId
-        });
-        const sheetId = spreadsheet.data.sheets?.[0]?.properties?.sheetId || 0;
+      if (isAlreadyInitialized) {
+        console.log('Sheet is already initialized with headers. Skipping format.');
+        this.initialized = true;
+        return;
+      }
 
-        await this.sheets.spreadsheets.batchUpdate({
-          spreadsheetId: this.spreadsheetId,
-          requestBody: {
-            requests: [
-              {
-                updateSheetProperties: {
-                  properties: {
-                    sheetId: sheetId,
-                    gridProperties: { frozenRowCount: 1 },
-                  },
-                  fields: 'gridProperties.frozenRowCount',
-                },
-              },
-              {
-                repeatCell: {
-                  range: {
-                    sheetId: sheetId,
-                    startRowIndex: 0,
-                    endRowIndex: 1,
-                    startColumnIndex: 0,
-                    endColumnIndex: HEADERS.length,
-                  },
-                  cell: {
-                    userEnteredFormat: {
-                      backgroundColor: { red: 0.2, green: 0.2, blue: 0.2 },
-                      textFormat: { bold: true, foregroundColor: { red: 1, green: 1, blue: 1 } },
-                    },
-                  },
-                  fields: 'userEnteredFormat(backgroundColor,textFormat)',
-                },
-              },
-              {
-                autoResizeDimensions: {
-                  dimensions: {
-                    sheetId: sheetId,
-                    dimension: 'COLUMNS',
-                    startIndex: 0,
-                    endIndex: HEADERS.length,
-                  },
-                },
-              },
-            ],
-          },
+      console.log(`Sheet state: Empty=${isEmpty}, PopulatedWithoutHeaders=${isPopulatedWithoutHeaders}`);
+
+      // Get sheetId for batch updates
+      const spreadsheet = await this.sheets.spreadsheets.get({
+          spreadsheetId: this.spreadsheetId
+      });
+      const sheetId = spreadsheet.data.sheets?.[0]?.properties?.sheetId || 0;
+      
+      const batchRequests: any[] = [];
+
+      if (isPopulatedWithoutHeaders) {
+        console.log('Existing claim data detected without headers. Shifting data down...');
+        batchRequests.push({
+          insertDimension: {
+            range: {
+              sheetId: sheetId,
+              dimension: 'ROWS',
+              startIndex: 0,
+              endIndex: 1,
+            },
+            inheritFromBefore: false,
+          }
         });
       }
+
+      // Add formatting requests
+      batchRequests.push(
+        {
+          updateSheetProperties: {
+            properties: {
+              sheetId: sheetId,
+              gridProperties: { frozenRowCount: 1 },
+            },
+            fields: 'gridProperties.frozenRowCount',
+          },
+        },
+        {
+          repeatCell: {
+            range: {
+              sheetId: sheetId,
+              startRowIndex: 0,
+              endRowIndex: 1,
+              startColumnIndex: 0,
+              endColumnIndex: HEADERS.length,
+            },
+            cell: {
+              userEnteredFormat: {
+                backgroundColor: { red: 0.2, green: 0.2, blue: 0.2 },
+                textFormat: { bold: true, foregroundColor: { red: 1, green: 1, blue: 1 } },
+              },
+            },
+            fields: 'userEnteredFormat(backgroundColor,textFormat)',
+          },
+        },
+        {
+          autoResizeDimensions: {
+            dimensions: {
+              sheetId: sheetId,
+              dimension: 'COLUMNS',
+              startIndex: 0,
+              endIndex: HEADERS.length,
+            },
+          },
+        }
+      );
+
+      console.log('Executing batchUpdate to set up headers and formatting...');
+      await this.sheets.spreadsheets.batchUpdate({
+        spreadsheetId: this.spreadsheetId,
+        requestBody: {
+          requests: batchRequests,
+        },
+      });
+
+      console.log('Writing header values to Row 1...');
+      await this.sheets.spreadsheets.values.update({
+        spreadsheetId: this.spreadsheetId,
+        range,
+        valueInputOption: 'USER_ENTERED',
+        requestBody: {
+          values: [HEADERS],
+        },
+      });
+
+      console.log('Google Sheets initialization complete!');
       this.initialized = true;
     } catch (e) {
       console.error('Failed to initialize Google Sheets headers:', e);
