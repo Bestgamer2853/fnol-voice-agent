@@ -14,10 +14,21 @@ export interface GenerateResponseInput {
 }
 
 export interface GenerateResponseResult {
-  assistantResponse: string;
-  errorMessage?: string;
-  toolCalls?: { id: string, name: string, args: any }[];
+  assistantResponse?: string;
+  toolCalls?: Array<{
+    id: string;
+    name: string;
+    args: unknown;
+  }>;
   finishReason?: string;
+  errorMessage?: string;
+  usageMetadata?: UsageMetadata;
+}
+
+export interface UsageMetadata {
+  promptTokenCount?: number;
+  candidatesTokenCount?: number;
+  totalTokenCount?: number;
 }
 
 export interface LlmProvider {

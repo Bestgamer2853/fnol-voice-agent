@@ -176,6 +176,7 @@ export class GeminiService implements LlmProvider {
         let fullAssistantResponse = '';
         const activeToolCalls = new Map<number, {id: string, name: string, arguments: string}>();
         let finishReason = '';
+        let usageMetadata: any = undefined;
         
         let buffer = '';
         while (true) {
@@ -194,6 +195,9 @@ export class GeminiService implements LlmProvider {
               if (dataStr !== '[DONE]') {
                 try {
                   const data = JSON.parse(dataStr);
+                  if (data.usage) {
+                    usageMetadata = data.usage;
+                  }
                   
                   if (data.choices && data.choices[0]) {
                     const choice = data.choices[0];
@@ -257,7 +261,8 @@ export class GeminiService implements LlmProvider {
 
         const finalResponse: GenerateResponseResult = { 
           assistantResponse: fullAssistantResponse,
-          finishReason
+          finishReason,
+          usageMetadata
         };
         if (allToolCalls.length > 0) finalResponse.toolCalls = allToolCalls;
         return finalResponse;

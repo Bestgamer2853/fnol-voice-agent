@@ -22,8 +22,7 @@ import type {
   ConversationTurnResult,
 } from './actions.js';
 import type { ConversationState } from './ConversationState.js';
-
-
+import type { UsageMetadata } from '../llm/provider.js';
 import type {
   Contradiction,
   ConversationMessage,
@@ -276,8 +275,10 @@ function sanitizeBoolean(value: unknown): boolean | undefined {
   return typeof value === 'boolean' ? value : undefined;
 }
 
-function validateClaimPatch(patch: Partial<Claim>): Partial<Claim> {
+function validateClaimPatch(patch: Partial<Claim>, state: ConversationState): { validatedPatch: Partial<Claim>, pendingClarifications: string[] } {
   const validatedPatch: Partial<Claim> = {};
+  const pendingClarifications: string[] = [];
+  
   const textFields = [
     'policyNumber',
     'callerName',
@@ -289,6 +290,7 @@ function validateClaimPatch(patch: Partial<Claim>): Partial<Claim> {
     'injuryDetails',
     'policeReportReference',
   ] as const;
+  
   const booleanFields = [
     'injuriesReported',
     'policeReportFiled',
@@ -298,15 +300,19 @@ function validateClaimPatch(patch: Partial<Claim>): Partial<Claim> {
 
   for (const field of textFields) {
     const value = sanitizeText(patch[field]);
-
     if (value) {
-      validatedPatch[field] = value;
+      if (field === 'dateOfIncident' && !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+          pendingClarifications.push(`The date format for "${value}" is not valid. Please provide it as YYYY-MM-DD.`);
+      } else if (field === 'timeOfIncident' && !/^(?:[01]?\d|2[0-3]):[0-5]\d\s*(?:am|pm)?$/i.test(value)) {
+          pendingClarifications.push(`The time format for "${value}" is not valid. Please provide it like HH:MM am/pm.`);
+      } else {
+          validatedPatch[field] = value;
+      }
     }
   }
 
   for (const field of booleanFields) {
     const value = sanitizeBoolean(patch[field]);
-
     if (value !== undefined) {
       validatedPatch[field] = value;
     }
@@ -318,16 +324,16 @@ function validateClaimPatch(patch: Partial<Claim>): Partial<Claim> {
     const model = sanitizeText(patch.insuredVehicle.model);
     const registration = sanitizeText(patch.insuredVehicle.registration);
 
-    if (make) {
-      vehiclePatch.make = make;
-    }
-
-    if (model) {
-      vehiclePatch.model = model;
-    }
-
+    if (make) vehiclePatch.make = make;
+    if (model) vehiclePatch.model = model;
+    
     if (registration) {
-      vehiclePatch.registration = registration;
+        const normReg = registration.replace(/[^a-z0-9]/gi, '').toUpperCase();
+        if (normReg.length < 4) {
+            pendingClarifications.push(`The vehicle registration "${registration}" seems invalid. Can you repeat it?`);
+        } else {
+            vehiclePatch.registration = normReg;
+        }
     }
 
     if (Object.keys(vehiclePatch).length > 0) {
@@ -335,7 +341,7 @@ function validateClaimPatch(patch: Partial<Claim>): Partial<Claim> {
     }
   }
 
-  return validatedPatch;
+  return { validatedPatch, pendingClarifications };
 }
 
 function hasText(value: string | undefined): value is string {
@@ -488,111 +494,57 @@ export class DefaultConversationManager implements ConversationManager {
     let verifiedPolicyObj = state.verifiedPolicy;
     let verificationAttempts = state.verificationAttempts || 0;
     
-    const toolContext: { assistantMessage: string, toolCalls: any[], toolResults: any[] }[] = [];
+    const extractionStartTime = Date.now();
+    const extractionResult = await this.dependencies.extractClaimData.extract({
+        userMessage: message,
+        state: { 
+            ...state, 
+            conversationHistory: historyWithUser, 
+            currentClaim: updatedClaim, 
+            ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}) 
+        },
+        onContentChunk: onContentChunk
+    });
+    const extractionLatency = Date.now() - extractionStartTime;
+    console.log(`[ConversationManager] finishReason: ${extractionResult.finishReason}`);
     
-    let iterations = 0;
-    const MAX_TOOL_ITERATIONS = 5;
-    let accumulatedResponse = '';
+    let accumulatedResponse = extractionResult.responseToUser;
     
-    while (iterations < MAX_TOOL_ITERATIONS) {
-        iterations++;
-        console.log(`\n[ConversationManager] ====== LOOP ITERATION ${iterations} ======`);
-        const extractionResult = await this.dependencies.extractClaimData.extract({
-            userMessage: message,
-            state: { 
-                ...state, 
-                conversationHistory: historyWithUser, 
-                currentClaim: updatedClaim, 
-                ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}) 
-            },
-            onContentChunk: onContentChunk,
-            ...(toolContext.length > 0 ? { toolContext } : {})
-        });
-        console.log(`[ConversationManager] Iteration ${iterations} finishReason: ${extractionResult.finishReason}`);
-        console.log(`[ConversationManager] Iteration ${iterations} toolCalls count: ${extractionResult.toolCalls?.length || 0}`);
+    // Anti-repetition logic
+    if (accumulatedResponse === state.lastAssistantMessage) {
+        accumulatedResponse = "Could you please clarify that?";
+    }
+    
+    finalExtractionResult = extractionResult;
+    let newClarifications: PendingClarification[] = [];
+    
+    if (extractionResult.debugMetrics && extractionResult.debugMetrics.rawExtractedSlots) {
+        const rawSlots = extractionResult.debugMetrics.rawExtractedSlots as any;
+        const confidence = typeof rawSlots.confidence === 'number' ? rawSlots.confidence : 1.0;
         
-        if (extractionResult.responseToUser) {
-            accumulatedResponse += (accumulatedResponse ? ' ' : '') + extractionResult.responseToUser;
-        }
-        finalExtractionResult = extractionResult;
+        // Remove confidence before validation
+        delete rawSlots.confidence;
         
-        if (extractionResult.toolCalls && extractionResult.toolCalls.length > 0) {
-            const results = [];
-            
-            for (const call of extractionResult.toolCalls) {
-                console.log(`[ConversationManager]   -> Executing tool: ${call.name}`);
-                console.log(`[ConversationManager]      Args: ${JSON.stringify(call.args)}`);
-                let toolResultStr = "Success";
-                
-                if (call.name === 'save_claim_data' && call.args) {
-                    const patch = validateClaimPatch(call.args as Partial<Claim>);
-                    const normalizedPatch = normalizeClaimPatch(patch);
-                    
-                    const newContradictions: string[] = [];
-                    for (const [key, newValue] of Object.entries(normalizedPatch)) {
-                        const existingValue = (updatedClaim as any)[key];
-                        if (existingValue !== undefined && existingValue !== newValue) {
-                            if (typeof existingValue === 'boolean') {
-                                newContradictions.push(`User previously said ${key}=${existingValue}, but you are trying to save ${key}=${newValue}. You MUST explicitly ask the user to clarify this contradiction before saving it.`);
-                                delete (normalizedPatch as any)[key]; // Reject this field
-                            }
-                        }
-                    }
-                    
-                    updatedClaim = mergeClaim(updatedClaim, normalizedPatch);
-                    
-                    if (newContradictions.length > 0) {
-                        toolResultStr = JSON.stringify({ error: newContradictions.join(' ') });
-                    } else {
-                        toolResultStr = JSON.stringify({ success: true, savedFields: Object.keys(normalizedPatch) });
-                    }
-                } else if (call.name === 'escalate_claim' && call.args) {
-                    isEscalated = true;
-                    escalationReason = (call.args.reason as string) || 'safety_check_failed';
-                    toolResultStr = JSON.stringify({ success: true, escalated: true });
-                } else if (call.name === 'verify_policy' && call.args) {
-                    const verifyResult = await this.dependencies.verifyPolicy.verify({
-                        policyNumber: call.args.policyNumber as string,
-                        callerName: call.args.callerName as string,
-                    });
-                    if (verifyResult.verified && verifyResult.policy) {
-                        verifiedPolicyObj = verifyResult.policy;
-                    } else {
-                        verificationAttempts++;
-                        if (verificationAttempts >= 2) {
-                            callbackOffered = true;
-                            toolResultStr = JSON.stringify({ error: 'Maximum verification attempts reached. You MUST apologize and inform the user that a human agent will call them back to assist further. Do NOT ask for policy details again.' });
-                        }
-                    }
-                    if (!callbackOffered) {
-                        toolResultStr = JSON.stringify(verifyResult);
-                    }
-                } else if (call.name === 'complete_claim') {
-                    const missing = calculateMissingFields(updatedClaim);
-                    if (missing.length === 0) {
-                        claimCompleted = true;
-                        toolResultStr = JSON.stringify({ success: true, completed: true });
-                    } else {
-                        toolResultStr = JSON.stringify({ error: `Cannot complete claim. You are still missing the following fields: ${missing.join(', ')}. Ask the user for them.` });
-                    }
-                }
-                
-                console.log(`[ConversationManager]      Result: ${toolResultStr}`);
-                results.push({ id: call.id, name: call.name, result: toolResultStr });
+        const { validatedPatch, pendingClarifications } = validateClaimPatch(rawSlots as Partial<Claim>, state);
+        const normalizedPatch = normalizeClaimPatch(validatedPatch);
+        
+        if (confidence < 0.65) {
+            newClarifications.push({ field: 'incidentDescription', prompt: 'I wasn\'t quite sure I caught that correctly. Could you please repeat it?' });
+        } else if (pendingClarifications.length > 0) {
+            for (const c of pendingClarifications) {
+                newClarifications.push({ field: 'incidentDescription', prompt: c });
             }
-            
-            toolContext.push({
-                assistantMessage: extractionResult.responseToUser,
-                toolCalls: extractionResult.toolCalls,
-                toolResults: results
-            });
-            
-            if (extractionResult.finishReason === 'tool_calls' || extractionResult.toolCalls.length > 0) {
-                continue;
-            }
+        } else {
+            updatedClaim = mergeClaim(updatedClaim, normalizedPatch);
         }
         
-        break;
+        // Print Metrics Block
+        const tokens = (extractionResult as any).usageMetadata || { promptTokenCount: 0, candidatesTokenCount: 0, totalTokenCount: 0 };
+        console.log(`\n[METRICS] Turn #${state.conversationHistory.length / 2 + 1}`);
+        console.log(`[METRICS] Latency: ${extractionLatency}ms`);
+        console.log(`[METRICS] PromptTokens: ${tokens.promptTokenCount}, CompletionTokens: ${tokens.candidatesTokenCount}, TotalTokens: ${tokens.totalTokenCount}`);
+        console.log(`[METRICS] MissingFields: ${calculateMissingFields(updatedClaim).join(', ')}`);
+        console.log(`[METRICS] ExtractedFields: ${JSON.stringify(normalizedPatch)}\n`);
     }
 
     // Deterministic Escalation logic
@@ -612,12 +564,36 @@ export class DefaultConversationManager implements ConversationManager {
         );
     }
 
+    // Deterministic Policy Verification
+    if (!verifiedPolicyObj && updatedClaim.policyNumber && updatedClaim.callerName && !callbackOffered) {
+        const verifyResult = await this.dependencies.verifyPolicy.verify({
+            policyNumber: updatedClaim.policyNumber,
+            callerName: updatedClaim.callerName,
+        });
+        if (verifyResult.verified && verifyResult.policy) {
+            verifiedPolicyObj = verifyResult.policy;
+        } else {
+            verificationAttempts++;
+            if (verificationAttempts >= 2) {
+                callbackOffered = true;
+            }
+        }
+    }
+
     if (callbackOffered) {
         return this.withAssistantAction(
             { ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, currentConversationStep: 'callback_offer', verificationAttempts },
             { type: 'complete', message: accumulatedResponse.trim() || 'I apologize, but I am unable to verify your policy details at this time. A claims agent will call you back shortly to assist you. Goodbye.', claim: updatedClaim },
             finalExtractionResult.debugMetrics
         );
+    }
+
+    // Deterministic Completion Check
+    if (verifiedPolicyObj) {
+        const missing = calculateMissingFields(updatedClaim);
+        if (missing.length === 0) {
+            claimCompleted = true;
+        }
     }
 
     if (claimCompleted) {
@@ -629,7 +605,7 @@ export class DefaultConversationManager implements ConversationManager {
       currentClaim: updatedClaim,
       conversationHistory: historyWithUser,
       ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}),
-      pendingClarifications: [],
+      pendingClarifications: newClarifications,
       lastUserMessage: message,
       verificationAttempts,
     });

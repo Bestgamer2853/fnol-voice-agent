@@ -55,23 +55,82 @@ function normalizePolicyNumber(policyNumber: string): string {
   return normalized.replace(/[^a-z0-9]/gi, '').toUpperCase();
 }
 
-function nameFuzzyMatch(spokenName: string, expectedName: string): boolean {
-  const spokenTokens = spokenName.toLowerCase().replace(/[^a-z ]/gi, '').split(/\s+/).filter(Boolean);
-  const expectedTokens = expectedName.toLowerCase().replace(/[^a-z ]/gi, '').split(/\s+/).filter(Boolean);
+function jaroWinkler(s1: string, s2: string): number {
+  if (s1 === s2) return 1.0;
+  const len1 = s1.length;
+  const len2 = s2.length;
+  if (len1 === 0 || len2 === 0) return 0.0;
   
-  if (expectedTokens.length === 0) return false;
-
-  let matchedTokens = 0;
-  for (const exp of expectedTokens) {
-    if (spokenTokens.includes(exp)) {
-      matchedTokens++;
+  const matchDistance = Math.floor(Math.max(len1, len2) / 2) - 1;
+  const s1Matches = new Array(len1).fill(false);
+  const s2Matches = new Array(len2).fill(false);
+  
+  let matches = 0;
+  for (let i = 0; i < len1; i++) {
+    const start = Math.max(0, i - matchDistance);
+    const end = Math.min(i + matchDistance + 1, len2);
+    for (let j = start; j < end; j++) {
+      if (!s2Matches[j] && s1[i] === s2[j]) {
+        s1Matches[i] = true;
+        s2Matches[j] = true;
+        matches++;
+        break;
+      }
     }
   }
   
-  if (matchedTokens === expectedTokens.length) return true;
-  if (matchedTokens >= 2 && matchedTokens >= expectedTokens.length - 1) return true;
+  if (matches === 0) return 0.0;
   
-  return false;
+  let transpositions = 0;
+  let k = 0;
+  for (let i = 0; i < len1; i++) {
+    if (s1Matches[i]) {
+      while (!s2Matches[k]) k++;
+      if (s1[i] !== s2[k]) transpositions++;
+      k++;
+    }
+  }
+  
+  const jaro = ((matches / len1) + (matches / len2) + ((matches - transpositions / 2) / matches)) / 3.0;
+  
+  let prefix = 0;
+  for (let i = 0; i < Math.min(4, Math.min(len1, len2)); i++) {
+    if (s1[i] === s2[i]) prefix++;
+    else break;
+  }
+  
+  return jaro + (prefix * 0.1 * (1.0 - jaro));
+}
+
+function levenshtein(a: string, b: string): number {
+  const matrix: number[][] = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+  for (let i = 0; i <= a.length; i++) matrix[i]![0] = i;
+  for (let j = 0; j <= b.length; j++) matrix[0]![j] = j;
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      if (a[i - 1] === b[j - 1]) {
+        matrix[i]![j] = matrix[i - 1]![j - 1]!;
+      } else {
+        matrix[i]![j] = Math.min(
+          matrix[i - 1]![j - 1]! + 1,
+          matrix[i]![j - 1]! + 1,
+          matrix[i - 1]![j]! + 1
+        );
+      }
+    }
+  }
+  return matrix[a.length]![b.length]!;
+}
+
+function nameFuzzyMatch(spokenName: string, expectedName: string): boolean {
+  const sName = (spokenName || '').toLowerCase().replace(/[^a-z]/g, '');
+  const eName = (expectedName || '').toLowerCase().replace(/[^a-z]/g, '');
+  
+  if (sName.length === 0 || eName.length === 0) return false;
+  
+  const similarity = jaroWinkler(sName, eName);
+  return similarity > 0.85;
 }
 
 function normalizeCallerName(callerName: string): string {
@@ -136,9 +195,19 @@ function verifyAgainstPolicies(
     };
   }
 
-  const matchedPolicy = policies.find(
+  let matchedPolicy = policies.find(
     (policy) => normalizePolicyNumber(policy.policyNumber) === policyNumber,
   );
+
+  if (!matchedPolicy) {
+      for (const policy of policies) {
+          const expectedPolicy = normalizePolicyNumber(policy.policyNumber);
+          if (levenshtein(expectedPolicy, policyNumber) <= 2) {
+              matchedPolicy = policy;
+              break;
+          }
+      }
+  }
 
   if (!matchedPolicy) {
     return {

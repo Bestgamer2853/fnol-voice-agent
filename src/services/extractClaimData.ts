@@ -173,25 +173,16 @@ function sanitizeExtractedClaimPatch(value: unknown): Partial<Claim> {
   return claimPatch;
 }
 
-function buildExtractionContext(state: ConversationState): string {
-  const historyStr = state.conversationHistory
+function buildExtractionContext(state: ConversationState, fsmInstruction: string, schemaInstruction: string): string {
+  const recentHistory = state.conversationHistory.slice(-4);
+  const historyStr = recentHistory
     .map((msg) => `${msg.role.toUpperCase()}: ${msg.content}`)
     .join('\n');
 
   return [
-    `conversationStep: ${state.currentConversationStep}`,
-    `missingFields: ${state.missingFields.join(', ') || 'none'}`,
-    `knownPolicyNumber: ${state.currentClaim.policyNumber ?? 'unknown'}`,
-    `knownCallerName: ${state.currentClaim.callerName ?? 'unknown'}`,
-    `knownDateOfIncident: ${state.currentClaim.dateOfIncident ?? 'unknown'}`,
-    `knownTimeOfIncident: ${state.currentClaim.timeOfIncident ?? 'unknown'}`,
-    `knownLocationOfIncident: ${state.currentClaim.locationOfIncident ?? 'unknown'}`,
-    `knownVehicleDrivable: ${String(state.currentClaim.vehicleDrivable ?? 'unknown')}`,
-    `knownInjuriesReported: ${String(state.currentClaim.injuriesReported ?? 'unknown')}`,
-    `knownPoliceReportFiled: ${String(state.currentClaim.policeReportFiled ?? 'unknown')}`,
-    `knownPhotosAvailable: ${String(state.currentClaim.photosAvailable ?? 'unknown')}`,
-    `towingIncludedInPolicy: ${String(state.verifiedPolicy?.towingIncluded ?? 'unknown')}`,
-    `\nCONVERSATION HISTORY:\n${historyStr}`,
+    `FSM_INSTRUCTION: ${fsmInstruction}`,
+    `\nJSON_SCHEMA:\n${schemaInstruction}`,
+    `\nRECENT_HISTORY:\n${historyStr}`,
   ].join('\n');
 }
 
@@ -357,107 +348,59 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
     }
     const systemPrompt = [
       'You are an expert conversational AI agent for FNOL motor insurance claims.',
-      'You must drive the entire conversation natively, handling safety checks, empathy, policy verification, and data extraction.',
+      'You act purely as the linguistic translation layer. The ConversationManager (FSM) owns the logic.',
       '',
-      'CONVERSATIONAL FLOW:',
-      '1. Ensure the user is safe. If not, call the escalate_claim tool.',
-      '2. Collect the user\'s policy number and caller name. Once you have both, call the verify_policy tool.',
-      '3. Once the policy is verified, collect the remaining claim details (date, time, location, description, vehicles, police reports).',
-      '4. When you learn new information, call the save_claim_data tool.',
-      '5. When all missing fields are collected, verify if towingIncludedInPolicy is true. If it is, explicitly recommend a tow truck and a network garage and save this in recommendedServices.',
-      '6. Finally, summarize the claim verbally, explain that an adjuster will contact them within 24 hours, and then call the complete_claim tool.',
+      'RULES:',
+      '1. Follow the FSM_INSTRUCTION strictly. Generate a natural spoken response answering the instruction.',
+      '2. EMPATHY: Show empathy exactly once when distress or injury is first detected. Never apologize repetitively. Keep transitions tight ("Got it", "Understood").',
+      '3. INFER IMPLICIT DATA: If the user says they went to a hospital, infer injuriesReported=true. If their car was towed, infer vehicleDrivable=false.',
+      '4. DO NOT generate fields that are not present in the JSON_SCHEMA. Only extract what you are explicitly asked for.',
+      '5. CONFIDENCE: Give a confidence score (0.0 to 1.0) on how clearly the user answered the missing fields. If it was mumbled or unrelated, score it low.',
       '',
-      'CRITICAL TOOL CALLING RULES:',
-      '1. FILLER TEXT PROHIBITED: If your response includes a tool call, DO NOT generate any conversational text whatsoever. Your response must be completely empty except for the tool call itself.',
-      '2. NEVER say "Let me check that" or "I am calling a tool". Just output the tool call directly.',
-      '',
-      'CONVERSATIONAL EXCELLENCE RULES:',
-      '1. EMPATHY: Show empathy ONLY ONCE when the accident is first mentioned. DO NOT apologize repeatedly for system errors or misunderstandings; just smoothly move on.',
-      '2. SMOOTH TRANSITIONS: Do NOT sound like a robotic checklist. Avoid repetitive phrases like "Let\'s move on" or "I\'ve made a note". Instead, use natural variations like "Thank you", "I understand", "Just one more question", or simply proceed to the next question.',
-      '3. INFER IMPLICIT DATA: The user may provide data out of order. Infer implicitly: if the user mentions pain, infer injuriesReported=true. If the car is wrecked or towed, infer vehicleDrivable=false. If police came, infer policeReportFiled=true. Extract everything naturally without asking redundant questions.',
-      '4. CONTRADICTIONS: If the user contradicts previously provided information, explicitly ask them to clarify the discrepancy in natural language rather than silently overwriting it.',
-      '5. ROBUSTNESS: Robustly normalize ASR imperfections (e.g. "em em eye one zero" -> "MMI-10").',
-      '6. CONCISENESS: Keep your responses conversational, natural, and speak like a human. Do NOT ask more than one question per turn.',
-      '7. CONTEXT AWARENESS: Read any [System Note] injected into the history and address it naturally.',
+      'JSON OUTPUT REQUIRED:',
+      'You must strictly output a valid JSON object matching the JSON_SCHEMA provided in the context.',
     ].join('\n');
-    const conversationContext = buildExtractionContext(input.state);
+    
+    // Construct dynamic schema instruction
+    let schemaObj: any = {
+      extractedData: {
+          confidence: "number (0.0 to 1.0)"
+      },
+      responseToUser: "Your spoken conversational response here."
+    };
+    
+    // FSM Instruction Logic
+    let fsmInstruction = "Acknowledge their response.";
+    if (input.state.pendingClarifications && input.state.pendingClarifications.length > 0) {
+        fsmInstruction = `Ask the user to clarify: ${input.state.pendingClarifications[0]?.prompt || ''}`;
+    } else if (input.state.missingFields && input.state.missingFields.length > 0) {
+        const nextField = input.state.missingFields[0] || 'details';
+        fsmInstruction = `Acknowledge any new info briefly and naturally, then ask the user to provide their ${nextField.replace(/([A-Z])/g, ' $1').toLowerCase()}.`;
+        
+        // Only ask the LLM to extract fields we are actually missing right now, to save tokens.
+        // We'll just list the top 3 missing fields to keep it very tight.
+        for (const field of input.state.missingFields.slice(0, 3)) {
+            schemaObj.extractedData[field] = "string or boolean or null";
+        }
+        if (input.state.missingFields.includes('insuredVehicle')) {
+             schemaObj.extractedData.insuredVehicle = { make: "string", model: "string", registration: "string" };
+        }
+    } else if (input.state.currentConversationStep === 'completed') {
+        fsmInstruction = "Summarize the claim verbally and explain that an adjuster will contact them within 24 hours.";
+    }
+
+    const conversationContext = buildExtractionContext(input.state, fsmInstruction, JSON.stringify(schemaObj, null, 2));
     const userPrompt = [
-      'Analyze the user message and the conversation history.',
-      'Generate the appropriate conversational response and call tools if necessary.',
+      'Output a JSON object containing both the extracted data and the conversational response.',
       '',
       `User message: ${input.userMessage}`,
     ].join('\n');
-
-    const tools = [
-      {
-        functionDeclarations: [
-          {
-            name: 'save_claim_data',
-            description: 'Save extracted fields to the claim. Call this when you learn new information from the user.',
-            parameters: {
-              type: 'OBJECT',
-              properties: {
-                policyNumber: { type: 'STRING' },
-                callerName: { type: 'STRING' },
-                dateOfIncident: { type: 'STRING' },
-                timeOfIncident: { type: 'STRING' },
-                locationOfIncident: { type: 'STRING' },
-                incidentDescription: { type: 'STRING' },
-                otherParties: { type: 'STRING' },
-                injuryDetails: { type: 'STRING' },
-                policeReportReference: { type: 'STRING' },
-                injuriesReported: { type: 'BOOLEAN' },
-                policeReportFiled: { type: 'BOOLEAN' },
-                photosAvailable: { type: 'BOOLEAN' },
-                vehicleDrivable: { type: 'BOOLEAN' },
-                recommendedServices: { type: 'ARRAY', items: { type: 'STRING' } },
-              }
-            }
-          },
-          {
-            name: 'escalate_claim',
-            description: 'Flag the claim as urgent and escalate if there is a severe injury or emergency.',
-            parameters: {
-              type: 'OBJECT',
-              properties: {
-                reason: { type: 'STRING' }
-              }
-            }
-          },
-          {
-            name: 'verify_policy',
-            description: 'Verify the policy number and caller name against the database. If you are missing the policy number or name, politely ask the user for them in plain English. Do not use variable names like policyNumber in your text response.',
-            parameters: {
-              type: 'OBJECT',
-              properties: {
-                policyNumber: { type: 'STRING' },
-                callerName: { type: 'STRING' }
-              },
-              required: ['policyNumber', 'callerName']
-            }
-          },
-          {
-            name: 'complete_claim',
-            description: 'Complete the claim process once all fields are collected and verified.',
-            parameters: {
-              type: 'OBJECT',
-              properties: {
-                summary: { type: 'STRING', description: 'A summary of the claim details to read to the user before ending the call.' }
-              },
-              required: ['summary']
-            }
-          }
-        ]
-      }
-    ];
 
     const result = await this.options.llmProvider.generateResponse({
       systemPrompt,
       conversationContext,
       userPrompt,
-      tools,
-      ...(input.toolContext ? { toolContext: input.toolContext } : {}),
-      ...(input.onContentChunk ? { onContentChunk: input.onContentChunk } : {}),
+      responseMimeType: 'application/json',
     });
 
     if (result.errorMessage) {
@@ -465,13 +408,19 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       return getFallbackResult(input.userMessage, input.state);
     }
 
+    let parsedResponse: any = {};
+    try {
+        parsedResponse = JSON.parse(result.assistantResponse || '{}');
+    } catch (e) {
+        parsedResponse = extractJsonObject(result.assistantResponse || '{}') || {};
+    }
+
     const finalResult: ExtractClaimDataResult = {
-      responseToUser: result.assistantResponse || '',
-      ...(result.toolCalls ? { toolCalls: result.toolCalls } : {}),
+      responseToUser: parsedResponse.responseToUser || "I'm sorry, could you please repeat that?",
       finishReason: result.finishReason || '',
       conversationAnalysis: '',
       debugMetrics: {
-        rawExtractedSlots: result.toolCalls,
+        rawExtractedSlots: parsedResponse.extractedData || {},
         geminiPrompt: userPrompt,
         geminiResponse: result.assistantResponse || '',
       },
