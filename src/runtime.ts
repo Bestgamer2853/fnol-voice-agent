@@ -11,8 +11,6 @@ import {
   createLocalJsonClaimLogger,
   type ClaimLoggerService,
 } from './services/claimLogger.js';
-import { createDetectContradictionsService } from './services/detectContradictions.js';
-import { createDetectSeverityService } from './services/detectSeverity.js';
 import { createExtractClaimDataService } from './services/extractClaimData.js';
 import { createGenerateSummaryService } from './services/generateSummary.js';
 import { createGeminiService } from './services/geminiClient.js';
@@ -82,8 +80,6 @@ export function createRuntimeDependencies(): ConversationManagerDependencies {
 
   return {
     verifyPolicy: createVerifyPolicyService(),
-    detectSeverity: createDetectSeverityService(),
-    detectContradictions: createDetectContradictionsService(),
     extractClaimData: createExtractClaimDataService({ geminiClient }),
     recommendServices: createRecommendServicesService(),
     generateSummary: createGenerateSummaryService({ geminiClient }),

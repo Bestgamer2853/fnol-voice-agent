@@ -323,9 +323,20 @@ wss.on('connection', (ws: WebSocket, req) => {
           }
 
           const startTime = Date.now();
+          let streamedText = '';
           const result = await conversationManager.handleUserMessage(
             currentState,
-            lastUserTurn.content
+            lastUserTurn.content,
+            (chunk: string) => {
+              streamedText += chunk;
+              const payload = {
+                response_type: 'response',
+                response_id: responseId,
+                content: chunk,
+                content_complete: false,
+              };
+              ws.send(JSON.stringify(payload));
+            }
           );
           const latencyMs = Date.now() - startTime;
 
@@ -354,14 +365,25 @@ wss.on('connection', (ws: WebSocket, req) => {
           logInfo(`Response action type: ${result.action.type}`);
           logInfo(`Response message: "${result.action.message}"`);
           
+          // If the final action message is different from what we streamed (e.g. overridden by tool logic)
+          // we should send the difference. Otherwise just send empty string to close the stream.
+          let finalContent = '';
+          if (result.action.message && result.action.message !== streamedText) {
+              if (result.action.message.startsWith(streamedText)) {
+                  finalContent = result.action.message.slice(streamedText.length);
+              } else {
+                  finalContent = ' ' + result.action.message; // Append the override
+              }
+          }
+
           const payload = {
             response_type: 'response',
             response_id: responseId,
-            content: result.action.message,
+            content: finalContent,
             content_complete: true,
             end_call: isComplete,
           };
-          logInfo(`Outgoing JSON sent to Retell: ${JSON.stringify(payload)}`);
+          logInfo(`Outgoing JSON sent to Retell (final): ${JSON.stringify(payload)}`);
           ws.send(JSON.stringify(payload));
 
           if (isComplete) {

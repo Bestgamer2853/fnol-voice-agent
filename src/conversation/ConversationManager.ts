@@ -7,8 +7,6 @@ import {
   MAX_VERIFICATION_RETRIES,
 } from '../config/constants.js';
 import type { ClaimLoggerService } from '../services/claimLogger.js';
-import type { DetectContradictionsService } from '../services/detectContradictions.js';
-import type { DetectSeverityService } from '../services/detectSeverity.js';
 import type { ExtractClaimDataService } from '../services/extractClaimData.js';
 import type { GenerateSummaryService } from '../services/generateSummary.js';
 import type { GeminiClient } from '../services/geminiClient.js';
@@ -34,8 +32,6 @@ import type {
 
 export interface ConversationManagerDependencies {
   verifyPolicy: VerifyPolicyService;
-  detectSeverity: DetectSeverityService;
-  detectContradictions: DetectContradictionsService;
   extractClaimData: ExtractClaimDataService;
   recommendServices: RecommendServicesService;
   generateSummary: GenerateSummaryService;
@@ -489,6 +485,7 @@ export class DefaultConversationManager implements ConversationManager {
   async handleUserMessage(
     state: ConversationState,
     message: string,
+    onContentChunk?: (chunk: string) => void,
   ): Promise<ConversationTurnResult> {
     if (state.currentConversationStep === 'completed') {
       return this.withAssistantAction(
@@ -509,11 +506,16 @@ export class DefaultConversationManager implements ConversationManager {
     const extractionResult = await this.dependencies.extractClaimData.extract({
       userMessage: message,
       state: { ...state, conversationHistory: historyWithUser },
+      onContentChunk,
     });
 
     let updatedClaim = state.currentClaim;
     let isEscalated = false;
     let escalationReason = '';
+    let policyVerificationTriggered = false;
+    let policyNumberToVerify = '';
+    let callerNameToVerify = '';
+    let claimCompleted = false;
 
     if (extractionResult.toolCalls) {
        for (const call of extractionResult.toolCalls) {
@@ -524,6 +526,12 @@ export class DefaultConversationManager implements ConversationManager {
            } else if (call.name === 'escalate_claim' && call.args) {
                isEscalated = true;
                escalationReason = (call.args.reason as string) || 'safety_check_failed';
+           } else if (call.name === 'verify_policy' && call.args) {
+               policyVerificationTriggered = true;
+               policyNumberToVerify = call.args.policyNumber as string;
+               callerNameToVerify = call.args.callerName as string;
+           } else if (call.name === 'complete_claim') {
+               claimCompleted = true;
            }
        }
     }
@@ -536,202 +544,50 @@ export class DefaultConversationManager implements ConversationManager {
         );
     }
 
-    let nextStage = state.currentConversationStep;
+    if (policyVerificationTriggered && !state.verifiedPolicy) {
+        const verifyResult = await this.dependencies.verifyPolicy.verify({
+            policyNumber: policyNumberToVerify,
+            callerName: callerNameToVerify,
+        });
 
-    if (nextStage === 'safety_check') {
-        if (hasText(updatedClaim.policyNumber)) {
-            nextStage = 'verification';
+        if (verifyResult.verified && verifyResult.policy) {
+            const nextState = this.updateFieldTracking({
+              ...state,
+              currentClaim: updatedClaim,
+              conversationHistory: historyWithUser,
+              verifiedPolicy: verifyResult.policy,
+              lastUserMessage: message,
+            });
+
+            return this.withAssistantAction(
+                nextState,
+                { type: 'respond', message: extractionResult.responseToUser || "I've verified your policy. Please go ahead and describe the incident." },
+                extractionResult.debugMetrics
+            );
         } else {
-            nextStage = 'collecting_fnol';
+            return this.withAssistantAction(
+                { ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, lastUserMessage: message },
+                { type: 'request_clarification', message: "I was unable to verify that policy number. Could you please double-check and repeat the policy number and your name?" },
+                extractionResult.debugMetrics
+            );
         }
     }
 
-    if (nextStage === 'verification' || (nextStage === 'collecting_fnol' && !state.verifiedPolicy)) {
-        if (hasText(updatedClaim.policyNumber) && hasText(updatedClaim.callerName) && !state.verifiedPolicy) {
-             return this.handleVerification(state, updatedClaim, historyWithUser, message, extractionResult.debugMetrics);
-        }
-    }
-
-    if (
-      isConfirmationRequested(message) &&
-      state.currentConversationStep === 'recommending_services'
-    ) {
-      return this.completeClaim(state, updatedClaim, historyWithUser, message, extractionResult.debugMetrics);
-    }
-
-    if (nextStage === 'reviewing_summary') {
-        const isConfirmed = /\b(yes|correct|right|good|sound good|confirm|looks good)\b/i.test(message);
-        if (isConfirmed) {
-            return this.recommendServices(this.updateFieldTracking({
-               ...state,
-               currentClaim: updatedClaim,
-               conversationHistory: historyWithUser,
-               lastUserMessage: message,
-               currentConversationStep: nextStage
-            }), extractionResult.debugMetrics);
-        }
-    }
-
-    const severityResult = await this.dependencies.detectSeverity.detect({
-      claim: updatedClaim,
-    });
-
-    if (severityResult.escalationRequired) {
-      return this.withAssistantAction(
-        {
-          ...state,
-          currentClaim: updatedClaim,
-          conversationHistory: historyWithUser,
-          currentConversationStep: 'escalation',
-        },
-        {
-          type: 'escalate',
-          message: 'This claim has been flagged for urgent adjuster review.',
-          reason: severityResult.reasons.join(' '),
-        },
-        extractionResult.debugMetrics
-      );
-    }
-
-    let nextMessage = extractionResult.responseToUser;
-    if (!nextMessage || nextMessage.trim().length === 0) {
-        nextMessage = "Could you tell me more about what happened?";
+    if (claimCompleted) {
+        return this.completeClaim(state, updatedClaim, historyWithUser, message, extractionResult.debugMetrics);
     }
 
     const trackedState = this.updateFieldTracking({
       ...state,
       currentClaim: updatedClaim,
       conversationHistory: historyWithUser,
-      currentConversationStep: nextStage,
-      severity: severityResult.severity,
-      escalationRequired: severityResult.escalationRequired,
       pendingClarifications: [],
       lastUserMessage: message,
     });
-
-    if (trackedState.missingFields.length === 0 && trackedState.currentConversationStep === 'collecting_fnol') {
-         const summaryGen = new SummaryGenerator();
-         return this.withAssistantAction({
-            ...trackedState,
-            currentConversationStep: 'reviewing_summary'
-         }, {
-            type: 'respond',
-            message: summaryGen.generatePreSubmissionSummary(trackedState)
-         }, extractionResult.debugMetrics);
-    }
-
     return this.withAssistantAction(trackedState, {
        type: 'respond',
-       message: nextMessage
+       message: extractionResult.responseToUser || 'I have updated your claim details.'
     }, extractionResult.debugMetrics);
-  }
-
-  private async handleVerification(
-    state: ConversationState,
-    updatedClaim: Claim,
-    conversationHistory: ConversationMessage[],
-    message: string,
-    extractionDebug?: any
-  ): Promise<ConversationTurnResult> {
-    const nextState = this.updateFieldTracking({
-      ...state,
-      currentClaim: updatedClaim,
-      conversationHistory,
-      currentConversationStep: 'verification',
-      lastUserMessage: message,
-    });
-
-    const policyNumber = updatedClaim.policyNumber;
-    const callerName = updatedClaim.callerName;
-
-    if (!hasText(policyNumber) || !hasText(callerName)) {
-      return this.withAssistantAction(nextState, {
-        type: 'request_clarification',
-        message: 'Please provide both policyNumber and callerName.',
-      }, extractionDebug);
-    }
-
-    const verificationResult = await this.dependencies.verifyPolicy.verify({
-      policyNumber,
-      callerName,
-    });
-
-    if (!verificationResult.verified) {
-      const retryCount = state.retryCount + 1;
-      const failedState = this.updateFieldTracking({
-        ...nextState,
-        retryCount,
-      });
-
-      if (retryCount >= MAX_VERIFICATION_RETRIES) {
-        return this.withAssistantAction(
-          {
-            ...failedState,
-            currentConversationStep: 'callback_offer',
-          },
-          {
-            type: 'offer_callback',
-            message: 'I could not verify the policy. I can arrange a callback from the claims team.',
-          },
-          extractionDebug
-        );
-      }
-
-      return this.withAssistantAction(failedState, {
-        type: 'request_clarification',
-        message: verificationResult.message,
-      }, extractionDebug);
-    }
-
-    const verifiedClaim = mergeClaim(updatedClaim, {
-      policyNumber: verificationResult.policy.policyNumber,
-      callerName: verificationResult.policy.policyholderName,
-      insuredVehicle: verificationResult.policy.vehicle,
-    });
-    const verifiedState = this.updateFieldTracking({
-      ...nextState,
-      currentClaim: verifiedClaim,
-      verifiedPolicy: verificationResult.policy,
-      retryCount: 0,
-      currentConversationStep: 'collecting_fnol',
-    });
-
-    return this.withAssistantAction(verifiedState, {
-      type: 'respond',
-      message: firstMissingFieldPrompt(verifiedState.missingFields),
-    }, extractionDebug);
-  }
-
-  private async recommendServices(
-    state: ConversationState,
-    extractionDebug?: any
-  ): Promise<ConversationTurnResult> {
-    if (!state.verifiedPolicy) {
-      return this.withAssistantAction(state, {
-        type: 'request_clarification',
-        message: 'Please verify the policy before service recommendations.',
-      }, extractionDebug);
-    }
-
-    const recommendationResult = await this.dependencies.recommendServices.recommend({
-      claim: state.currentClaim,
-      policy: state.verifiedPolicy,
-    });
-    const claimWithRecommendations: Claim = {
-      ...state.currentClaim,
-      recommendedServices: recommendationResult.recommendations,
-    };
-    const nextState = this.updateFieldTracking({
-      ...state,
-      currentClaim: claimWithRecommendations,
-      currentConversationStep: 'recommending_services',
-    });
-
-    return this.withAssistantAction(nextState, {
-      type: 'recommend_services',
-      message: 'Recommended services are ready. Reply with confirm=true to complete the claim.',
-      services: recommendationResult.recommendations,
-    }, extractionDebug);
   }
 
   private async completeClaim(
@@ -794,7 +650,6 @@ export class DefaultConversationManager implements ConversationManager {
       claim: claimWithSummary,
       verifiedPolicy: state.verifiedPolicy,
       conversationHistory,
-      severity: nextState.severity ?? summaryResult.severity,
       escalationRequired: nextState.escalationRequired,
     });
 

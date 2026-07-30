@@ -24,5 +24,6 @@ export interface ConversationManager {
   handleUserMessage(
     state: ConversationState,
     message: string,
+    onContentChunk?: ((chunk: string) => void) | undefined,
   ): Promise<ConversationTurnResult>;
 }

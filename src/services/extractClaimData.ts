@@ -7,6 +7,7 @@ import type { GeminiClient } from './geminiClient.js';
 export interface ExtractClaimDataInput {
   userMessage: string;
   state: ConversationState;
+  onContentChunk?: ((chunk: string) => void) | undefined;
 }
 
 export interface ExtractClaimDataResult {
@@ -301,18 +302,13 @@ function extractFallbackClaimPatch(message: string): Partial<Claim> {
 }
 
 function getFallbackResult(message: string, state: ConversationState): ExtractClaimDataResult {
-  let nextQuestion = 'Could you tell me more about what happened?';
-  if (state.missingFields.length > 0) {
-    const firstField = state.missingFields[0];
-    if (firstField) {
-      const field = firstField.replace(/([A-Z])/g, ' $1').toLowerCase();
-      nextQuestion = `I didn't quite catch that. Could you please provide the ${field}?`;
-    }
-  }
+  // Rather than masking errors by asking for fields, gracefully tell the user there's a delay.
+  // This avoids the confusing "I didn't quite catch that" loop during rate limits.
+  const nextQuestion = "I'm experiencing a brief network delay. Give me just one moment.";
   
   return {
     responseToUser: nextQuestion,
-    conversationAnalysis: 'Fallback triggered due to LLM error or empty response',
+    conversationAnalysis: 'Fallback triggered due to LLM error (likely 429 Rate Limit) or empty response',
     debugMetrics: {
       rawExtractedSlots: {},
       geminiPrompt: '',
@@ -327,20 +323,24 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
   async extract(input: ExtractClaimDataInput): Promise<ExtractClaimDataResult> {
     const systemPrompt = [
       'You are an expert conversational AI agent for FNOL motor insurance claims.',
-      'You must drive the conversation natively, handling safety checks, empathy, and data extraction.',
+      'You must drive the entire conversation natively, handling safety checks, empathy, policy verification, and data extraction.',
+      '',
+      'CONVERSATIONAL FLOW:',
+      '1. Ensure the user is safe. If not, call the escalate_claim tool.',
+      '2. Collect the user\'s policy number and caller name. Once you have both, call the verify_policy tool.',
+      '3. Once the policy is verified, collect the remaining claim details (date, time, location, description, vehicles, police reports).',
+      '4. When you learn new information, call the save_claim_data tool.',
       '',
       'IMPORTANT RULES:',
       '1. Never ask for information already present in the transcript or existing state.',
       '2. Robustly normalize ASR imperfections (e.g. "em em eye one zero" -> "MMI-10").',
       '3. Keep your response concise, conversational, and natural. Speak like a human.',
       '4. Do NOT ask more than one question per turn.',
-      '5. When you learn new information about the claim, you MUST call the save_claim_data tool.',
-      '6. If the user mentions a severe injury or emergency (e.g., fire, rollover, ambulance), call the escalate_claim tool.',
     ].join('\n');
     const conversationContext = buildExtractionContext(input.state);
     const userPrompt = [
       'Analyze the user message and the conversation history.',
-      'Generate the appropriate conversational response and extract any claim data.',
+      'Generate the appropriate conversational response and call tools if necessary.',
       '',
       `User message: ${input.userMessage}`,
     ].join('\n');
@@ -379,6 +379,29 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
                 reason: { type: 'STRING' }
               }
             }
+          },
+          {
+            name: 'verify_policy',
+            description: 'Verify the policy number and caller name against the database. If you are missing the policy number or name, politely ask the user for them in plain English. Do not use variable names like policyNumber in your text response.',
+            parameters: {
+              type: 'OBJECT',
+              properties: {
+                policyNumber: { type: 'STRING' },
+                callerName: { type: 'STRING' }
+              },
+              required: ['policyNumber', 'callerName']
+            }
+          },
+          {
+            name: 'complete_claim',
+            description: 'Complete the claim process once all fields are collected and verified.',
+            parameters: {
+              type: 'OBJECT',
+              properties: {
+                summary: { type: 'STRING', description: 'A summary of the claim details to read to the user before ending the call.' }
+              },
+              required: ['summary']
+            }
           }
         ]
       }
@@ -389,10 +412,11 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       conversationContext,
       userPrompt,
       tools,
+      onContentChunk: input.onContentChunk,
     });
 
     if (result.errorMessage) {
-      console.error('[Gemini Extract Error]', result.errorMessage);
+      console.error('[Gemini Extract Error]', JSON.stringify({ error: result.errorMessage, context: 'extractClaimData' }, null, 2));
       return getFallbackResult(input.userMessage, input.state);
     }
 

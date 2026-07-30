@@ -5,6 +5,7 @@ export interface GenerateAssistantResponseInput {
   responseMimeType?: 'application/json' | 'text/plain';
   tools?: any[];
   toolConfig?: any;
+  onContentChunk?: ((chunk: string) => void) | undefined;
 }
 
 export interface GenerateAssistantResponseResult {
@@ -106,7 +107,7 @@ export class GeminiService implements GeminiClient {
 
     try {
       const response = await fetch(
-        `${this.endpointBaseUrl}/models/${this.model}:generateContent`,
+        `${this.endpointBaseUrl}/models/${this.model}:streamGenerateContent?alt=sse`,
         {
           method: 'POST',
           headers: {
@@ -144,22 +145,64 @@ export class GeminiService implements GeminiClient {
         },
       );
 
-      const body = (await response.json()) as GeminiGenerateContentResponse;
-
       if (!response.ok) {
-        return fallbackResponse(
-          body.error?.message ?? `Gemini request failed with status ${response.status}.`,
-        );
+        const errorBody = await response.text();
+        return fallbackResponse(`Gemini request failed with status ${response.status}: ${errorBody}`);
       }
 
-      const { text: assistantResponse, toolCalls } = extractAssistantResponse(body);
+      if (!response.body) {
+         return fallbackResponse('No response body stream.');
+      }
 
-      if (!assistantResponse && !toolCalls) {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let fullAssistantResponse = '';
+      let allToolCalls: any[] = [];
+
+      let buffer = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        
+        let boundary = buffer.indexOf('\n\n');
+        while (boundary !== -1) {
+          const chunk = buffer.slice(0, boundary).trim();
+          buffer = buffer.slice(boundary + 2);
+          
+          if (chunk.startsWith('data: ')) {
+            const dataStr = chunk.slice(6);
+            if (dataStr !== '[DONE]') {
+              try {
+                const data = JSON.parse(dataStr) as GeminiGenerateContentResponse;
+                const { text, toolCalls } = extractAssistantResponse(data);
+                
+                if (text) {
+                  fullAssistantResponse += text;
+                  if (input.onContentChunk) {
+                    input.onContentChunk(text);
+                  }
+                }
+
+                if (toolCalls && toolCalls.length > 0) {
+                  allToolCalls = allToolCalls.concat(toolCalls);
+                }
+              } catch (e) {
+                console.error('Failed to parse SSE chunk', e);
+              }
+            }
+          }
+          boundary = buffer.indexOf('\n\n');
+        }
+      }
+
+      if (!fullAssistantResponse && allToolCalls.length === 0) {
         return fallbackResponse('Gemini returned no assistant text and no tool calls.');
       }
 
-      const finalResponse: GenerateAssistantResponseResult = { assistantResponse: assistantResponse ?? '' };
-      if (toolCalls) finalResponse.toolCalls = toolCalls;
+      const finalResponse: GenerateAssistantResponseResult = { assistantResponse: fullAssistantResponse };
+      if (allToolCalls.length > 0) finalResponse.toolCalls = allToolCalls;
       return finalResponse;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown Gemini error.';

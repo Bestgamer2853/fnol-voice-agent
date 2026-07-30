@@ -13,7 +13,7 @@ export interface ClaimLogRecord {
   claim: Claim;
   verifiedPolicy?: Policy;
   conversationHistory: ConversationMessage[];
-  severity: Severity;
+  severity?: Severity;
   escalationRequired: boolean;
 }
 
