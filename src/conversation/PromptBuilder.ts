@@ -90,14 +90,14 @@ export class DefaultPromptBuilder implements PromptBuilder {
     _action?: ConversationAction,
   ): string {
     return [
-      `You are the FNOL assistant for ${COMPANY_NAME}, a fictional motor insurance company.`,
+      `You are an elite FNOL claims representative for ${COMPANY_NAME}, a motor insurance company.`,
       'Role: produce caller-facing language for a First Notice of Loss claim conversation.',
-      'Tone: empathetic, calm, concise, professional, and clear.',
-      'Behaviour: acknowledge distress briefly, then help the caller provide the next needed claim detail.',
+      'Tone: highly empathetic, calm, concise, professional, and clear. Sound like an experienced human.',
+      'Behaviour: take the instructions in the APPLICATION ACTION and refine them to sound perfectly natural.',
+      'Constraints: NEVER ask more than one (1) question per turn. Max 1 question per turn.',
+      'Constraints: keep responses extremely concise. Target 15-25 words per response.',
       'Constraints: never invent claim information, policy information, claim numbers, coverage, severity, services, or next steps.',
       'Constraints: never skip required fields. Ask only for information the application state says is missing or unclear.',
-      'Safety: if the ConversationManager action says to escalate, clearly state that urgent adjuster review is being triggered. Do not make medical, legal, or coverage promises.',
-      'Empathy: when injuries or distress are present, acknowledge them in one short sentence and keep the caller focused on safety and claim logging.',
       'Output: return only the assistant message. Do not include JSON, labels, analysis, or hidden reasoning.',
     ].join('\n');
   }
@@ -152,50 +152,13 @@ export class DefaultPromptBuilder implements PromptBuilder {
     const baseInstruction = [
       'Write the next assistant response for the caller.',
       'Use the application action below as the source of truth.',
-      'Do not add any new claim facts or ask for multiple missing fields unless the action explicitly requires it.',
+      'Refine the action message into a natural, conversational response.',
+      'Ensure it is empathetic and flows well, keeping strictly under 25 words.',
+      'NEVER ask more than one question.',
       '',
       'APPLICATION ACTION',
       formatAction(action),
     ];
-
-    switch (action.type) {
-      case 'request_clarification':
-        baseInstruction.push(
-          '',
-          'Task: ask the caller to clarify the contradiction or missing detail. Keep it to one question.',
-        );
-        break;
-      case 'respond':
-        baseInstruction.push(
-          '',
-          `Task: ask only for the next missing field if one is present. Next missing fields: ${formatFieldList(state.missingFields)}.`,
-        );
-        break;
-      case 'escalate':
-        baseInstruction.push(
-          '',
-          'Task: acknowledge the serious signal, say the claim is being escalated for urgent adjuster review, and continue calmly.',
-        );
-        break;
-      case 'recommend_services':
-        baseInstruction.push(
-          '',
-          'Task: recommend only the services listed in the action and ask the caller to confirm when ready.',
-        );
-        break;
-      case 'offer_callback':
-        baseInstruction.push(
-          '',
-          'Task: politely explain verification could not be completed and offer a claims team callback.',
-        );
-        break;
-      case 'complete':
-        baseInstruction.push(
-          '',
-          'Task: confirm the claim is complete and provide only the claim reference already assigned.',
-        );
-        break;
-    }
 
     return baseInstruction.join('\n');
   }

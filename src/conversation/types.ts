@@ -5,6 +5,7 @@ export type MessageRole = 'user' | 'assistant' | 'system';
 export type Severity = 'low' | 'medium' | 'high';
 
 export type ConversationStep =
+  | 'safety_check'
   | 'greeting'
   | 'verification'
   | 'collecting_fnol'

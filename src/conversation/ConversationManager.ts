@@ -24,6 +24,10 @@ import type {
 } from './actions.js';
 import type { ConversationState } from './ConversationState.js';
 import type { PromptBuilder } from './PromptBuilder.js';
+import { EmpathyEngine } from './modules/EmpathyEngine.js';
+import { TransitionManager } from './modules/TransitionManager.js';
+import { FollowUpGenerator } from './modules/FollowUpGenerator.js';
+import { SummaryGenerator } from './modules/SummaryGenerator.js';
 import type {
   Contradiction,
   ConversationMessage,
@@ -460,7 +464,7 @@ function buildConfirmationMessage(input: {
 
 function buildInitialState(): ConversationState {
   const initialClaim: Claim = {};
-  const greeting = `Hello, this is ${COMPANY_NAME}. I can help log your motor claim. Please provide your policy number and caller name.`;
+  const greeting = `Hello, thank you for calling ${COMPANY_NAME}. I'm sorry to hear you've had an accident. I'll help you report your claim today. Before we begin, are you and everyone else currently safe?`;
 
   return {
     currentClaim: initialClaim,
@@ -469,11 +473,12 @@ function buildInitialState(): ConversationState {
     missingFields: calculateMissingFields(initialClaim),
     retryCount: 0,
     escalationRequired: false,
-    currentConversationStep: 'greeting',
+    currentConversationStep: 'safety_check',
     contradictions: [],
     followUpQuestions: [],
     pendingClarifications: [],
     lastAssistantMessage: greeting,
+    empathyPhrasesUsed: [],
   };
 }
 
@@ -521,6 +526,30 @@ export class DefaultConversationManager implements ConversationManager {
     const updatedClaim = mergeClaim(state.currentClaim, parsedMessage.claimPatch);
 
     if (!state.verifiedPolicy) {
+      if (state.currentConversationStep === 'safety_check') {
+          const isSafe = /\b(yes|safe|fine|okay|we are|i am|no injuries|everyone is ok|nobody is hurt)\b/i.test(message) && !/\b(no|not safe|hurt|injured|ambulance|hospital|bleeding)\b/i.test(message);
+          const isHurt = /\b(no|not safe|hurt|injured|ambulance|hospital|bleeding|pain)\b/i.test(message);
+          
+          if (isHurt || !isSafe) {
+              return this.withAssistantAction(
+                  { ...state, conversationHistory: historyWithUser, currentConversationStep: 'escalation' },
+                  { type: 'escalate', message: 'I understand this is an emergency. Please hang up and dial emergency services immediately. An adjuster will review this urgently.', reason: 'safety_check_failed' }
+              );
+          }
+          
+          const nextState = this.updateFieldTracking({
+              ...state,
+              conversationHistory: historyWithUser,
+              currentConversationStep: 'verification',
+              lastUserMessage: message,
+          });
+          
+          return this.withAssistantAction(nextState, {
+              type: 'respond',
+              message: 'I am glad to hear everyone is safe. Please provide your policy number and caller name so we can get started.'
+          });
+      }
+
       return this.handleVerification(state, updatedClaim, historyWithUser, message);
     }
 
@@ -531,30 +560,35 @@ export class DefaultConversationManager implements ConversationManager {
       return this.completeClaim(state, updatedClaim, historyWithUser, message);
     }
 
+    if (state.currentConversationStep === 'reviewing_summary') {
+        const isConfirmed = /\b(yes|correct|right|good|sound good|confirm|looks good)\b/i.test(message);
+        if (isConfirmed) {
+            return this.recommendServices(this.updateFieldTracking({
+               ...state,
+               currentClaim: updatedClaim,
+               conversationHistory: historyWithUser,
+               lastUserMessage: message
+            }));
+        } else {
+            return this.withAssistantAction({
+                ...state,
+                conversationHistory: historyWithUser,
+                currentConversationStep: 'collecting_fnol'
+            }, {
+                type: 'respond',
+                message: 'I apologize. What part of the claim needs to be corrected?'
+            });
+        }
+    }
+
     const contradictionResult = await this.dependencies.detectContradictions.detect({
       previousClaim: state.currentClaim,
       updatedClaim,
     });
-    const newContradictions = contradictionResult.contradictions.map(
-      toConversationContradiction,
-    );
-
-    if (newContradictions.length > 0) {
-      const pendingClarifications = newContradictions.map(toPendingClarification);
-      const nextState = this.updateFieldTracking({
-        ...state,
-        currentClaim: updatedClaim,
-        conversationHistory: historyWithUser,
-        currentConversationStep: 'clarifying',
-        contradictions: [...state.contradictions, ...newContradictions],
-        pendingClarifications,
-        lastUserMessage: message,
-      });
-
-      return this.withAssistantAction(nextState, {
-        type: 'request_clarification',
-        message: pendingClarifications[0]?.prompt ?? 'Please clarify the updated claim details.',
-      });
+    
+    let contradictionPrefix = "";
+    if (contradictionResult.contradictions.length > 0) {
+       contradictionPrefix = "Thanks for clarifying. ";
     }
 
     if (
@@ -586,9 +620,23 @@ export class DefaultConversationManager implements ConversationManager {
     });
 
     if (trackedState.missingFields.length > 0) {
-      return this.withAssistantAction(trackedState, {
+      const empathyEngine = new EmpathyEngine();
+      const { phrase: empathyPhrase, updatedPhrasesUsed } = empathyEngine.generateEmpathy(trackedState, message);
+      
+      const transitionManager = new TransitionManager();
+      const transitionPhrase = transitionManager.generateTransition(trackedState);
+      
+      const followUpGen = new FollowUpGenerator();
+      const followUp = followUpGen.generateFollowUp(trackedState);
+
+      const nextMessage = contradictionPrefix + (empathyPhrase ? empathyPhrase + " " : "") + transitionPhrase + (followUp ? followUp : firstMissingFieldPrompt(trackedState.missingFields));
+
+      return this.withAssistantAction({
+        ...trackedState,
+        empathyPhrasesUsed: updatedPhrasesUsed
+      }, {
         type: 'respond',
-        message: firstMissingFieldPrompt(trackedState.missingFields),
+        message: nextMessage,
       });
     }
 
@@ -606,7 +654,14 @@ export class DefaultConversationManager implements ConversationManager {
       );
     }
 
-    return this.recommendServices(trackedState);
+    const summaryGen = new SummaryGenerator();
+    return this.withAssistantAction({
+       ...trackedState,
+       currentConversationStep: 'reviewing_summary'
+    }, {
+       type: 'respond',
+       message: summaryGen.generatePreSubmissionSummary(trackedState)
+    });
   }
 
   private async handleVerification(

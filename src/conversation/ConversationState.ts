@@ -25,4 +25,5 @@ export interface ConversationState {
   pendingClarifications: PendingClarification[];
   lastUserMessage?: string;
   lastAssistantMessage?: string;
+  empathyPhrasesUsed: string[];
 }
