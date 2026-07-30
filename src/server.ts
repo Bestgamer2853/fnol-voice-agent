@@ -169,9 +169,21 @@ function logInfo(msg: string) {
 }
 
 function logError(msg: string, err?: any) {
-  const formatted = `[ERROR] [${new Date().toISOString()}] ${msg}${err ? ' ' + String(err.stack || err) : ''}`;
+  const formatted = `[ERROR] [${new Date().toISOString()}] ${msg}${err ? ' ' + String(err?.stack || err) : ''}`;
   runtimeLogs.push(formatted);
   console.error(formatted);
+}
+
+function sendWsJson(ws: WebSocket, payload: any, tag: string) {
+  const payloadStr = JSON.stringify(payload);
+  logInfo(`[${tag}] Outgoing JSON sent to Retell: ${payloadStr}`);
+  ws.send(payloadStr, (err) => {
+    if (err) {
+      logError(`[${tag}] ws.send completed with error`, err);
+    } else {
+      logInfo(`[${tag}] ws.send completed successfully`);
+    }
+  });
 }
 
 app.get('/view-logs', (_req: Request, res: Response) => {
@@ -219,8 +231,7 @@ wss.on('connection', (ws: WebSocket, req) => {
     content_complete: true,
     end_call: false,
   };
-  logInfo(`Outgoing JSON sent to Retell: ${JSON.stringify(greetingPayload)}`);
-  ws.send(JSON.stringify(greetingPayload));
+  sendWsJson(ws, greetingPayload, 'Greeting');
   hasGreeted = true;
   
   logInfo(`Current conversation step after: ${session.state.currentConversationStep}`);
@@ -253,8 +264,7 @@ wss.on('connection', (ws: WebSocket, req) => {
             content_complete: true,
             end_call: false,
           };
-          logInfo(`Outgoing JSON sent to Retell: ${JSON.stringify(payload)}`);
-          ws.send(JSON.stringify(payload));
+          sendWsJson(ws, payload, 'CallDetailsGreeting');
           hasGreeted = true;
           logInfo(`Current conversation step after: ${currentRecord?.state.currentConversationStep ?? session.state.currentConversationStep}`);
         } else {
@@ -272,8 +282,7 @@ wss.on('connection', (ws: WebSocket, req) => {
           content_complete: true,
           end_call: false,
         };
-        logInfo(`Outgoing JSON sent to Retell: ${JSON.stringify(payload)}`);
-        ws.send(JSON.stringify(payload));
+        sendWsJson(ws, payload, 'Ping');
         return;
       }
 
@@ -313,8 +322,7 @@ wss.on('connection', (ws: WebSocket, req) => {
                 content_complete: true,
                 end_call: false,
               };
-              logInfo(`Outgoing JSON sent to Retell: ${JSON.stringify(payload)}`);
-              ws.send(JSON.stringify(payload));
+              sendWsJson(ws, payload, 'FallbackNoTurn');
               return;
           }
 
@@ -335,7 +343,7 @@ wss.on('connection', (ws: WebSocket, req) => {
                 content: chunk,
                 content_complete: false,
               };
-              ws.send(JSON.stringify(payload));
+              sendWsJson(ws, payload, 'StreamChunk');
             }
           );
           const latencyMs = Date.now() - startTime;
@@ -383,14 +391,15 @@ wss.on('connection', (ws: WebSocket, req) => {
             content_complete: true,
             end_call: isComplete,
           };
-          logInfo(`Outgoing JSON sent to Retell (final): ${JSON.stringify(payload)}`);
-          ws.send(JSON.stringify(payload));
+          sendWsJson(ws, payload, 'FinalResponse');
 
           if (isComplete) {
               logInfo(`Call complete for session ${sessionId}`);
           }
         }).catch(err => {
           logError('Error in locked processing:', err);
+        }).finally(() => {
+          logInfo(`Locked processing finished (resolved or rejected) for response_id ${event.response_id}`);
         });
       }
     } catch (err) {
@@ -408,4 +417,11 @@ wss.on('connection', (ws: WebSocket, req) => {
   });
 });
 
+process.on('unhandledRejection', (reason, promise) => {
+  logError('Unhandled Rejection at:', promise);
+  logError('Reason:', reason);
+});
 
+process.on('uncaughtException', (err) => {
+  logError('Uncaught Exception:', err);
+});

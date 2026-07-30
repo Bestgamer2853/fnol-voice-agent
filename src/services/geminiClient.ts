@@ -175,8 +175,8 @@ export class GeminiService implements GeminiClient {
     while (attempt <= MAX_RETRIES) {
       attempt++;
       const startTime = Date.now();
-      
       console.log(`[LLM Request] Attempt ${attempt}. URL: ${url}, Model: ${this.model}, Tools: ${openaiTools?.length || 0}`);
+      console.log(`[LLM Request] exact messages[] array:\n${JSON.stringify(messages, null, 2)}`);
 
       try {
         const response = await fetch(url, {
@@ -282,6 +282,11 @@ export class GeminiService implements GeminiClient {
         }
 
         console.log(`[LLM Response Success] Latency: ${latency}ms, ToolCalls: ${allToolCalls.length}`);
+        console.log(`[LLM Response] fullAssistantResponse: "${fullAssistantResponse}"`);
+        console.log(`[LLM Response] finishReason: "${finishReason}"`);
+        if (allToolCalls.length > 0) {
+          console.log(`[LLM Response] tool_calls:\n${JSON.stringify(allToolCalls, null, 2)}`);
+        }
 
         if (!fullAssistantResponse && allToolCalls.length === 0) {
           return fallbackResponse('LLM returned no assistant text and no tool calls.');

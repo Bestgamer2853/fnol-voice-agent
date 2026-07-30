@@ -465,6 +465,9 @@ export class DefaultConversationManager implements ConversationManager {
     message: string,
     onContentChunk?: (chunk: string) => void,
   ): Promise<ConversationTurnResult> {
+    console.log(`\n\n[ConversationManager] ENTERING handleUserMessage`);
+    console.log(`[ConversationManager] State step before: ${state.currentConversationStep}`);
+    console.log(`[ConversationManager] User message: "${message}"`);
     if (state.currentConversationStep === 'completed') {
       return this.withAssistantAction(
         {
@@ -496,12 +499,15 @@ export class DefaultConversationManager implements ConversationManager {
     
     while (iterations < MAX_TOOL_ITERATIONS) {
         iterations++;
+        console.log(`\n[ConversationManager] ====== LOOP ITERATION ${iterations} ======`);
         const extractionResult = await this.dependencies.extractClaimData.extract({
             userMessage: message,
             state: { ...state, conversationHistory: historyWithUser, currentClaim: updatedClaim, verifiedPolicy: verifiedPolicyObj },
             onContentChunk: onContentChunk,
             toolContext: toolContext.length > 0 ? toolContext : undefined
         });
+        console.log(`[ConversationManager] Iteration ${iterations} finishReason: ${extractionResult.finishReason}`);
+        console.log(`[ConversationManager] Iteration ${iterations} toolCalls count: ${extractionResult.toolCalls?.length || 0}`);
         
         accumulatedResponse += extractionResult.responseToUser;
         finalExtractionResult = extractionResult;
@@ -510,6 +516,8 @@ export class DefaultConversationManager implements ConversationManager {
             const results = [];
             
             for (const call of extractionResult.toolCalls) {
+                console.log(`[ConversationManager]   -> Executing tool: ${call.name}`);
+                console.log(`[ConversationManager]      Args: ${JSON.stringify(call.args)}`);
                 let toolResultStr = "Success";
                 
                 if (call.name === 'save_claim_data' && call.args) {
@@ -535,6 +543,7 @@ export class DefaultConversationManager implements ConversationManager {
                     toolResultStr = JSON.stringify({ success: true, completed: true });
                 }
                 
+                console.log(`[ConversationManager]      Result: ${toolResultStr}`);
                 results.push({ id: call.id, name: call.name, result: toolResultStr });
             }
             
@@ -573,6 +582,7 @@ export class DefaultConversationManager implements ConversationManager {
       lastUserMessage: message,
     });
     
+    console.log(`[ConversationManager] EXITING handleUserMessage normally. Action message: "${accumulatedResponse.trim()}"`);
     return this.withAssistantAction(trackedState, {
        type: 'respond',
        message: accumulatedResponse.trim() || 'I have updated your claim details.'
