@@ -15,7 +15,8 @@ import { createExtractClaimDataService } from './services/extractClaimData.js';
 import { createGenerateSummaryService } from './services/generateSummary.js';
 import { createGeminiService } from './llm/gemini.js';
 import { createOpenRouterService } from './llm/openrouter.js';
-import type { LlmProvider } from './llm/provider.js';
+import { createGroqService } from './llm/groq.js';
+import type { LlmProvider, GenerateResponseInput, GenerateResponseResult } from './llm/provider.js';
 import { createRecommendServicesService } from './services/recommendServices.js';
 import { createVerifyPolicyService } from './services/verifyPolicy.js';
 import { createClaimNumberGenerator } from './utils/claimNumber.js';
@@ -74,12 +75,28 @@ class MultiClaimLogger implements ClaimLoggerService {
   }
 }
 
+class FallbackLlmProvider implements LlmProvider {
+  constructor(private primary: LlmProvider, private fallback: LlmProvider) {}
+
+  async generateResponse(input: GenerateResponseInput): Promise<GenerateResponseResult> {
+    const result = await this.primary.generateResponse(input);
+    if (result.errorMessage) {
+      console.warn(`[FallbackLlmProvider] Primary provider failed: ${result.errorMessage}. Falling back to secondary...`);
+      return this.fallback.generateResponse(input);
+    }
+    return result;
+  }
+}
+
 export function createRuntimeDependencies(): ConversationManagerDependencies {
   let llmProvider: LlmProvider;
   if (process.env.LLM_PROVIDER === 'openrouter') {
     llmProvider = createOpenRouterService();
   } else {
-    llmProvider = createGeminiService();
+    // Groq first, then Gemini
+    const primary = createGroqService();
+    const secondary = createGeminiService();
+    llmProvider = new FallbackLlmProvider(primary, secondary);
   }
 
   const localLogger = createLocalJsonClaimLogger(DEFAULT_CLAIMS_FILE_PATH);
