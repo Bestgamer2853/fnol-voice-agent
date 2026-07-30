@@ -159,6 +159,25 @@ app.post(
 
 import { WebSocketServer, WebSocket } from 'ws';
 
+// Global log buffer for /view-logs endpoint
+const runtimeLogs: string[] = [];
+
+function logInfo(msg: string) {
+  const formatted = `[INFO] [${new Date().toISOString()}] ${msg}`;
+  runtimeLogs.push(formatted);
+  console.log(formatted);
+}
+
+function logError(msg: string, err?: any) {
+  const formatted = `[ERROR] [${new Date().toISOString()}] ${msg}${err ? ' ' + String(err.stack || err) : ''}`;
+  runtimeLogs.push(formatted);
+  console.error(formatted);
+}
+
+app.get('/view-logs', (_req: Request, res: Response) => {
+  res.type('text/plain').send(runtimeLogs.join('\n'));
+});
+
 // Per-session async lock to prevent race conditions
 const sessionLocks = new Map<string, Promise<void>>();
 
@@ -172,93 +191,111 @@ function withSessionLock(sessionId: string, fn: () => Promise<void>): Promise<vo
 const port = Number(process.env.PORT ?? DEFAULT_PORT);
 
 const server = app.listen(port, () => {
-  console.log(`FNOL backend listening on port ${port}`);
+  logInfo(`FNOL backend listening on port ${port}`);
 });
 
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws: WebSocket, req) => {
-  console.log('[WS] Retell connected via WebSocket:', req.url);
+  logInfo(`Retell connected via WebSocket: ${req.url}`);
   
   // Every call gets its own isolated session
   const session = createSession();
   const sessionId = session.sessionId;
-  console.log(`[WS] Session created: ${sessionId}`);
-  console.log(`[WS] Initial step: ${session.state.currentConversationStep}`);
-  console.log(`[WS] Initial greeting: ${session.state.lastAssistantMessage}`);
+  logInfo(`Session created: ${sessionId}`);
+  logInfo(`Initial step: ${session.state.currentConversationStep}`);
+  logInfo(`Initial greeting: ${session.state.lastAssistantMessage}`);
 
   ws.on('message', (data) => {
     try {
       const event = JSON.parse(data.toString());
-      console.log(`[WS] Received event: interaction_type=${event.interaction_type}, response_id=${event.response_id}`);
+      logInfo(`Incoming interaction_type = ${event.interaction_type}`);
+      logInfo(`Entire JSON payload: ${JSON.stringify(event)}`);
+      logInfo(`response_id: ${event.response_id}`);
+      logInfo(`transcript: ${JSON.stringify(event.transcript)}`);
+      logInfo(`transcript_with_tool_calls: ${JSON.stringify(event.transcript_with_tool_calls)}`);
+      logInfo(`metadata: ${JSON.stringify(event.metadata)}`);
+      logInfo(`call_id: ${event.call ? event.call.call_id : 'N/A'}`);
 
       if (event.interaction_type === 'call_details') {
+        logInfo(`Executing handleCallDetails()`);
         const currentRecord = sessions.get(sessionId);
         const greeting = currentRecord?.state.lastAssistantMessage ?? session.state.lastAssistantMessage;
-        console.log(`[WS] Sending greeting: "${greeting}"`);
-        ws.send(
-          JSON.stringify({
-            response_id: 0,
-            content: greeting,
-            content_complete: true,
-            end_call: false,
-          })
-        );
+        
+        logInfo(`Executing handleGreeting()`);
+        logInfo(`Current conversation step before: ${currentRecord?.state.currentConversationStep ?? session.state.currentConversationStep}`);
+        
+        const payload = {
+          response_type: 'response',
+          response_id: 0,
+          content: greeting,
+          content_complete: true,
+          end_call: false,
+        };
+        logInfo(`Outgoing JSON sent to Retell: ${JSON.stringify(payload)}`);
+        ws.send(JSON.stringify(payload));
+        
+        logInfo(`Current conversation step after: ${currentRecord?.state.currentConversationStep ?? session.state.currentConversationStep}`);
         return;
       }
 
       if (event.interaction_type === 'ping') {
-        console.log('[WS] Received ping, sending pong');
-        ws.send(
-          JSON.stringify({
-            response_id: event.response_id ?? 0,
-            content: '',
-            content_complete: true,
-            end_call: false,
-          })
-        );
+        logInfo(`Executing handlePing()`);
+        const payload = {
+          response_type: 'response',
+          response_id: event.response_id ?? 0,
+          content: '',
+          content_complete: true,
+          end_call: false,
+        };
+        logInfo(`Outgoing JSON sent to Retell: ${JSON.stringify(payload)}`);
+        ws.send(JSON.stringify(payload));
         return;
       }
 
       if (event.interaction_type === 'update_only') {
-        console.log('[WS] Received update_only, no response needed');
+        logInfo(`Executing handleUpdateOnly()`);
         return;
       }
 
       if (event.interaction_type === 'response_required' || event.interaction_type === 'reminder_required') {
-        // CRITICAL: Serialize all async processing through a per-session lock
-        // This prevents race conditions where two messages read stale state
+        logInfo(`Executing handleResponseRequired() / handleReminderRequired()`);
+        
         withSessionLock(sessionId, async () => {
           const responseId = event.response_id;
           
           const transcript = event.transcript || [];
           const lastUserTurn = [...transcript].reverse().find((t: any) => t.role === 'user');
           
-          // Read FRESH state from the sessions Map
           const currentRecord = sessions.get(sessionId);
           if (!currentRecord) {
-            console.error(`[WS] FATAL: Session ${sessionId} not found in Map!`);
+            logError(`FATAL: Session ${sessionId} not found in Map!`);
             return;
           }
           const currentState = currentRecord.state;
           
-          console.log(`[WS] Current step BEFORE processing: ${currentState.currentConversationStep}`);
-          console.log(`[WS] Collected fields: ${JSON.stringify(currentState.collectedFields)}`);
-          console.log(`[WS] Missing fields: ${JSON.stringify(currentState.missingFields)}`);
-          console.log(`[WS] Last user turn: ${lastUserTurn?.content ?? '(none)'}`);
+          logInfo(`Current conversation step before: ${currentState.currentConversationStep}`);
+          logInfo(`Collected fields: ${JSON.stringify(currentState.collectedFields)}`);
+          logInfo(`Missing fields: ${JSON.stringify(currentState.missingFields)}`);
+          logInfo(`Last user turn: ${lastUserTurn?.content ?? '(none)'}`);
           
           if (!lastUserTurn) {
               const fallbackMsg = currentState.lastAssistantMessage ?? "I'm here to help. Could you please go ahead?";
-              console.log(`[WS] No user turn found, sending fallback: "${fallbackMsg}"`);
-              ws.send(
-                JSON.stringify({
-                  response_id: responseId,
-                  content: fallbackMsg,
-                  content_complete: true,
-                  end_call: false,
-                })
-              );
+              logInfo(`No user turn found, sending fallback: "${fallbackMsg}"`);
+              const payload = {
+                response_type: 'response',
+                response_id: responseId,
+                content: fallbackMsg,
+                content_complete: true,
+                end_call: false,
+              };
+              logInfo(`Outgoing JSON sent to Retell: ${JSON.stringify(payload)}`);
+              ws.send(JSON.stringify(payload));
               return;
+          }
+
+          if (currentState.currentConversationStep === 'verification') {
+            logInfo(`Executing handleVerification()`);
           }
 
           const result = await conversationManager.handleUserMessage(
@@ -271,38 +308,40 @@ wss.on('connection', (ws: WebSocket, req) => {
 
           const isComplete = result.action.type === 'complete';
           
-          console.log(`[WS] Step AFTER processing: ${result.state.currentConversationStep}`);
-          console.log(`[WS] Response action type: ${result.action.type}`);
-          console.log(`[WS] Response message: "${result.action.message}"`);
+          logInfo(`Current conversation step after: ${result.state.currentConversationStep}`);
+          logInfo(`Response action type: ${result.action.type}`);
+          logInfo(`Response message: "${result.action.message}"`);
           
-          ws.send(
-            JSON.stringify({
-              response_id: responseId,
-              content: result.action.message,
-              content_complete: true,
-              end_call: isComplete,
-            })
-          );
+          const payload = {
+            response_type: 'response',
+            response_id: responseId,
+            content: result.action.message,
+            content_complete: true,
+            end_call: isComplete,
+          };
+          logInfo(`Outgoing JSON sent to Retell: ${JSON.stringify(payload)}`);
+          ws.send(JSON.stringify(payload));
 
           if (isComplete) {
-              console.log(`[WS] Call complete for session ${sessionId}`);
+              logInfo(`Call complete for session ${sessionId}`);
           }
         }).catch(err => {
-          console.error('[WS] Error in locked processing:', err);
+          logError('Error in locked processing:', err);
         });
       }
     } catch (err) {
-      console.error('[WS] Error processing message:', err);
+      logError('Error processing message:', err);
     }
   });
 
   ws.on('close', () => {
-    console.log(`[WS] Connection closed for session ${sessionId}`);
+    logInfo(`Connection closed for session ${sessionId}`);
     sessionLocks.delete(sessionId);
   });
   
   ws.on('error', (error) => {
-    console.error(`[WS] Error for session ${sessionId}:`, error);
+    logError(`Error for session ${sessionId}:`, error);
   });
 });
+
 
