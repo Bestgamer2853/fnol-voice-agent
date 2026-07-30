@@ -527,8 +527,25 @@ export class DefaultConversationManager implements ConversationManager {
                 if (call.name === 'save_claim_data' && call.args) {
                     const patch = validateClaimPatch(call.args as Partial<Claim>);
                     const normalizedPatch = normalizeClaimPatch(patch);
+                    
+                    const newContradictions: string[] = [];
+                    for (const [key, newValue] of Object.entries(normalizedPatch)) {
+                        const existingValue = (updatedClaim as any)[key];
+                        if (existingValue !== undefined && existingValue !== newValue) {
+                            if (typeof existingValue === 'boolean') {
+                                newContradictions.push(`User previously said ${key}=${existingValue}, but you are trying to save ${key}=${newValue}. You MUST explicitly ask the user to clarify this contradiction before saving it.`);
+                                delete (normalizedPatch as any)[key]; // Reject this field
+                            }
+                        }
+                    }
+                    
                     updatedClaim = mergeClaim(updatedClaim, normalizedPatch);
-                    toolResultStr = JSON.stringify({ success: true, savedFields: Object.keys(normalizedPatch) });
+                    
+                    if (newContradictions.length > 0) {
+                        toolResultStr = JSON.stringify({ error: newContradictions.join(' ') });
+                    } else {
+                        toolResultStr = JSON.stringify({ success: true, savedFields: Object.keys(normalizedPatch) });
+                    }
                 } else if (call.name === 'escalate_claim' && call.args) {
                     isEscalated = true;
                     escalationReason = (call.args.reason as string) || 'safety_check_failed';
@@ -576,6 +593,15 @@ export class DefaultConversationManager implements ConversationManager {
         }
         
         break;
+    }
+
+    // Deterministic Escalation logic
+    if (updatedClaim.injuriesReported === true || 
+        /whiplash|neck|ambulance|hospital/i.test(updatedClaim.injuryDetails || '') || 
+        /major|rollover|fire|fatal/i.test(updatedClaim.incidentDescription || '')) {
+        isEscalated = true;
+        escalationReason = 'Severe incident or injury reported.';
+        state.severity = 'high';
     }
 
     if (isEscalated) {

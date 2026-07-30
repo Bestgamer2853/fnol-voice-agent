@@ -111,6 +111,17 @@ function readBoolean(
   return typeof value === 'boolean' ? value : undefined;
 }
 
+function readStringArray(
+  record: Record<string, unknown>,
+  key: string,
+): string[] | undefined {
+  const value = record[key];
+  if (Array.isArray(value)) {
+    return value.filter(item => typeof item === 'string') as string[];
+  }
+  return undefined;
+}
+
 function sanitizeExtractedClaimPatch(value: unknown): Partial<Claim> {
   if (typeof value !== 'object' || value === null) {
     return {};
@@ -154,6 +165,11 @@ function sanitizeExtractedClaimPatch(value: unknown): Partial<Claim> {
     }
   }
 
+  const recommendedServices = readStringArray(record, 'recommendedServices');
+  if (recommendedServices && recommendedServices.length > 0) {
+    claimPatch.recommendedServices = recommendedServices;
+  }
+
   return claimPatch;
 }
 
@@ -174,6 +190,7 @@ function buildExtractionContext(state: ConversationState): string {
     `knownInjuriesReported: ${String(state.currentClaim.injuriesReported ?? 'unknown')}`,
     `knownPoliceReportFiled: ${String(state.currentClaim.policeReportFiled ?? 'unknown')}`,
     `knownPhotosAvailable: ${String(state.currentClaim.photosAvailable ?? 'unknown')}`,
+    `towingIncludedInPolicy: ${String(state.verifiedPolicy?.towingIncluded ?? 'unknown')}`,
     `\nCONVERSATION HISTORY:\n${historyStr}`,
   ].join('\n');
 }
@@ -347,7 +364,8 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       '2. Collect the user\'s policy number and caller name. Once you have both, call the verify_policy tool.',
       '3. Once the policy is verified, collect the remaining claim details (date, time, location, description, vehicles, police reports).',
       '4. When you learn new information, call the save_claim_data tool.',
-      '5. When all missing fields are collected, summarize the claim verbally, explain that an adjuster will contact them within 24 hours, and then call the complete_claim tool.',
+      '5. When all missing fields are collected, verify if towingIncludedInPolicy is true. If it is, explicitly recommend a tow truck and a network garage and save this in recommendedServices.',
+      '6. Finally, summarize the claim verbally, explain that an adjuster will contact them within 24 hours, and then call the complete_claim tool.',
       '',
       'CRITICAL TOOL CALLING RULES:',
       '1. FILLER TEXT PROHIBITED: If your response includes a tool call, DO NOT generate any conversational text whatsoever. Your response must be completely empty except for the tool call itself.',
@@ -392,6 +410,7 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
                 policeReportFiled: { type: 'BOOLEAN' },
                 photosAvailable: { type: 'BOOLEAN' },
                 vehicleDrivable: { type: 'BOOLEAN' },
+                recommendedServices: { type: 'ARRAY', items: { type: 'STRING' } },
               }
             }
           },
