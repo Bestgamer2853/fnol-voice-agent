@@ -126,7 +126,7 @@ export class GeminiService implements LlmProvider {
       model: this.model,
       messages,
       temperature: 0.4,
-      max_tokens: 250,
+      max_tokens: 1024,
       stream: true,
       tools: openaiTools,
       response_format: input.responseMimeType === 'application/json' ? { type: 'json_object' } : undefined
