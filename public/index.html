@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Meridian FNOL Assistant</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="workspace" aria-label="FNOL claim chat">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Meridian Motor Insurance</p>
+            <h1>FNOL Intake Assistant</h1>
+          </div>
+          <div class="topbar-controls">
+            <button
+              class="speaker-toggle"
+              id="speakerToggle"
+              type="button"
+              title="Toggle text-to-speech"
+              aria-label="Toggle text-to-speech"
+            >
+              <svg class="icon speaker-on-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              </svg>
+              <svg class="icon speaker-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <line x1="23" y1="9" x2="17" y2="15"/>
+                <line x1="17" y1="9" x2="23" y2="15"/>
+              </svg>
+            </button>
+            <div class="status" id="connectionStatus">Ready</div>
+          </div>
+        </header>
+
+        <section class="demo-strip" aria-label="Demo helper">
+          <button class="chip" type="button" data-example="policyNumber=MMI-10234; callerName=Arjun Rao">
+            Verify sample policy
+          </button>
+          <button class="chip" type="button" data-example="dateOfIncident=2026-07-29; timeOfIncident=09:30; locationOfIncident=MG Road, Bengaluru; incidentDescription=Two cars collided at a junction; injuriesReported=false; policeReportFiled=true; policeReportReference=POL-123; photosAvailable=true; vehicleDrivable=false; otherParties=One other driver involved">
+            Add sample incident
+          </button>
+          <button class="chip" type="button" data-example="confirm=true">
+            Confirm claim
+          </button>
+        </section>
+
+        <ol class="chat" id="chatLog" aria-live="polite"></ol>
+
+        <div class="voice-status" id="voiceStatus" aria-live="polite" hidden>
+          <span class="voice-status-dot"></span>
+          <span class="voice-status-text" id="voiceStatusText">Listening...</span>
+        </div>
+
+        <form class="composer" id="chatForm">
+          <label class="sr-only" for="messageInput">Message</label>
+          <textarea
+            id="messageInput"
+            name="message"
+            rows="2"
+            placeholder="Type a message or click the mic to speak..."
+            autocomplete="off"
+            required
+          ></textarea>
+          <div class="composer-actions">
+            <button
+              class="mic-button"
+              id="micButton"
+              type="button"
+              title="Hold to speak, or click to toggle"
+              aria-label="Voice input"
+            >
+              <svg class="icon mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                <line x1="12" y1="19" x2="12" y2="23"/>
+                <line x1="8" y1="23" x2="16" y2="23"/>
+              </svg>
+              <svg class="icon mic-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="1" y1="1" x2="23" y2="23"/>
+                <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/>
+                <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2c0 .76-.13 1.49-.35 2.17"/>
+                <line x1="12" y1="19" x2="12" y2="23"/>
+                <line x1="8" y1="23" x2="16" y2="23"/>
+              </svg>
+            </button>
+            <button type="submit" id="sendButton">Send</button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

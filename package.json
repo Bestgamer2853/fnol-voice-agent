@@ -1,0 +1,36 @@
+{
+  "name": "fnol-voice-agent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "start": "tsx src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "demo:verify-policy": "tsx src/demo/verifyPolicyDemo.ts",
+    "demo:detect-severity": "tsx src/demo/detectSeverityDemo.ts",
+    "demo:detect-contradictions": "tsx src/demo/detectContradictionsDemo.ts",
+    "demo:recommend-services": "tsx src/demo/recommendServicesDemo.ts",
+    "demo:conversation-manager": "tsx src/demo/conversationManagerDemo.ts",
+    "demo:gemini-conversation": "tsx src/demo/geminiConversationDemo.ts",
+    "demo:extract-claim-data": "tsx src/demo/extractClaimDataDemo.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.1.2",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "googleapis": "^173.0.0",
+    "ws": "^8.21.1"
+  }
+}

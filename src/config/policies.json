@@ -1,0 +1,57 @@
+[
+  {
+    "policyNumber": "MMI-10234",
+    "policyholderName": "Arjun Rao",
+    "vehicle": {
+      "make": "Hyundai",
+      "model": "i20",
+      "registration": "TN-58-AB-1234"
+    },
+    "coverageType": "Comprehensive",
+    "towingIncluded": true
+  },
+  {
+    "policyNumber": "MMI-10871",
+    "policyholderName": "Priya Nair",
+    "vehicle": {
+      "make": "Maruti",
+      "model": "Swift",
+      "registration": "KL-07-CD-5678"
+    },
+    "coverageType": "Third party only",
+    "towingIncluded": false
+  },
+  {
+    "policyNumber": "MMI-11450",
+    "policyholderName": "Vikram Shah",
+    "vehicle": {
+      "make": "Tata",
+      "model": "Nexon",
+      "registration": "MH-12-EF-9012"
+    },
+    "coverageType": "Comprehensive",
+    "towingIncluded": true
+  },
+  {
+    "policyNumber": "MMI-12093",
+    "policyholderName": "Sarah Thomas",
+    "vehicle": {
+      "make": "Honda",
+      "model": "City",
+      "registration": "KA-05-GH-3456"
+    },
+    "coverageType": "Third party only",
+    "towingIncluded": false
+  },
+  {
+    "policyNumber": "MMI-12677",
+    "policyholderName": "Rahul Menon",
+    "vehicle": {
+      "make": "Kia",
+      "model": "Seltos",
+      "registration": "TN-09-JK-7890"
+    },
+    "coverageType": "Comprehensive",
+    "towingIncluded": true
+  }
+]

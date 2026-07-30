@@ -1,0 +1,481 @@
+:root {
+  color-scheme: light;
+  --bg: #eef2f7;
+  --panel: #ffffff;
+  --ink: #172033;
+  --muted: #667085;
+  --line: #d9e1ec;
+  --accent: #0f766e;
+  --accent-strong: #115e59;
+  --assistant: #f5f7fb;
+  --user: #e0f2fe;
+  --danger: #b42318;
+  --voice-active: #0f766e;
+  --voice-pulse: rgba(15, 118, 110, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+textarea {
+  font: inherit;
+}
+
+.shell {
+  min-height: 100vh;
+  padding: 24px;
+  display: grid;
+  place-items: center;
+}
+
+.workspace {
+  width: min(980px, 100%);
+  height: min(860px, calc(100vh - 48px));
+  min-height: 620px;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto auto;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 18px 50px rgb(23 32 51 / 12%);
+  overflow: hidden;
+}
+
+/* ─── Topbar ─── */
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--accent-strong);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+.status {
+  flex: 0 0 auto;
+  min-width: 92px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 14px;
+}
+
+.status[data-mode="loading"] {
+  color: var(--accent-strong);
+}
+
+.status[data-mode="error"] {
+  color: var(--danger);
+}
+
+/* ─── Demo strip ─── */
+
+.demo-strip {
+  display: flex;
+  gap: 8px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+
+.chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  padding: 8px 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--accent);
+}
+
+/* ─── Chat ─── */
+
+.chat {
+  list-style: none;
+  margin: 0;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.message {
+  display: flex;
+}
+
+.message.user {
+  justify-content: flex-end;
+}
+
+.bubble {
+  max-width: min(680px, 86%);
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--assistant);
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.message.user .bubble {
+  background: var(--user);
+}
+
+/* ─── Voice status ─── */
+
+.voice-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 24px;
+  border-top: 1px solid var(--line);
+  background: rgba(15, 118, 110, 0.06);
+  font-size: 13px;
+  color: var(--accent-strong);
+  animation: voice-status-in 0.2s ease;
+}
+
+.voice-status[hidden] {
+  display: none;
+}
+
+@keyframes voice-status-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.voice-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--voice-active);
+  animation: voice-dot-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes voice-dot-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.4); }
+}
+
+.voice-status-text {
+  font-weight: 500;
+}
+
+/* ─── Composer ─── */
+
+.composer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 18px 24px;
+  border-top: 1px solid var(--line);
+  background: #fbfcfe;
+}
+
+.composer-actions {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+textarea {
+  width: 100%;
+  min-height: 52px;
+  max-height: 160px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--ink);
+}
+
+textarea:focus {
+  outline: 2px solid rgb(15 118 110 / 22%);
+  border-color: var(--accent);
+}
+
+button[type="submit"] {
+  align-self: stretch;
+  min-width: 96px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button[type="submit"]:hover:not(:disabled) {
+  background: var(--accent-strong);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* ─── Mic button ─── */
+
+.icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.mic-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.mic-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.mic-button[data-active="true"] {
+  background: var(--voice-active);
+  border-color: var(--voice-active);
+  color: #fff;
+  animation: mic-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes mic-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 var(--voice-pulse);
+  }
+  50% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+
+.mic-button .mic-off-icon,
+.mic-button[data-active="true"] .mic-icon {
+  display: none;
+}
+
+.mic-button .mic-icon,
+.mic-button[data-active="true"] .mic-off-icon {
+  display: block;
+}
+
+/* Override: when mic-off is showing (active state), show the off icon */
+.mic-button[data-active="true"] .mic-off-icon {
+  display: none;
+}
+
+.mic-button[data-active="true"] .mic-icon {
+  display: block;
+}
+
+.mic-button[data-unsupported="true"] {
+  display: none;
+}
+
+/* ─── Speaker toggle ─── */
+
+.speaker-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.speaker-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.speaker-toggle[data-active="true"] {
+  background: var(--voice-active);
+  border-color: var(--voice-active);
+  color: #fff;
+}
+
+.speaker-toggle .speaker-off-icon,
+.speaker-toggle[data-active="true"] .speaker-on-icon {
+  display: none;
+}
+
+.speaker-toggle .speaker-on-icon,
+.speaker-toggle[data-active="true"] .speaker-off-icon {
+  display: block;
+}
+
+/* Flip: when active, show on-icon */
+.speaker-toggle[data-active="true"] .speaker-on-icon {
+  display: block;
+}
+
+.speaker-toggle[data-active="true"] .speaker-off-icon {
+  display: none;
+}
+
+.speaker-toggle[data-unsupported="true"] {
+  display: none;
+}
+
+/* ─── Screen reader only ─── */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 680px) {
+  .shell {
+    padding: 0;
+  }
+
+  .workspace {
+    width: 100%;
+    height: 100vh;
+    min-height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    padding: 18px;
+  }
+
+  .demo-strip,
+  .chat,
+  .composer {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .composer {
+    grid-template-columns: 1fr;
+  }
+
+  .composer-actions {
+    justify-content: flex-end;
+  }
+
+  button[type="submit"] {
+    height: 48px;
+  }
+}
+
+/* ─── Confirmation Toast ─── */
+
+.confirmation-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 320px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.confirmation-toast.visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.confirmation-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.confirmation-icon {
+  font-size: 18px;
+}
+
+.confirmation-to {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.confirmation-body {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink);
+}
