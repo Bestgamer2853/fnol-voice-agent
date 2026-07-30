@@ -24,7 +24,7 @@ import type {
   ConversationTurnResult,
 } from './actions.js';
 import type { ConversationState } from './ConversationState.js';
-import type { PromptBuilder } from './PromptBuilder.js';
+
 import { SummaryGenerator } from './modules/SummaryGenerator.js';
 import type {
   Contradiction,
@@ -40,7 +40,6 @@ export interface ConversationManagerDependencies {
   recommendServices: RecommendServicesService;
   generateSummary: GenerateSummaryService;
   claimLogger: ClaimLoggerService;
-  promptBuilder: PromptBuilder;
   geminiClient: GeminiClient;
   claimNumberGenerator: ClaimNumberGenerator;
 }
@@ -512,21 +511,39 @@ export class DefaultConversationManager implements ConversationManager {
       state: { ...state, conversationHistory: historyWithUser },
     });
 
-    const parsedMessage: ParsedMessage = {
-      claimPatch: validateClaimPatch(extractionResult.updatedClaim),
-      confirmationRequested: isConfirmationRequested(message),
-    };
+    let updatedClaim = state.currentClaim;
+    let isEscalated = false;
+    let escalationReason = '';
 
-    const normalizedPatch = normalizeClaimPatch(parsedMessage.claimPatch);
-    const updatedClaim = mergeClaim(state.currentClaim, normalizedPatch);
-    let nextStage = extractionResult.conversationStage;
+    if (extractionResult.toolCalls) {
+       for (const call of extractionResult.toolCalls) {
+           if (call.name === 'save_claim_data' && call.args) {
+               const patch = validateClaimPatch(call.args as Partial<Claim>);
+               const normalizedPatch = normalizeClaimPatch(patch);
+               updatedClaim = mergeClaim(updatedClaim, normalizedPatch);
+           } else if (call.name === 'escalate_claim' && call.args) {
+               isEscalated = true;
+               escalationReason = (call.args.reason as string) || 'safety_check_failed';
+           }
+       }
+    }
 
-    if (nextStage === 'escalation') {
+    if (isEscalated) {
         return this.withAssistantAction(
-            { ...state, conversationHistory: historyWithUser, currentConversationStep: 'escalation' },
-            { type: 'escalate', message: 'I understand this is an emergency. Please hang up and dial emergency services immediately. An adjuster will review this urgently.', reason: 'safety_check_failed' },
+            { ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, currentConversationStep: 'escalation' },
+            { type: 'escalate', message: extractionResult.responseToUser || 'I understand this is an emergency. Please hang up and dial emergency services immediately.', reason: escalationReason },
             extractionResult.debugMetrics
         );
+    }
+
+    let nextStage = state.currentConversationStep;
+
+    if (nextStage === 'safety_check') {
+        if (hasText(updatedClaim.policyNumber)) {
+            nextStage = 'verification';
+        } else {
+            nextStage = 'collecting_fnol';
+        }
     }
 
     if (nextStage === 'verification' || (nextStage === 'collecting_fnol' && !state.verifiedPolicy)) {
@@ -536,7 +553,7 @@ export class DefaultConversationManager implements ConversationManager {
     }
 
     if (
-      parsedMessage.confirmationRequested &&
+      isConfirmationRequested(message) &&
       state.currentConversationStep === 'recommending_services'
     ) {
       return this.completeClaim(state, updatedClaim, historyWithUser, message, extractionResult.debugMetrics);
@@ -576,13 +593,9 @@ export class DefaultConversationManager implements ConversationManager {
       );
     }
 
-    let nextMessage = extractionResult.acknowledgement;
-    if (nextMessage && extractionResult.nextQuestion) {
-        nextMessage += " " + extractionResult.nextQuestion;
-    } else if (extractionResult.nextQuestion) {
-        nextMessage = extractionResult.nextQuestion;
-    } else {
-        nextMessage = nextMessage || "Could you tell me more about what happened?";
+    let nextMessage = extractionResult.responseToUser;
+    if (!nextMessage || nextMessage.trim().length === 0) {
+        nextMessage = "Could you tell me more about what happened?";
     }
 
     const trackedState = this.updateFieldTracking({
@@ -805,60 +818,23 @@ export class DefaultConversationManager implements ConversationManager {
     action: ConversationAction,
     extractionDebug?: any
   ): Promise<ConversationTurnResult> {
-    const rendered = await this.renderAssistantAction(state, action);
     const nextHistory = appendMessage(
       state.conversationHistory,
       'assistant',
-      rendered.action.message,
+      action.message,
     );
 
     return {
       state: {
         ...state,
         conversationHistory: nextHistory,
-        lastAssistantMessage: rendered.action.message,
+        lastAssistantMessage: action.message,
       },
-      action: rendered.action,
+      action: action,
       debugMetrics: {
         rawExtractedSlots: extractionDebug?.rawExtractedSlots ?? {},
-        geminiPrompt: `${extractionDebug?.geminiPrompt ?? ''}\n\n=== RESPONSE GENERATION ===\n\n${rendered.responseDebug.prompt}`,
-        geminiResponse: `${extractionDebug?.geminiResponse ?? ''}\n\n=== RESPONSE GENERATION ===\n\n${rendered.responseDebug.response}`,
-      }
-    };
-  }
-
-  private async renderAssistantAction(
-    state: ConversationState,
-    action: ConversationAction,
-  ): Promise<{ action: ConversationAction, responseDebug: { prompt: string, response: string } }> {
-    const systemPrompt = this.dependencies.promptBuilder.buildSystemPrompt(
-      state,
-      action,
-    );
-    const conversationContext =
-      this.dependencies.promptBuilder.buildConversationContext(state);
-    const userPrompt = this.dependencies.promptBuilder.buildUserPrompt(
-      state,
-      action,
-    );
-    const response = await this.dependencies.geminiClient.generateAssistantResponse({
-      systemPrompt,
-      conversationContext,
-      userPrompt,
-    });
-    const assistantMessage =
-      response.errorMessage && action.message.trim().length > 0
-        ? action.message
-        : response.assistantResponse;
-
-    return {
-      action: {
-        ...action,
-        message: assistantMessage,
-      },
-      responseDebug: {
-        prompt: systemPrompt + '\n' + conversationContext + '\n' + userPrompt,
-        response: response.assistantResponse
+        geminiPrompt: extractionDebug?.geminiPrompt ?? '',
+        geminiResponse: extractionDebug?.geminiResponse ?? '',
       }
     };
   }

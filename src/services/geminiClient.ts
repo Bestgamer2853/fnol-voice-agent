@@ -3,11 +3,14 @@ export interface GenerateAssistantResponseInput {
   conversationContext: string;
   userPrompt: string;
   responseMimeType?: 'application/json' | 'text/plain';
+  tools?: any[];
+  toolConfig?: any;
 }
 
 export interface GenerateAssistantResponseResult {
   assistantResponse: string;
   errorMessage?: string;
+  toolCalls?: any[];
 }
 
 export interface GeminiClient {
@@ -24,6 +27,7 @@ interface GeminiServiceOptions {
 
 interface GeminiPart {
   text?: string;
+  functionCall?: any;
 }
 
 interface GeminiContent {
@@ -59,14 +63,24 @@ function fallbackResponse(errorMessage: string): GenerateAssistantResponseResult
 
 function extractAssistantResponse(
   response: GeminiGenerateContentResponse,
-): string | undefined {
-  const text = response.candidates?.[0]?.content?.parts
-    ?.map((part) => part.text)
+): { text?: string; toolCalls?: any[] } {
+  const parts = response.candidates?.[0]?.content?.parts ?? [];
+  const text = parts
+    .map((part) => part.text)
     .filter((partText): partText is string => Boolean(partText))
     .join('')
     .trim();
 
-  return text && text.length > 0 ? text : undefined;
+  const toolCalls = parts
+    .filter((part) => part.functionCall)
+    .map((part) => part.functionCall);
+
+  const finalToolCalls = toolCalls.length > 0 ? toolCalls : undefined;
+
+  const result: { text?: string; toolCalls?: any[] } = {};
+  if (text) result.text = text;
+  if (finalToolCalls) result.toolCalls = finalToolCalls;
+  return result;
 }
 
 export class GeminiService implements GeminiClient {
@@ -121,9 +135,11 @@ export class GeminiService implements GeminiClient {
             ],
             generationConfig: {
               temperature: 0.4,
-              maxOutputTokens: 180,
+              maxOutputTokens: 250,
               responseMimeType: input.responseMimeType,
             },
+            tools: input.tools,
+            toolConfig: input.toolConfig,
           }),
         },
       );
@@ -136,13 +152,15 @@ export class GeminiService implements GeminiClient {
         );
       }
 
-      const assistantResponse = extractAssistantResponse(body);
+      const { text: assistantResponse, toolCalls } = extractAssistantResponse(body);
 
-      if (!assistantResponse) {
-        return fallbackResponse('Gemini returned no assistant text.');
+      if (!assistantResponse && !toolCalls) {
+        return fallbackResponse('Gemini returned no assistant text and no tool calls.');
       }
 
-      return { assistantResponse };
+      const finalResponse: GenerateAssistantResponseResult = { assistantResponse: assistantResponse ?? '' };
+      if (toolCalls) finalResponse.toolCalls = toolCalls;
+      return finalResponse;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown Gemini error.';
       return fallbackResponse(message);

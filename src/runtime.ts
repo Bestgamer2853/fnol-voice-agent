@@ -5,7 +5,7 @@ import {
   type ConversationManager,
   type ConversationManagerDependencies,
 } from './conversation/ConversationManager.js';
-import { createPromptBuilder } from './conversation/PromptBuilder.js';
+
 import {
   DEFAULT_CLAIMS_FILE_PATH,
   createLocalJsonClaimLogger,
@@ -88,7 +88,7 @@ export function createRuntimeDependencies(): ConversationManagerDependencies {
     recommendServices: createRecommendServicesService(),
     generateSummary: createGenerateSummaryService({ geminiClient }),
     claimLogger,
-    promptBuilder: createPromptBuilder(),
+
     geminiClient,
     claimNumberGenerator: createClaimNumberGenerator({
       initialSequence: readInitialClaimSequence(DEFAULT_CLAIMS_FILE_PATH),

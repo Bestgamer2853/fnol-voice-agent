@@ -10,11 +10,8 @@ export interface ExtractClaimDataInput {
 }
 
 export interface ExtractClaimDataResult {
-  acknowledgement: string;
-  updatedClaim: Partial<Claim>;
-  missingFields: string[];
-  conversationStage: ConversationStep;
-  nextQuestion: string;
+  responseToUser: string;
+  toolCalls?: any[] | undefined;
   conversationAnalysis: string;
   debugMetrics: {
     rawExtractedSlots: unknown;
@@ -314,11 +311,7 @@ function getFallbackResult(message: string, state: ConversationState): ExtractCl
   }
   
   return {
-    acknowledgement: '',
-    updatedClaim: extractFallbackClaimPatch(message),
-    missingFields: state.missingFields,
-    conversationStage: state.currentConversationStep,
-    nextQuestion,
+    responseToUser: nextQuestion,
     conversationAnalysis: 'Fallback triggered due to LLM error or empty response',
     debugMetrics: {
       rawExtractedSlots: {},
@@ -335,22 +328,14 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
     const systemPrompt = [
       'You are an expert conversational AI agent for FNOL motor insurance claims.',
       'You must drive the conversation natively, handling safety checks, empathy, and data extraction.',
-      'Return ONLY a JSON object with these exact keys:',
-      '  - acknowledgement: string (Acknowledge user input, show empathy if needed, or leave empty)',
-      '  - extractedSlots: object (Keys are field names. Values are objects: { "value": any, "confidence": number } where confidence is 0.0 to 1.0)',
-      '  - missingFields: string[] (List of remaining fields you still need to collect)',
-      '  - conversationStage: string (Current stage: safety_check, verification, collecting_fnol, escalation, completed)',
-      '  - nextQuestion: string (The natural next question to ask the user)',
-      '  - conversationAnalysis: string (Internal reasoning on what the user said and why you chose the next question)',
       '',
       'IMPORTANT RULES:',
       '1. Never ask for information already present in the transcript or existing state.',
-      '2. Robustly normalize ASR imperfections (e.g. "em em eye one zero" -> "MMI-10", "twenty three" -> 23).',
-      '3. If the user mentions injury or safety issues, dynamically transition or escalate if severe.',
-      '4. If you assign a confidence below 0.7 to any extracted slot, your nextQuestion MUST be a natural confirmation of that specific value instead of moving on.',
-      '5. Allowed extractedSlots keys: policyNumber, callerName, dateOfIncident, timeOfIncident, locationOfIncident, incidentDescription, otherParties, injuryDetails, policeReportReference, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable, insuredVehicle.',
-      '6. Use booleans only for true/false fields.',
-      '7. insuredVehicle may contain make, model, registration.',
+      '2. Robustly normalize ASR imperfections (e.g. "em em eye one zero" -> "MMI-10").',
+      '3. Keep your response concise, conversational, and natural. Speak like a human.',
+      '4. Do NOT ask more than one question per turn.',
+      '5. When you learn new information about the claim, you MUST call the save_claim_data tool.',
+      '6. If the user mentions a severe injury or emergency (e.g., fire, rollover, ambulance), call the escalate_claim tool.',
     ].join('\n');
     const conversationContext = buildExtractionContext(input.state);
     const userPrompt = [
@@ -360,11 +345,50 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       `User message: ${input.userMessage}`,
     ].join('\n');
 
+    const tools = [
+      {
+        functionDeclarations: [
+          {
+            name: 'save_claim_data',
+            description: 'Save extracted fields to the claim. Call this when you learn new information from the user.',
+            parameters: {
+              type: 'OBJECT',
+              properties: {
+                policyNumber: { type: 'STRING' },
+                callerName: { type: 'STRING' },
+                dateOfIncident: { type: 'STRING' },
+                timeOfIncident: { type: 'STRING' },
+                locationOfIncident: { type: 'STRING' },
+                incidentDescription: { type: 'STRING' },
+                otherParties: { type: 'STRING' },
+                injuryDetails: { type: 'STRING' },
+                policeReportReference: { type: 'STRING' },
+                injuriesReported: { type: 'BOOLEAN' },
+                policeReportFiled: { type: 'BOOLEAN' },
+                photosAvailable: { type: 'BOOLEAN' },
+                vehicleDrivable: { type: 'BOOLEAN' },
+              }
+            }
+          },
+          {
+            name: 'escalate_claim',
+            description: 'Flag the claim as urgent and escalate if there is a severe injury or emergency.',
+            parameters: {
+              type: 'OBJECT',
+              properties: {
+                reason: { type: 'STRING' }
+              }
+            }
+          }
+        ]
+      }
+    ];
+
     const result = await this.options.geminiClient.generateAssistantResponse({
       systemPrompt,
       conversationContext,
       userPrompt,
-      responseMimeType: 'application/json',
+      tools,
     });
 
     if (result.errorMessage) {
@@ -372,38 +396,12 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       return getFallbackResult(input.userMessage, input.state);
     }
 
-    const parsed = extractJsonObject(result.assistantResponse);
-    if (typeof parsed !== 'object' || parsed === null) {
-      console.error('[Gemini Parse Error]', result.assistantResponse);
-      return getFallbackResult(input.userMessage, input.state);
-    }
-
-    const record = parsed as Record<string, unknown>;
-    
-    const extractedSlots = record.extractedSlots;
-    const highConfidenceFields: Record<string, unknown> = {};
-    
-    if (typeof extractedSlots === 'object' && extractedSlots !== null) {
-      for (const [key, slotObj] of Object.entries(extractedSlots)) {
-        if (typeof slotObj === 'object' && slotObj !== null) {
-          const slot = slotObj as Record<string, unknown>;
-          const confidence = typeof slot.confidence === 'number' ? slot.confidence : 0;
-          if (confidence >= 0.7 && slot.value !== undefined) {
-             highConfidenceFields[key] = slot.value;
-          }
-        }
-      }
-    }
-
     const finalResult: ExtractClaimDataResult = {
-      acknowledgement: typeof record.acknowledgement === 'string' ? record.acknowledgement : '',
-      updatedClaim: sanitizeExtractedClaimPatch(highConfidenceFields),
-      missingFields: Array.isArray(record.missingFields) ? record.missingFields.map(String) : [],
-      conversationStage: typeof record.conversationStage === 'string' ? record.conversationStage as ConversationStep : input.state.currentConversationStep,
-      nextQuestion: typeof record.nextQuestion === 'string' ? record.nextQuestion : 'What else can you tell me?',
-      conversationAnalysis: typeof record.conversationAnalysis === 'string' ? record.conversationAnalysis : '',
+      responseToUser: result.assistantResponse || 'Could you tell me more about that?',
+      toolCalls: result.toolCalls,
+      conversationAnalysis: '',
       debugMetrics: {
-        rawExtractedSlots: extractedSlots,
+        rawExtractedSlots: result.toolCalls,
         geminiPrompt: systemPrompt + '\n' + conversationContext + '\n' + userPrompt,
         geminiResponse: result.assistantResponse,
       }
