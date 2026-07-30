@@ -6,8 +6,8 @@ interface OpenRouterServiceOptions {
   endpointBaseUrl?: string;
 }
 
-const DEFAULT_MODEL = 'openrouter/free';
-const FALLBACK_MODEL = 'google/gemma-4-26b-a4b-it:free';
+const DEFAULT_MODEL = 'google/gemma-4-26b-a4b-it:free';
+const FALLBACK_MODEL = 'openrouter/free';
 const DEFAULT_ENDPOINT_BASE_URL = 'https://openrouter.ai/api/v1';
 
 function readEnvironmentValue(name: string): string | undefined {
@@ -128,7 +128,7 @@ export class OpenRouterService implements LlmProvider {
       model: currentModel,
       messages,
       temperature: 0.4,
-      max_tokens: 250,
+      max_tokens: 1500,
       stream: true,
       tools: openaiTools,
       response_format: input.responseMimeType === 'application/json' ? { type: 'json_object' } : undefined
