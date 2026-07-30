@@ -524,13 +524,14 @@ export class DefaultConversationManager implements ConversationManager {
     if (nextStage === 'escalation') {
         return this.withAssistantAction(
             { ...state, conversationHistory: historyWithUser, currentConversationStep: 'escalation' },
-            { type: 'escalate', message: 'I understand this is an emergency. Please hang up and dial emergency services immediately. An adjuster will review this urgently.', reason: 'safety_check_failed' }
+            { type: 'escalate', message: 'I understand this is an emergency. Please hang up and dial emergency services immediately. An adjuster will review this urgently.', reason: 'safety_check_failed' },
+            extractionResult.debugMetrics
         );
     }
 
     if (nextStage === 'verification' || (nextStage === 'collecting_fnol' && !state.verifiedPolicy)) {
         if (hasText(updatedClaim.policyNumber) && hasText(updatedClaim.callerName) && !state.verifiedPolicy) {
-             return this.handleVerification(state, updatedClaim, historyWithUser, message);
+             return this.handleVerification(state, updatedClaim, historyWithUser, message, extractionResult.debugMetrics);
         }
     }
 
@@ -538,7 +539,7 @@ export class DefaultConversationManager implements ConversationManager {
       parsedMessage.confirmationRequested &&
       state.currentConversationStep === 'recommending_services'
     ) {
-      return this.completeClaim(state, updatedClaim, historyWithUser, message);
+      return this.completeClaim(state, updatedClaim, historyWithUser, message, extractionResult.debugMetrics);
     }
 
     if (nextStage === 'reviewing_summary') {
@@ -550,7 +551,7 @@ export class DefaultConversationManager implements ConversationManager {
                conversationHistory: historyWithUser,
                lastUserMessage: message,
                currentConversationStep: nextStage
-            }));
+            }), extractionResult.debugMetrics);
         }
     }
 
@@ -571,6 +572,7 @@ export class DefaultConversationManager implements ConversationManager {
           message: 'This claim has been flagged for urgent adjuster review.',
           reason: severityResult.reasons.join(' '),
         },
+        extractionResult.debugMetrics
       );
     }
 
@@ -602,13 +604,13 @@ export class DefaultConversationManager implements ConversationManager {
          }, {
             type: 'respond',
             message: summaryGen.generatePreSubmissionSummary(trackedState)
-         });
+         }, extractionResult.debugMetrics);
     }
 
     return this.withAssistantAction(trackedState, {
        type: 'respond',
        message: nextMessage
-    });
+    }, extractionResult.debugMetrics);
   }
 
   private async handleVerification(
@@ -616,6 +618,7 @@ export class DefaultConversationManager implements ConversationManager {
     updatedClaim: Claim,
     conversationHistory: ConversationMessage[],
     message: string,
+    extractionDebug?: any
   ): Promise<ConversationTurnResult> {
     const nextState = this.updateFieldTracking({
       ...state,
@@ -632,7 +635,7 @@ export class DefaultConversationManager implements ConversationManager {
       return this.withAssistantAction(nextState, {
         type: 'request_clarification',
         message: 'Please provide both policyNumber and callerName.',
-      });
+      }, extractionDebug);
     }
 
     const verificationResult = await this.dependencies.verifyPolicy.verify({
@@ -657,13 +660,14 @@ export class DefaultConversationManager implements ConversationManager {
             type: 'offer_callback',
             message: 'I could not verify the policy. I can arrange a callback from the claims team.',
           },
+          extractionDebug
         );
       }
 
       return this.withAssistantAction(failedState, {
         type: 'request_clarification',
         message: verificationResult.message,
-      });
+      }, extractionDebug);
     }
 
     const verifiedClaim = mergeClaim(updatedClaim, {
@@ -682,17 +686,18 @@ export class DefaultConversationManager implements ConversationManager {
     return this.withAssistantAction(verifiedState, {
       type: 'respond',
       message: firstMissingFieldPrompt(verifiedState.missingFields),
-    });
+    }, extractionDebug);
   }
 
   private async recommendServices(
     state: ConversationState,
+    extractionDebug?: any
   ): Promise<ConversationTurnResult> {
     if (!state.verifiedPolicy) {
       return this.withAssistantAction(state, {
         type: 'request_clarification',
         message: 'Please verify the policy before service recommendations.',
-      });
+      }, extractionDebug);
     }
 
     const recommendationResult = await this.dependencies.recommendServices.recommend({
@@ -713,7 +718,7 @@ export class DefaultConversationManager implements ConversationManager {
       type: 'recommend_services',
       message: 'Recommended services are ready. Reply with confirm=true to complete the claim.',
       services: recommendationResult.recommendations,
-    });
+    }, extractionDebug);
   }
 
   private async completeClaim(
@@ -721,12 +726,13 @@ export class DefaultConversationManager implements ConversationManager {
     updatedClaim: Claim,
     conversationHistory: ConversationMessage[],
     message: string,
+    extractionDebug?: any
   ): Promise<ConversationTurnResult> {
     if (!state.verifiedPolicy) {
       return this.withAssistantAction(state, {
         type: 'request_clarification',
         message: 'Please verify the policy before completing the claim.',
-      });
+      }, extractionDebug);
     }
 
     const claimReferenceNumber =
@@ -783,7 +789,7 @@ export class DefaultConversationManager implements ConversationManager {
       type: 'complete',
       message: confirmationMessage,
       claim: claimWithSummary,
-    });
+    }, extractionDebug);
   }
 
   private updateFieldTracking(state: ConversationState): ConversationState {
@@ -797,28 +803,34 @@ export class DefaultConversationManager implements ConversationManager {
   private async withAssistantAction(
     state: ConversationState,
     action: ConversationAction,
+    extractionDebug?: any
   ): Promise<ConversationTurnResult> {
-    const renderedAction = await this.renderAssistantAction(state, action);
+    const rendered = await this.renderAssistantAction(state, action);
     const nextHistory = appendMessage(
       state.conversationHistory,
       'assistant',
-      renderedAction.message,
+      rendered.action.message,
     );
 
     return {
       state: {
         ...state,
         conversationHistory: nextHistory,
-        lastAssistantMessage: renderedAction.message,
+        lastAssistantMessage: rendered.action.message,
       },
-      action: renderedAction,
+      action: rendered.action,
+      debugMetrics: {
+        rawExtractedSlots: extractionDebug?.rawExtractedSlots ?? {},
+        geminiPrompt: `${extractionDebug?.geminiPrompt ?? ''}\n\n=== RESPONSE GENERATION ===\n\n${rendered.responseDebug.prompt}`,
+        geminiResponse: `${extractionDebug?.geminiResponse ?? ''}\n\n=== RESPONSE GENERATION ===\n\n${rendered.responseDebug.response}`,
+      }
     };
   }
 
   private async renderAssistantAction(
     state: ConversationState,
     action: ConversationAction,
-  ): Promise<ConversationAction> {
+  ): Promise<{ action: ConversationAction, responseDebug: { prompt: string, response: string } }> {
     const systemPrompt = this.dependencies.promptBuilder.buildSystemPrompt(
       state,
       action,
@@ -840,8 +852,14 @@ export class DefaultConversationManager implements ConversationManager {
         : response.assistantResponse;
 
     return {
-      ...action,
-      message: assistantMessage,
+      action: {
+        ...action,
+        message: assistantMessage,
+      },
+      responseDebug: {
+        prompt: systemPrompt + '\n' + conversationContext + '\n' + userPrompt,
+        response: response.assistantResponse
+      }
     };
   }
 }

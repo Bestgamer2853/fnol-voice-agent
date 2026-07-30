@@ -22,8 +22,13 @@ const dependencies: ConversationManagerDependencies = {
         updatedClaim: {},
         missingFields: [],
         conversationStage: 'collecting_fnol',
-        nextQuestion: '',
-        conversationAnalysis: 'mock'
+        nextQuestion: 'Can you provide your policy number?',
+        conversationAnalysis: 'Mock extraction',
+        debugMetrics: {
+          rawExtractedSlots: {},
+          geminiPrompt: '',
+          geminiResponse: ''
+        }
       });
     },
   },

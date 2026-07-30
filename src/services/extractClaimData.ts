@@ -16,6 +16,11 @@ export interface ExtractClaimDataResult {
   conversationStage: ConversationStep;
   nextQuestion: string;
   conversationAnalysis: string;
+  debugMetrics: {
+    rawExtractedSlots: unknown;
+    geminiPrompt: string;
+    geminiResponse: string;
+  };
 }
 
 export interface ExtractClaimDataService {
@@ -299,13 +304,27 @@ function extractFallbackClaimPatch(message: string): Partial<Claim> {
 }
 
 function getFallbackResult(message: string, state: ConversationState): ExtractClaimDataResult {
+  let nextQuestion = 'Could you tell me more about what happened?';
+  if (state.missingFields.length > 0) {
+    const firstField = state.missingFields[0];
+    if (firstField) {
+      const field = firstField.replace(/([A-Z])/g, ' $1').toLowerCase();
+      nextQuestion = `I didn't quite catch that. Could you please provide the ${field}?`;
+    }
+  }
+  
   return {
     acknowledgement: '',
     updatedClaim: extractFallbackClaimPatch(message),
     missingFields: state.missingFields,
     conversationStage: state.currentConversationStep,
-    nextQuestion: 'I am sorry, I am having trouble understanding. Could you please repeat that?',
+    nextQuestion,
     conversationAnalysis: 'Fallback triggered due to LLM error or empty response',
+    debugMetrics: {
+      rawExtractedSlots: {},
+      geminiPrompt: '',
+      geminiResponse: '',
+    }
   };
 }
 
@@ -313,43 +332,49 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
   constructor(private readonly options: ExtractClaimDataServiceOptions) {}
 
   async extract(input: ExtractClaimDataInput): Promise<ExtractClaimDataResult> {
+    const systemPrompt = [
+      'You are an expert conversational AI agent for FNOL motor insurance claims.',
+      'You must drive the conversation natively, handling safety checks, empathy, and data extraction.',
+      'Return ONLY a JSON object with these exact keys:',
+      '  - acknowledgement: string (Acknowledge user input, show empathy if needed, or leave empty)',
+      '  - extractedSlots: object (Keys are field names. Values are objects: { "value": any, "confidence": number } where confidence is 0.0 to 1.0)',
+      '  - missingFields: string[] (List of remaining fields you still need to collect)',
+      '  - conversationStage: string (Current stage: safety_check, verification, collecting_fnol, escalation, completed)',
+      '  - nextQuestion: string (The natural next question to ask the user)',
+      '  - conversationAnalysis: string (Internal reasoning on what the user said and why you chose the next question)',
+      '',
+      'IMPORTANT RULES:',
+      '1. Never ask for information already present in the transcript or existing state.',
+      '2. Robustly normalize ASR imperfections (e.g. "em em eye one zero" -> "MMI-10", "twenty three" -> 23).',
+      '3. If the user mentions injury or safety issues, dynamically transition or escalate if severe.',
+      '4. If you assign a confidence below 0.7 to any extracted slot, your nextQuestion MUST be a natural confirmation of that specific value instead of moving on.',
+      '5. Allowed extractedSlots keys: policyNumber, callerName, dateOfIncident, timeOfIncident, locationOfIncident, incidentDescription, otherParties, injuryDetails, policeReportReference, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable, insuredVehicle.',
+      '6. Use booleans only for true/false fields.',
+      '7. insuredVehicle may contain make, model, registration.',
+    ].join('\n');
+    const conversationContext = buildExtractionContext(input.state);
+    const userPrompt = [
+      'Analyze the user message and the conversation history.',
+      'Generate the appropriate conversational response and extract any claim data.',
+      '',
+      `User message: ${input.userMessage}`,
+    ].join('\n');
+
     const result = await this.options.geminiClient.generateAssistantResponse({
-      systemPrompt: [
-        'You are an expert conversational AI agent for FNOL motor insurance claims.',
-        'You must drive the conversation natively, handling safety checks, empathy, and data extraction.',
-        'Return ONLY a JSON object with these exact keys:',
-        '  - acknowledgement: string (Acknowledge user input, show empathy if needed, or leave empty)',
-        '  - extractedSlots: object (Keys are field names. Values are objects: { "value": any, "confidence": number } where confidence is 0.0 to 1.0)',
-        '  - missingFields: string[] (List of remaining fields you still need to collect)',
-        '  - conversationStage: string (Current stage: safety_check, verification, collecting_fnol, escalation, completed)',
-        '  - nextQuestion: string (The natural next question to ask the user)',
-        '  - conversationAnalysis: string (Internal reasoning on what the user said and why you chose the next question)',
-        '',
-        'IMPORTANT RULES:',
-        '1. Never ask for information already present in the transcript or existing state.',
-        '2. Robustly normalize ASR imperfections (e.g. "em em eye one zero" -> "MMI-10", "twenty three" -> 23).',
-        '3. If the user mentions injury or safety issues, dynamically transition or escalate if severe.',
-        '4. If you assign a confidence below 0.7 to any extracted slot, your nextQuestion MUST be a natural confirmation of that specific value instead of moving on.',
-        '5. Allowed extractedSlots keys: policyNumber, callerName, dateOfIncident, timeOfIncident, locationOfIncident, incidentDescription, otherParties, injuryDetails, policeReportReference, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable, insuredVehicle.',
-        '6. Use booleans only for true/false fields.',
-        '7. insuredVehicle may contain make, model, registration.',
-      ].join('\n'),
-      conversationContext: buildExtractionContext(input.state),
-      userPrompt: [
-        'Analyze the user message and the conversation history.',
-        'Generate the appropriate conversational response and extract any claim data.',
-        '',
-        `User message: ${input.userMessage}`,
-      ].join('\n'),
+      systemPrompt,
+      conversationContext,
+      userPrompt,
       responseMimeType: 'application/json',
     });
 
     if (result.errorMessage) {
+      console.error('[Gemini Extract Error]', result.errorMessage);
       return getFallbackResult(input.userMessage, input.state);
     }
 
     const parsed = extractJsonObject(result.assistantResponse);
     if (typeof parsed !== 'object' || parsed === null) {
+      console.error('[Gemini Parse Error]', result.assistantResponse);
       return getFallbackResult(input.userMessage, input.state);
     }
 
@@ -377,6 +402,11 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       conversationStage: typeof record.conversationStage === 'string' ? record.conversationStage as ConversationStep : input.state.currentConversationStep,
       nextQuestion: typeof record.nextQuestion === 'string' ? record.nextQuestion : 'What else can you tell me?',
       conversationAnalysis: typeof record.conversationAnalysis === 'string' ? record.conversationAnalysis : '',
+      debugMetrics: {
+        rawExtractedSlots: extractedSlots,
+        geminiPrompt: systemPrompt + '\n' + conversationContext + '\n' + userPrompt,
+        geminiResponse: result.assistantResponse,
+      }
     };
 
     return finalResult;

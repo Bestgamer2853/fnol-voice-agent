@@ -12,6 +12,11 @@ export type ConversationAction =
 export interface ConversationTurnResult {
   state: ConversationState;
   action: ConversationAction;
+  debugMetrics?: {
+    rawExtractedSlots: unknown;
+    geminiPrompt: string;
+    geminiResponse: string;
+  };
 }
 
 export interface ConversationManager {

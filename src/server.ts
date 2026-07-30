@@ -322,10 +322,28 @@ wss.on('connection', (ws: WebSocket, req) => {
             logInfo(`Executing handleVerification()`);
           }
 
+          const startTime = Date.now();
           const result = await conversationManager.handleUserMessage(
             currentState,
             lastUserTurn.content
           );
+          const latencyMs = Date.now() - startTime;
+
+          // PRODUCTION TURN LOGGING
+          const turnLog = {
+            callId: event.call?.call_id || sessionId,
+            fsmStateBefore: currentState.currentConversationStep,
+            userTranscript: lastUserTurn.content,
+            extractedSlots: result.debugMetrics?.rawExtractedSlots ?? {},
+            missingSlots: result.state.missingFields,
+            geminiPrompt: result.debugMetrics?.geminiPrompt ?? '',
+            geminiResponse: result.debugMetrics?.geminiResponse ?? '',
+            latencyMs,
+            fsmStateAfter: result.state.currentConversationStep,
+            chosenResponse: result.action.message,
+            actionType: result.action.type,
+          };
+          logInfo(`\n=== TURN METRICS ===\n${JSON.stringify(turnLog, null, 2)}\n====================\n`);
 
           // Save updated state back to the Map
           updateSession(sessionId, result.state);
