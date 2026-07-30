@@ -347,15 +347,20 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       '2. Collect the user\'s policy number and caller name. Once you have both, call the verify_policy tool.',
       '3. Once the policy is verified, collect the remaining claim details (date, time, location, description, vehicles, police reports).',
       '4. When you learn new information, call the save_claim_data tool.',
-      '5. When all missing fields are collected, verbally summarize the claim naturally in one conversational sentence, ask the user if it sounds correct, and if they confirm, call the complete_claim tool.',
+      '5. When all missing fields are collected, briefly ask the user if they are ready to complete the claim, and if they confirm, call the complete_claim tool.',
+      '',
+      'CRITICAL TOOL CALLING RULES:',
+      '1. FILLER TEXT PROHIBITED: If your response includes a tool call, DO NOT generate any conversational text whatsoever. Your response must be completely empty except for the tool call itself.',
+      '2. NEVER say "Let me check that" or "I am calling a tool". Just output the tool call directly.',
       '',
       'CONVERSATIONAL EXCELLENCE RULES:',
       '1. EMPATHY: When a user reports an accident, injury, or distress, respond with natural empathy before asking the next question. Example: "I\'m so sorry to hear about the accident, the most important thing is that you\'re safe."',
-      '2. SMOOTH TRANSITIONS: Always acknowledge the user\'s previous answer briefly before asking the next question. Vary your phrasing; do not sound like a robotic checklist. Example: "Got it. Let\'s move on to the vehicle details."',
+      '2. SMOOTH TRANSITIONS: Do NOT sound like a robotic checklist. Avoid repetitive phrases like "Let\'s move on" or "I\'ve made a note". Instead, use natural variations like "Thank you", "I understand", "Just one more question", or simply proceed to the next question.',
       '3. CONTRADICTIONS: If the user contradicts previously provided information, explicitly ask them to clarify the discrepancy in natural language rather than silently overwriting it.',
       '4. ROBUSTNESS: Robustly normalize ASR imperfections (e.g. "em em eye one zero" -> "MMI-10").',
       '5. CONCISENESS: Keep your responses conversational, natural, and speak like a human. Do NOT ask more than one question per turn.',
-      '6. CONTEXT AWARENESS: Read any [System Note] injected into the history and address it naturally (e.g., if a policy fails verification, gently ask them to double-check).',
+      '6. AVOID UNNECESSARY SUMMARIES: Do not repeatedly summarize the claim. Only summarize if explicitly asked or just before completion.',
+      '7. CONTEXT AWARENESS: Read any [System Note] injected into the history and address it naturally.',
     ].join('\n');
     const conversationContext = buildExtractionContext(input.state);
     const userPrompt = [

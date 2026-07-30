@@ -44,6 +44,7 @@ export class GoogleSheetsClaimLogger implements ClaimLoggerService {
         record.claim.insuredVehicle?.model ?? 'N/A',
         record.claim.insuredVehicle?.registration ?? 'N/A',
         record.claim.injuriesReported ? 'Yes' : 'No',
+        record.claim.injuryDetails ?? 'N/A',
         record.claim.policeReportFiled ? 'Yes' : 'No',
         record.claim.policeReportReference ?? 'N/A',
         record.claim.photosAvailable ? 'Yes' : 'No',
@@ -57,7 +58,7 @@ export class GoogleSheetsClaimLogger implements ClaimLoggerService {
       // Append to the sheet
       await this.sheets.spreadsheets.values.append({
         spreadsheetId: this.spreadsheetId,
-        range: 'Sheet1!A:T', // Assuming the first sheet is named Sheet1
+        range: 'Sheet1!A:U', // Assuming the first sheet is named Sheet1
         valueInputOption: 'USER_ENTERED',
         requestBody: {
           values: [row],

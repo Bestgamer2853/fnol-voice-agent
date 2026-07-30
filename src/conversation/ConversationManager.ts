@@ -470,15 +470,9 @@ export class DefaultConversationManager implements ConversationManager {
     console.log(`[ConversationManager] User message: "${message}"`);
     if (state.currentConversationStep === 'completed') {
       return this.withAssistantAction(
-        {
-          ...state,
-          conversationHistory: appendMessage(state.conversationHistory, 'user', message),
-          lastUserMessage: message,
-        },
-        {
-          type: 'respond',
-          message: 'This claim conversation is already completed.',
-        },
+        { ...state, lastUserMessage: message },
+        { type: 'complete', message: 'Goodbye, have a great day.' },
+        {}
       );
     }
 
@@ -539,8 +533,13 @@ export class DefaultConversationManager implements ConversationManager {
                     }
                     toolResultStr = JSON.stringify(verifyResult);
                 } else if (call.name === 'complete_claim') {
-                    claimCompleted = true;
-                    toolResultStr = JSON.stringify({ success: true, completed: true });
+                    const missing = calculateMissingFields(updatedClaim);
+                    if (missing.length === 0) {
+                        claimCompleted = true;
+                        toolResultStr = JSON.stringify({ success: true, completed: true });
+                    } else {
+                        toolResultStr = JSON.stringify({ error: `Cannot complete claim. You are still missing the following fields: ${missing.join(', ')}. Ask the user for them.` });
+                    }
                 }
                 
                 console.log(`[ConversationManager]      Result: ${toolResultStr}`);
