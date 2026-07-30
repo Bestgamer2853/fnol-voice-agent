@@ -412,10 +412,19 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
     }
 
     let parsedResponse: any = {};
+    const rawResponse = result.assistantResponse || '{}';
+    console.log(`[Diagnostic] Before JSON parse. Length: ${rawResponse.length}, Ends with }: ${rawResponse.trim().endsWith('}')}`);
+    console.log(`[Diagnostic] Raw response text: \n${rawResponse}`);
     try {
-        parsedResponse = JSON.parse(result.assistantResponse || '{}');
+        parsedResponse = JSON.parse(rawResponse);
     } catch (e) {
-        parsedResponse = extractJsonObject(result.assistantResponse || '{}') || {};
+        console.error(`[Diagnostic] JSON.parse exact error:`, e);
+        try {
+            parsedResponse = extractJsonObject(rawResponse) || {};
+        } catch(e2) {
+            console.error(`[Diagnostic] extractJsonObject also failed:`, e2);
+            parsedResponse = {};
+        }
     }
 
     const finalResult: ExtractClaimDataResult = {

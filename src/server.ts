@@ -229,7 +229,13 @@ const port = Number(process.env.PORT ?? DEFAULT_PORT);
 const server = app.listen(port, () => {
   logInfo(`\n====================================`);
   logInfo(`Provider : Gemini`);
-  logInfo(`Model : gemini-2.5-flash`);
+  logInfo(`Model : gemini-2.0-flash`); // Updated to match actual usage
+  logInfo(`Endpoint : https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`);
+  logInfo(`API Version : v1beta`);
+  
+  const rawKey = process.env.GEMINI_API_KEY || '';
+  const maskedKey = rawKey.length > 12 ? rawKey.substring(0, 12) + '...' : 'NOT_SET_OR_TOO_SHORT';
+  logInfo(`API Key : ${maskedKey}`);
   logInfo(`Billing : Paid`);
   logInfo(`====================================\n`);
   logInfo(`FNOL backend listening on port ${port}`);
@@ -326,6 +332,7 @@ wss.on('connection', (ws: WebSocket, req) => {
       }
 
       if (event.interaction_type === 'response_required' || event.interaction_type === 'reminder_required') {
+        console.log(`[Diagnostic] RECEIVED response_required event for session ${sessionId}`);
         logInfo(`Executing handleResponseRequired() / handleReminderRequired()`);
         
         if (processingTurn.has(sessionId)) {

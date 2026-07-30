@@ -135,11 +135,12 @@ export class GeminiService implements LlmProvider {
     const url = `${this.endpointBaseUrl}/chat/completions`;
 
     let attempt = 0;
+    const reqIdForLogs = require('crypto').randomBytes(4).toString('hex');
     while (attempt <= MAX_RETRIES) {
       attempt++;
       const startTime = Date.now();
-      console.log(`[LLM Request] Attempt ${attempt}. URL: ${url}, Model: ${this.model}, Tools: ${openaiTools?.length || 0}`);
-      console.log(`[LLM Request] exact messages[] array:\n${JSON.stringify(messages, null, 2)}`);
+      console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] [LLM Request] Attempt ${attempt}. URL: ${url}, Model: ${this.model}, Method: POST`);
+      console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] exact messages[] array:\n${JSON.stringify(messages, null, 2)}`);
 
       try {
         const response = await fetch(url, {
@@ -152,6 +153,9 @@ export class GeminiService implements LlmProvider {
         });
 
         const latency = Date.now() - startTime;
+        console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] HTTP Status: ${response.status}`);
+        console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] Response Headers:`);
+        response.headers.forEach((v, k) => console.log(`  ${k}: ${v}`));
 
         if (!response.ok) {
           const errorBody = await response.text();
@@ -251,8 +255,9 @@ export class GeminiService implements LlmProvider {
         }
 
         console.log(`[LLM Response Success] Latency: ${latency}ms, ToolCalls: ${allToolCalls.length}`);
-        console.log(`[LLM Response] fullAssistantResponse: "${fullAssistantResponse}"`);
-        console.log(`[LLM Response] finishReason: "${finishReason}"`);
+        console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] [LLM Response] fullAssistantResponse: "${fullAssistantResponse}"`);
+        console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] [LLM Response] finishReason: "${finishReason}"`);
+        console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] [LLM Response] usageMetadata: ${JSON.stringify(usageMetadata)}`);
         if (allToolCalls.length > 0) {
           console.log(`[LLM Response] tool_calls:\n${JSON.stringify(allToolCalls, null, 2)}`);
         }
