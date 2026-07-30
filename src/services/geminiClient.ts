@@ -26,28 +26,8 @@ interface GeminiServiceOptions {
   endpointBaseUrl?: string;
 }
 
-interface GeminiPart {
-  text?: string;
-  functionCall?: any;
-}
-
-interface GeminiContent {
-  parts?: GeminiPart[];
-}
-
-interface GeminiCandidate {
-  content?: GeminiContent;
-}
-
-interface GeminiGenerateContentResponse {
-  candidates?: GeminiCandidate[];
-  error?: {
-    message?: string;
-  };
-}
-
-const DEFAULT_MODEL = 'gemini-3.5-flash';
-const DEFAULT_ENDPOINT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
+const DEFAULT_MODEL = 'llama-3.3-70b-versatile';
+const DEFAULT_ENDPOINT_BASE_URL = 'https://api.groq.com/openai/v1';
 
 function readEnvironmentValue(name: string): string | undefined {
   const value = process.env[name];
@@ -69,26 +49,42 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function extractAssistantResponse(
-  response: GeminiGenerateContentResponse,
-): { text?: string; toolCalls?: any[] } {
-  const parts = response.candidates?.[0]?.content?.parts ?? [];
-  const text = parts
-    .map((part) => part.text)
-    .filter((partText): partText is string => Boolean(partText))
-    .join('')
-    .trim();
+function translateSchema(schema: any): any {
+  if (!schema) return schema;
+  if (Array.isArray(schema)) return schema.map(translateSchema);
+  if (typeof schema === 'object') {
+    const newObj: any = {};
+    for (const [k, v] of Object.entries(schema)) {
+      if (k === 'type' && typeof v === 'string') {
+        newObj[k] = v.toLowerCase();
+      } else {
+        newObj[k] = translateSchema(v);
+      }
+    }
+    return newObj;
+  }
+  return schema;
+}
 
-  const toolCalls = parts
-    .filter((part) => part.functionCall)
-    .map((part) => part.functionCall);
-
-  const finalToolCalls = toolCalls.length > 0 ? toolCalls : undefined;
-
-  const result: { text?: string; toolCalls?: any[] } = {};
-  if (text) result.text = text;
-  if (finalToolCalls) result.toolCalls = finalToolCalls;
-  return result;
+function translateTools(geminiTools?: any[]): any[] | undefined {
+  if (!geminiTools || geminiTools.length === 0) return undefined;
+  
+  const openaiTools: any[] = [];
+  for (const group of geminiTools) {
+    if (group.functionDeclarations) {
+      for (const func of group.functionDeclarations) {
+        openaiTools.push({
+          type: "function",
+          function: {
+            name: func.name,
+            description: func.description,
+            parameters: translateSchema(func.parameters)
+          }
+        });
+      }
+    }
+  }
+  return openaiTools.length > 0 ? openaiTools : undefined;
 }
 
 export class GeminiService implements GeminiClient {
@@ -97,11 +93,11 @@ export class GeminiService implements GeminiClient {
   private readonly endpointBaseUrl: string;
 
   constructor(options: GeminiServiceOptions = {}) {
-    this.apiKey = options.apiKey ?? readEnvironmentValue('GEMINI_API_KEY');
-    this.model = options.model ?? readEnvironmentValue('GEMINI_MODEL') ?? DEFAULT_MODEL;
+    this.apiKey = options.apiKey ?? readEnvironmentValue('GROQ_API_KEY') ?? readEnvironmentValue('GEMINI_API_KEY');
+    this.model = options.model ?? readEnvironmentValue('GROQ_MODEL') ?? DEFAULT_MODEL;
     this.endpointBaseUrl =
       options.endpointBaseUrl ??
-      readEnvironmentValue('GEMINI_ENDPOINT_BASE_URL') ??
+      readEnvironmentValue('GROQ_ENDPOINT_BASE_URL') ??
       DEFAULT_ENDPOINT_BASE_URL;
   }
 
@@ -109,53 +105,40 @@ export class GeminiService implements GeminiClient {
     input: GenerateAssistantResponseInput,
   ): Promise<GenerateAssistantResponseResult> {
     if (!this.apiKey) {
-      return fallbackResponse('GEMINI_API_KEY is not configured.');
+      return fallbackResponse('API Key is not configured.');
     }
 
+    const openaiTools = translateTools(input.tools);
+    
+    // Convert to OpenAI format
     const requestBodyStr = JSON.stringify({
-      systemInstruction: {
-        parts: [{ text: input.systemPrompt }],
-      },
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            {
-              text: [
-                'Conversation context:',
-                input.conversationContext,
-                '',
-                'Current task:',
-                input.userPrompt,
-              ].join('\n'),
-            },
-          ],
-        },
+      model: this.model,
+      messages: [
+        { role: 'system', content: input.systemPrompt },
+        { role: 'user', content: `Conversation context:\n${input.conversationContext}\n\nCurrent task:\n${input.userPrompt}` }
       ],
-      generationConfig: {
-        temperature: 0.4,
-        maxOutputTokens: 250,
-        responseMimeType: input.responseMimeType,
-      },
-      tools: input.tools,
-      toolConfig: input.toolConfig,
+      temperature: 0.4,
+      max_tokens: 250,
+      stream: true,
+      tools: openaiTools,
+      response_format: input.responseMimeType === 'application/json' ? { type: 'json_object' } : undefined
     });
 
-    const url = `${this.endpointBaseUrl}/models/${this.model}:streamGenerateContent?alt=sse`;
+    const url = `${this.endpointBaseUrl}/chat/completions`;
 
     let attempt = 0;
     while (attempt <= MAX_RETRIES) {
       attempt++;
       const startTime = Date.now();
       
-      console.log(`[Gemini Request] Attempt ${attempt}. URL: ${url}, Prompt Length: ${requestBodyStr.length}, Tools: ${input.tools?.length || 0}`);
+      console.log(`[LLM Request] Attempt ${attempt}. URL: ${url}, Model: ${this.model}, Tools: ${openaiTools?.length || 0}`);
 
       try {
         const response = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-goog-api-key': this.apiKey,
+            'Authorization': `Bearer ${this.apiKey}`,
           },
           body: requestBodyStr,
         });
@@ -164,16 +147,16 @@ export class GeminiService implements GeminiClient {
 
         if (!response.ok) {
           const errorBody = await response.text();
-          console.error(`[Gemini Response Error] Attempt ${attempt}, Status: ${response.status}, Latency: ${latency}ms, Quota/Error: ${errorBody}`);
+          console.error(`[LLM Response Error] Attempt ${attempt}, Status: ${response.status}, Latency: ${latency}ms, Error: ${errorBody}`);
 
           if (attempt <= MAX_RETRIES && RETRYABLE_STATUS_CODES.has(response.status)) {
             const backoff = Math.pow(2, attempt - 1) * 1000;
-            console.log(`[Gemini Retry] Retrying in ${Math.round(backoff)}ms...`);
+            console.log(`[LLM Retry] Retrying in ${Math.round(backoff)}ms...`);
             await sleep(backoff);
             continue;
           }
           
-          return fallbackResponse(`Gemini request failed with status ${response.status}: ${errorBody}`);
+          return fallbackResponse(`LLM request failed with status ${response.status}: ${errorBody}`);
         }
 
         if (!response.body) {
@@ -183,9 +166,8 @@ export class GeminiService implements GeminiClient {
         const reader = response.body.getReader();
         const decoder = new TextDecoder('utf-8');
         let fullAssistantResponse = '';
-        let allToolCalls: any[] = [];
-        let totalTokens = 0;
-
+        const activeToolCalls = new Map<number, {name: string, arguments: string}>();
+        
         let buffer = '';
         while (true) {
           const { done, value } = await reader.read();
@@ -202,22 +184,29 @@ export class GeminiService implements GeminiClient {
               const dataStr = chunk.slice(6);
               if (dataStr !== '[DONE]') {
                 try {
-                  const data = JSON.parse(dataStr) as any;
-                  if (data.usageMetadata) {
-                     totalTokens = data.usageMetadata.totalTokenCount || 0;
-                  }
+                  const data = JSON.parse(dataStr);
                   
-                  const { text, toolCalls } = extractAssistantResponse(data as GeminiGenerateContentResponse);
-                  
-                  if (text) {
-                    fullAssistantResponse += text;
-                    if (input.onContentChunk) {
-                      input.onContentChunk(text);
+                  if (data.choices && data.choices[0] && data.choices[0].delta) {
+                    const delta = data.choices[0].delta;
+                    
+                    if (delta.content) {
+                      fullAssistantResponse += delta.content;
+                      if (input.onContentChunk) {
+                        input.onContentChunk(delta.content);
+                      }
                     }
-                  }
-
-                  if (toolCalls && toolCalls.length > 0) {
-                    allToolCalls = allToolCalls.concat(toolCalls);
+                    
+                    if (delta.tool_calls) {
+                      for (const tc of delta.tool_calls) {
+                        const idx = tc.index;
+                        if (!activeToolCalls.has(idx)) {
+                           activeToolCalls.set(idx, { name: tc.function?.name || '', arguments: '' });
+                        }
+                        if (tc.function?.arguments) {
+                           activeToolCalls.get(idx)!.arguments += tc.function.arguments;
+                        }
+                      }
+                    }
                   }
                 } catch (e) {
                   console.error('Failed to parse SSE chunk', e);
@@ -228,10 +217,22 @@ export class GeminiService implements GeminiClient {
           }
         }
 
-        console.log(`[Gemini Response Success] Latency: ${latency}ms, Tokens: ${totalTokens || 'unknown'}, ToolCalls: ${allToolCalls.length}`);
+        const allToolCalls: any[] = [];
+        for (const [idx, tc] of activeToolCalls.entries()) {
+          try {
+            allToolCalls.push({
+              name: tc.name,
+              args: JSON.parse(tc.arguments)
+            });
+          } catch (e) {
+            console.error(`Failed to parse arguments for tool ${tc.name}: ${tc.arguments}`, e);
+          }
+        }
+
+        console.log(`[LLM Response Success] Latency: ${latency}ms, ToolCalls: ${allToolCalls.length}`);
 
         if (!fullAssistantResponse && allToolCalls.length === 0) {
-          return fallbackResponse('Gemini returned no assistant text and no tool calls.');
+          return fallbackResponse('LLM returned no assistant text and no tool calls.');
         }
 
         const finalResponse: GenerateAssistantResponseResult = { assistantResponse: fullAssistantResponse };
@@ -239,12 +240,12 @@ export class GeminiService implements GeminiClient {
         return finalResponse;
       } catch (error) {
         const latency = Date.now() - startTime;
-        const message = error instanceof Error ? error.message : 'Unknown Gemini error.';
-        console.error(`[Gemini Network Error] Attempt ${attempt}, Latency: ${latency}ms, Message: ${message}`);
+        const message = error instanceof Error ? error.message : 'Unknown LLM error.';
+        console.error(`[LLM Network Error] Attempt ${attempt}, Latency: ${latency}ms, Message: ${message}`);
         
         if (attempt <= MAX_RETRIES) {
           const backoff = Math.pow(2, attempt - 1) * 1000;
-          console.log(`[Gemini Retry] Retrying in ${Math.round(backoff)}ms...`);
+          console.log(`[LLM Retry] Retrying in ${Math.round(backoff)}ms...`);
           await sleep(backoff);
           continue;
         }

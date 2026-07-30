@@ -528,7 +528,7 @@ export class DefaultConversationManager implements ConversationManager {
             callerName: callerNameToVerify,
         });
 
-        if (verifyResult.verified && verifyResult.policy) {
+        if (verifyResult.verified) {
             const nextState = this.updateFieldTracking({
               ...state,
               currentClaim: updatedClaim,
