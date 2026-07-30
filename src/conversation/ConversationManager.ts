@@ -23,7 +23,7 @@ import type {
 } from './actions.js';
 import type { ConversationState } from './ConversationState.js';
 
-import { SummaryGenerator } from './modules/SummaryGenerator.js';
+
 import type {
   Contradiction,
   ConversationMessage,
@@ -431,29 +431,7 @@ function toPendingClarification(
   };
 }
 
-function buildConfirmationMessage(input: {
-  claimReferenceNumber: string;
-  summary: string;
-  escalationRequired: boolean;
-  recommendedServices: readonly string[];
-}): string {
-  const nextSteps = input.escalationRequired
-    ? 'An adjuster will urgently review the claim and contact the policyholder with next steps.'
-    : 'The claims team will review the logged details and contact the policyholder with next steps.';
-  const services =
-    input.recommendedServices.length > 0
-      ? ` Recommended services: ${input.recommendedServices.join(', ')}.`
-      : '';
 
-  return [
-    `Claim ${input.claimReferenceNumber} has been completed.`,
-    '',
-    'Summary:',
-    input.summary,
-    '',
-    `Next steps: ${nextSteps}${services}`,
-  ].join('\n');
-}
 
 function buildInitialState(): ConversationState {
   const initialClaim: Claim = {};
@@ -565,16 +543,23 @@ export class DefaultConversationManager implements ConversationManager {
                 extractionResult.debugMetrics
             );
         } else {
+            const systemNote = `[System Note]: Policy Verification Failed - Reason: ${verifyResult.message}. Gently inform the user and ask them to clarify.`;
+            const fallbackExtraction = await this.dependencies.extractClaimData.extract({
+                userMessage: message + '\n\n' + systemNote,
+                state: { ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser },
+                onContentChunk
+            });
+
             return this.withAssistantAction(
                 { ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, lastUserMessage: message },
-                { type: 'request_clarification', message: "I was unable to verify that policy number. Could you please double-check and repeat the policy number and your name?" },
-                extractionResult.debugMetrics
+                { type: 'request_clarification', message: fallbackExtraction.responseToUser || "I was unable to verify that policy number. Could you please double-check and repeat the policy number and your name?" },
+                fallbackExtraction.debugMetrics
             );
         }
     }
 
     if (claimCompleted) {
-        return this.completeClaim(state, updatedClaim, historyWithUser, message, extractionResult.debugMetrics);
+        return this.completeClaim(state, updatedClaim, historyWithUser, message, extractionResult.responseToUser, extractionResult.debugMetrics);
     }
 
     const trackedState = this.updateFieldTracking({
@@ -595,6 +580,7 @@ export class DefaultConversationManager implements ConversationManager {
     updatedClaim: Claim,
     conversationHistory: ConversationMessage[],
     message: string,
+    responseToUser: string,
     extractionDebug?: any
   ): Promise<ConversationTurnResult> {
     if (!state.verifiedPolicy) {
@@ -636,13 +622,6 @@ export class DefaultConversationManager implements ConversationManager {
       currentConversationStep: 'completed',
       lastUserMessage: message,
     });
-    const confirmationMessage = buildConfirmationMessage({
-      claimReferenceNumber,
-      summary: persistedSummary,
-      escalationRequired: nextState.escalationRequired,
-      recommendedServices: claimWithSummary.recommendedServices ?? [],
-    });
-
     await this.dependencies.claimLogger.log({
       claimNumber: claimReferenceNumber,
       summary: persistedSummary,
@@ -655,7 +634,7 @@ export class DefaultConversationManager implements ConversationManager {
 
     return this.withAssistantAction(nextState, {
       type: 'complete',
-      message: confirmationMessage,
+      message: responseToUser,
       claim: claimWithSummary,
     }, extractionDebug);
   }

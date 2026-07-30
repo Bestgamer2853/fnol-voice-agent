@@ -302,9 +302,7 @@ function extractFallbackClaimPatch(message: string): Partial<Claim> {
 }
 
 function getFallbackResult(message: string, state: ConversationState): ExtractClaimDataResult {
-  // Rather than masking errors by asking for fields, gracefully tell the user there's a delay.
-  // This avoids the confusing "I didn't quite catch that" loop during rate limits.
-  const nextQuestion = "I'm experiencing a brief network delay. Give me just one moment.";
+  const nextQuestion = "I'm having a temporary connection issue with my AI service. Please give me a moment.";
   
   return {
     responseToUser: nextQuestion,
@@ -317,10 +315,22 @@ function getFallbackResult(message: string, state: ConversationState): ExtractCl
   };
 }
 
+const responseCache = new Map<string, ExtractClaimDataResult>();
+
+function getCacheKey(input: ExtractClaimDataInput): string {
+  return `${input.userMessage.trim()}|${input.state.conversationHistory.length}`;
+}
+
 export class GeminiExtractClaimDataService implements ExtractClaimDataService {
   constructor(private readonly options: ExtractClaimDataServiceOptions) {}
 
   async extract(input: ExtractClaimDataInput): Promise<ExtractClaimDataResult> {
+    const cacheKey = getCacheKey(input);
+    const cached = responseCache.get(cacheKey);
+    if (cached) {
+      console.log(`[Gemini Cache Hit] Reusing previous response for: ${cacheKey}`);
+      return cached;
+    }
     const systemPrompt = [
       'You are an expert conversational AI agent for FNOL motor insurance claims.',
       'You must drive the entire conversation natively, handling safety checks, empathy, policy verification, and data extraction.',
@@ -330,12 +340,15 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       '2. Collect the user\'s policy number and caller name. Once you have both, call the verify_policy tool.',
       '3. Once the policy is verified, collect the remaining claim details (date, time, location, description, vehicles, police reports).',
       '4. When you learn new information, call the save_claim_data tool.',
+      '5. When all missing fields are collected, verbally summarize the claim naturally in one conversational sentence, ask the user if it sounds correct, and if they confirm, call the complete_claim tool.',
       '',
-      'IMPORTANT RULES:',
-      '1. Never ask for information already present in the transcript or existing state.',
-      '2. Robustly normalize ASR imperfections (e.g. "em em eye one zero" -> "MMI-10").',
-      '3. Keep your response concise, conversational, and natural. Speak like a human.',
-      '4. Do NOT ask more than one question per turn.',
+      'CONVERSATIONAL EXCELLENCE RULES:',
+      '1. EMPATHY: When a user reports an accident, injury, or distress, respond with natural empathy before asking the next question. Example: "I\'m so sorry to hear about the accident, the most important thing is that you\'re safe."',
+      '2. SMOOTH TRANSITIONS: Always acknowledge the user\'s previous answer briefly before asking the next question. Vary your phrasing; do not sound like a robotic checklist. Example: "Got it. Let\'s move on to the vehicle details."',
+      '3. CONTRADICTIONS: If the user contradicts previously provided information, explicitly ask them to clarify the discrepancy in natural language rather than silently overwriting it.',
+      '4. ROBUSTNESS: Robustly normalize ASR imperfections (e.g. "em em eye one zero" -> "MMI-10").',
+      '5. CONCISENESS: Keep your responses conversational, natural, and speak like a human. Do NOT ask more than one question per turn.',
+      '6. CONTEXT AWARENESS: Read any [System Note] injected into the history and address it naturally (e.g., if a policy fails verification, gently ask them to double-check).',
     ].join('\n');
     const conversationContext = buildExtractionContext(input.state);
     const userPrompt = [
@@ -431,6 +444,7 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       }
     };
 
+    responseCache.set(cacheKey, finalResult);
     return finalResult;
   }
 }

@@ -57,9 +57,16 @@ function readEnvironmentValue(name: string): string | undefined {
 function fallbackResponse(errorMessage: string): GenerateAssistantResponseResult {
   return {
     assistantResponse:
-      'I can continue helping with the claim, but AI response generation is temporarily unavailable.',
+      "I'm having a temporary connection issue with my AI service. Please give me a moment.",
     errorMessage,
   };
+}
+
+const MAX_RETRIES = 4;
+const RETRYABLE_STATUS_CODES = new Set([429, 503]);
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function extractAssistantResponse(
@@ -105,109 +112,148 @@ export class GeminiService implements GeminiClient {
       return fallbackResponse('GEMINI_API_KEY is not configured.');
     }
 
-    try {
-      const response = await fetch(
-        `${this.endpointBaseUrl}/models/${this.model}:streamGenerateContent?alt=sse`,
+    const requestBodyStr = JSON.stringify({
+      systemInstruction: {
+        parts: [{ text: input.systemPrompt }],
+      },
+      contents: [
         {
+          role: 'user',
+          parts: [
+            {
+              text: [
+                'Conversation context:',
+                input.conversationContext,
+                '',
+                'Current task:',
+                input.userPrompt,
+              ].join('\n'),
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.4,
+        maxOutputTokens: 250,
+        responseMimeType: input.responseMimeType,
+      },
+      tools: input.tools,
+      toolConfig: input.toolConfig,
+    });
+
+    const url = `${this.endpointBaseUrl}/models/${this.model}:streamGenerateContent?alt=sse`;
+
+    let attempt = 0;
+    while (attempt <= MAX_RETRIES) {
+      attempt++;
+      const startTime = Date.now();
+      
+      console.log(`[Gemini Request] Attempt ${attempt}. URL: ${url}, Prompt Length: ${requestBodyStr.length}, Tools: ${input.tools?.length || 0}`);
+
+      try {
+        const response = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'x-goog-api-key': this.apiKey,
           },
-          body: JSON.stringify({
-            systemInstruction: {
-              parts: [{ text: input.systemPrompt }],
-            },
-            contents: [
-              {
-                role: 'user',
-                parts: [
-                  {
-                    text: [
-                      'Conversation context:',
-                      input.conversationContext,
-                      '',
-                      'Current task:',
-                      input.userPrompt,
-                    ].join('\n'),
-                  },
-                ],
-              },
-            ],
-            generationConfig: {
-              temperature: 0.4,
-              maxOutputTokens: 250,
-              responseMimeType: input.responseMimeType,
-            },
-            tools: input.tools,
-            toolConfig: input.toolConfig,
-          }),
-        },
-      );
+          body: requestBodyStr,
+        });
 
-      if (!response.ok) {
-        const errorBody = await response.text();
-        return fallbackResponse(`Gemini request failed with status ${response.status}: ${errorBody}`);
-      }
+        const latency = Date.now() - startTime;
 
-      if (!response.body) {
-         return fallbackResponse('No response body stream.');
-      }
+        if (!response.ok) {
+          const errorBody = await response.text();
+          console.error(`[Gemini Response Error] Attempt ${attempt}, Status: ${response.status}, Latency: ${latency}ms, Quota/Error: ${errorBody}`);
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder('utf-8');
-      let fullAssistantResponse = '';
-      let allToolCalls: any[] = [];
-
-      let buffer = '';
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        
-        let boundary = buffer.indexOf('\n\n');
-        while (boundary !== -1) {
-          const chunk = buffer.slice(0, boundary).trim();
-          buffer = buffer.slice(boundary + 2);
+          if (attempt <= MAX_RETRIES && RETRYABLE_STATUS_CODES.has(response.status)) {
+            const backoff = Math.pow(2, attempt - 1) * 1000;
+            console.log(`[Gemini Retry] Retrying in ${Math.round(backoff)}ms...`);
+            await sleep(backoff);
+            continue;
+          }
           
-          if (chunk.startsWith('data: ')) {
-            const dataStr = chunk.slice(6);
-            if (dataStr !== '[DONE]') {
-              try {
-                const data = JSON.parse(dataStr) as GeminiGenerateContentResponse;
-                const { text, toolCalls } = extractAssistantResponse(data);
-                
-                if (text) {
-                  fullAssistantResponse += text;
-                  if (input.onContentChunk) {
-                    input.onContentChunk(text);
-                  }
-                }
+          return fallbackResponse(`Gemini request failed with status ${response.status}: ${errorBody}`);
+        }
 
-                if (toolCalls && toolCalls.length > 0) {
-                  allToolCalls = allToolCalls.concat(toolCalls);
+        if (!response.body) {
+           return fallbackResponse('No response body stream.');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let fullAssistantResponse = '';
+        let allToolCalls: any[] = [];
+        let totalTokens = 0;
+
+        let buffer = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          
+          let boundary = buffer.indexOf('\n\n');
+          while (boundary !== -1) {
+            const chunk = buffer.slice(0, boundary).trim();
+            buffer = buffer.slice(boundary + 2);
+            
+            if (chunk.startsWith('data: ')) {
+              const dataStr = chunk.slice(6);
+              if (dataStr !== '[DONE]') {
+                try {
+                  const data = JSON.parse(dataStr) as any;
+                  if (data.usageMetadata) {
+                     totalTokens = data.usageMetadata.totalTokenCount || 0;
+                  }
+                  
+                  const { text, toolCalls } = extractAssistantResponse(data as GeminiGenerateContentResponse);
+                  
+                  if (text) {
+                    fullAssistantResponse += text;
+                    if (input.onContentChunk) {
+                      input.onContentChunk(text);
+                    }
+                  }
+
+                  if (toolCalls && toolCalls.length > 0) {
+                    allToolCalls = allToolCalls.concat(toolCalls);
+                  }
+                } catch (e) {
+                  console.error('Failed to parse SSE chunk', e);
                 }
-              } catch (e) {
-                console.error('Failed to parse SSE chunk', e);
               }
             }
+            boundary = buffer.indexOf('\n\n');
           }
-          boundary = buffer.indexOf('\n\n');
         }
-      }
 
-      if (!fullAssistantResponse && allToolCalls.length === 0) {
-        return fallbackResponse('Gemini returned no assistant text and no tool calls.');
-      }
+        console.log(`[Gemini Response Success] Latency: ${latency}ms, Tokens: ${totalTokens || 'unknown'}, ToolCalls: ${allToolCalls.length}`);
 
-      const finalResponse: GenerateAssistantResponseResult = { assistantResponse: fullAssistantResponse };
-      if (allToolCalls.length > 0) finalResponse.toolCalls = allToolCalls;
-      return finalResponse;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown Gemini error.';
-      return fallbackResponse(message);
+        if (!fullAssistantResponse && allToolCalls.length === 0) {
+          return fallbackResponse('Gemini returned no assistant text and no tool calls.');
+        }
+
+        const finalResponse: GenerateAssistantResponseResult = { assistantResponse: fullAssistantResponse };
+        if (allToolCalls.length > 0) finalResponse.toolCalls = allToolCalls;
+        return finalResponse;
+      } catch (error) {
+        const latency = Date.now() - startTime;
+        const message = error instanceof Error ? error.message : 'Unknown Gemini error.';
+        console.error(`[Gemini Network Error] Attempt ${attempt}, Latency: ${latency}ms, Message: ${message}`);
+        
+        if (attempt <= MAX_RETRIES) {
+          const backoff = Math.pow(2, attempt - 1) * 1000;
+          console.log(`[Gemini Retry] Retrying in ${Math.round(backoff)}ms...`);
+          await sleep(backoff);
+          continue;
+        }
+
+        return fallbackResponse(message);
+      }
     }
+    
+    return fallbackResponse("Max retries exceeded.");
   }
 }
 

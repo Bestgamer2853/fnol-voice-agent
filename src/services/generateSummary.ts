@@ -100,26 +100,8 @@ export function createGenerateSummaryService(
 ): GenerateSummaryService {
   return {
     async generate(input: GenerateSummaryInput): Promise<GenerateSummaryResult> {
-      const deterministicResult = generateSummary(input);
-
-      if (!options.geminiClient) {
-        return deterministicResult;
-      }
-
-      const llmSummary = await buildLlmSummary(
-        input,
-        options.geminiClient,
-        deterministicResult.summary,
-      );
-
-      if (!llmSummary) {
-        return deterministicResult;
-      }
-
-      return {
-        ...deterministicResult,
-        llmSummary,
-      };
+      // Disabled LLM rewrite step to enforce Gemini free tier limits
+      return generateSummary(input);
     },
   };
 }
