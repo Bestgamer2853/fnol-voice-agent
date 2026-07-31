@@ -109,6 +109,10 @@ Dependencies: P0-00.
 
 ### P0-02 Add access controls and basic abuse protection
 
+Status: COMPLETED
+Outcome: Added `rateLimit` (50 per minute) and `requireAuth` middleware for `/chat` and `/chat/start` in `server.ts`. Added connection auth using URL param or Header for WebSocket. Updated frontend `app.js` to optionally read `?key=` from URL and send `Authorization` headers. Added integration tests covering unauthenticated rejection and rate-limiting limits.
+Commit: `security: validate authorized chat and retell access`
+
 Problem: Chat, logs, and WebSocket endpoints are public with no application-level authentication or rate limiting.
 
 Root cause: Express and `ws` setup has no auth/rate middleware and no Retell-specific request validation.

@@ -2,6 +2,7 @@ import 'dotenv/config';
 import crypto from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { URL } from 'node:url';
 
 import express, { type Request, type Response } from 'express';
 
@@ -86,6 +87,43 @@ function sendError(response: Response, status: number, error: string): void {
 
 app.use(express.json({ limit: '32kb' }));
 app.use(express.static(publicDirectory));
+
+const rateLimits = new Map<string, { count: number, resetAt: number }>();
+
+function rateLimit(req: Request, res: Response, next: express.NextFunction) {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  const limit = 50;
+  const windowMs = 60 * 1000;
+
+  let record = rateLimits.get(ip);
+  if (!record || now > record.resetAt) {
+    record = { count: 1, resetAt: now + windowMs };
+  } else {
+    record.count++;
+  }
+  rateLimits.set(ip, record);
+
+  if (record.count > limit) {
+    sendError(res, 429, 'Too many requests');
+    return;
+  }
+  next();
+}
+
+function requireAuth(req: Request, res: Response, next: express.NextFunction) {
+  const secret = process.env.API_SECRET;
+  if (!secret) {
+    return next();
+  }
+  const authHeader = req.headers.authorization;
+  if (authHeader === `Bearer ${secret}`) {
+    return next();
+  }
+  sendError(res, 401, 'Unauthorized');
+}
+
+app.use('/chat', rateLimit, requireAuth);
 
 app.post('/chat/start', (_request: Request, response: Response) => {
   const session = createSession();
@@ -257,6 +295,21 @@ const wss = new WebSocketServer({ server });
 wss.on('connection', (ws: WebSocket, req) => {
   logInfo(`Retell connected via WebSocket: ${req.url}`);
   
+  const secret = process.env.API_SECRET;
+  if (secret) {
+    const authHeader = req.headers['authorization'];
+    let urlSecret = null;
+    try {
+      urlSecret = new URL('http://localhost' + (req.url || '')).searchParams.get('secret');
+    } catch(e) {}
+    
+    if (authHeader !== `Bearer ${secret}` && urlSecret !== secret) {
+      logError('Unauthorized WebSocket connection');
+      ws.close(1008, 'Unauthorized');
+      return;
+    }
+  }
+
   // Every call gets its own isolated session
   const session = createSession();
   const sessionId = session.sessionId;

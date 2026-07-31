@@ -15,7 +15,7 @@ describe('Server integration tests (P0)', () => {
 
   before(async () => {
     serverProcess = spawn('npx', ['tsx', serverPath], {
-      env: { ...process.env, PORT: PORT.toString(), GEMINI_API_KEY: 'test-key' },
+      env: { ...process.env, PORT: PORT.toString(), GEMINI_API_KEY: 'test-key', API_SECRET: 'supersecret' },
     });
 
     await new Promise<void>((resolve, reject) => {
@@ -46,7 +46,10 @@ describe('Server integration tests (P0)', () => {
 
   it('handles concurrent same-session HTTP turns without crashing', async () => {
     // Start session
-    const startRes = await fetch(`http://localhost:${PORT}/chat/start`, { method: 'POST' });
+    const startRes = await fetch(`http://localhost:${PORT}/chat/start`, { 
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer supersecret' }
+    });
     const startData = await startRes.json();
     const sessionId = startData.sessionId;
     
@@ -57,7 +60,10 @@ describe('Server integration tests (P0)', () => {
     const promises = messages.map(msg => 
       fetch(`http://localhost:${PORT}/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer supersecret'
+        },
         body: JSON.stringify({ sessionId, userMessage: msg })
       })
     );
@@ -73,7 +79,7 @@ describe('Server integration tests (P0)', () => {
   });
 
   it('handles duplicate/out-of-order response IDs in WS', async () => {
-    const ws = new WebSocket(`ws://localhost:${PORT}`);
+    const ws = new WebSocket(`ws://localhost:${PORT}?secret=supersecret`);
     
     await new Promise<void>((resolve, reject) => {
       ws.on('open', resolve);
@@ -111,5 +117,40 @@ describe('Server integration tests (P0)', () => {
     
     const aliveRes = await fetch(`http://localhost:${PORT}/view-logs`);
     assert.equal(aliveRes.status, 200, 'Server still alive after bad WS messages');
+  });
+
+  it('rejects HTTP requests without valid auth', async () => {
+    const res = await fetch(`http://localhost:${PORT}/chat/start`, { method: 'POST' });
+    assert.equal(res.status, 401);
+  });
+
+  it('rejects WebSocket connections without valid auth', async () => {
+    const ws = new WebSocket(`ws://localhost:${PORT}?secret=wrongsecret`);
+    
+    await new Promise<void>((resolve, reject) => {
+      ws.on('error', (err: any) => {
+        if (err.message.includes('401') || err.message.includes('Unexpected server response')) {
+            resolve();
+        } else {
+            resolve(); // Connection closed or failed is what we want
+        }
+      });
+      ws.on('close', resolve);
+    });
+    // If it reaches here without throwing in setup, the socket was closed.
+  });
+
+  it('rate limits requests', async () => {
+    // Fire 51 requests
+    const promises = [];
+    for (let i = 0; i < 55; i++) {
+        promises.push(fetch(`http://localhost:${PORT}/chat/start`, {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer supersecret' }
+        }));
+    }
+    const responses = await Promise.all(promises);
+    const tooMany = responses.filter(r => r.status === 429);
+    assert.ok(tooMany.length >= 1, 'Should have rate limited at least 1 request');
   });
 });

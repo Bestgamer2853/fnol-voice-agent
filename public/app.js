@@ -274,13 +274,21 @@ if (window.speechSynthesis) {
 
 // ─── Conversation API ───
 
+const urlParams = new URLSearchParams(window.location.search);
+const apiKey = urlParams.get('key') || '';
+
 async function startConversation() {
   setLoading(true);
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (apiKey) {
+    headers['Authorization'] = `Bearer ${apiKey}`;
+  }
 
   try {
     const response = await fetch('/chat/start', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
     });
     const payload = await response.json();
 
@@ -309,10 +317,15 @@ async function sendMessage(message) {
   appendMessage('user', message);
   setLoading(true);
 
+  const headers = { 'Content-Type': 'application/json' };
+  if (apiKey) {
+    headers['Authorization'] = `Bearer ${apiKey}`;
+  }
+
   try {
     const response = await fetch('/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         sessionId,
         userMessage: message,
