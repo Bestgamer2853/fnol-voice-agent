@@ -228,7 +228,7 @@ const port = Number(process.env.PORT ?? DEFAULT_PORT);
 
 const server = app.listen(port, () => {
   const envModel = process.env.GEMINI_MODEL?.trim();
-  const activeModel = envModel || 'gemini-2.5-flash';
+  const activeModel = envModel || 'gemini-flash-latest';
   logInfo(`\n--------------------------------`);
   logInfo(`Gemini Provider`);
   logInfo(`Model: ${activeModel}`);

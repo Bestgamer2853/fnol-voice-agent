@@ -6,7 +6,7 @@ interface GeminiServiceOptions {
   endpointBaseUrl?: string;
 }
 
-const DEFAULT_MODEL = 'gemini-2.5-flash';
+const DEFAULT_MODEL = 'gemini-flash-latest';
 const DEFAULT_ENDPOINT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai';
 
 function readEnvironmentValue(name: string): string | undefined {
@@ -191,10 +191,12 @@ export class GeminiService implements LlmProvider {
 
           buffer += decoder.decode(value, { stream: true });
           
-          let boundary = buffer.indexOf('\n\n');
-          while (boundary !== -1) {
+          let match = buffer.match(/\r?\n\r?\n/);
+          while (match && match.index !== undefined) {
+            const boundary = match.index;
+            const boundaryLen = match[0].length;
             const chunk = buffer.slice(0, boundary).trim();
-            buffer = buffer.slice(boundary + 2);
+            buffer = buffer.slice(boundary + boundaryLen);
             
             if (chunk.startsWith('data: ')) {
               const dataStr = chunk.slice(6);
@@ -237,7 +239,7 @@ export class GeminiService implements LlmProvider {
                 }
               }
             }
-            boundary = buffer.indexOf('\n\n');
+            match = buffer.match(/\r?\n\r?\n/);
           }
         }
 
