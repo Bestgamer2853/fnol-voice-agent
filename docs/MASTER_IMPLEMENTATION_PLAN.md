@@ -249,6 +249,10 @@ Dependencies: P0-00.
 
 ### P0-07 Bound voice-provider retry budget
 
+Status: COMPLETED
+Outcome: Reduced `MAX_RETRIES` to 1 in `GeminiService` and 0 in `GroqService`. Reduced the fetch timeout from 8s to 4s in both providers. Modified `FallbackProvider` to instantly short-circuit and propagate `AbortError` if the user interrupts, preventing it from incorrectly failing over to the next provider during an interruption.
+Commit: `perf: bound voice-provider retry budget to reduce dead air`
+
 Problem: A failed model call can create a long silent gap before fallback.
 
 Root cause: Gemini can spend up to three 8-second attempts plus backoff; Groq fallback can add two more 8-second attempts.

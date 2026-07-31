@@ -22,7 +22,7 @@ function fallbackResponse(errorMessage: string): GenerateResponseResult {
   };
 }
 
-const MAX_RETRIES = 2;
+const MAX_RETRIES = 1;
 const RETRYABLE_STATUS_CODES = new Set([429, 503, 502, 500, 408]);
 
 function sleep(ms: number): Promise<void> {
@@ -121,7 +121,7 @@ export class GeminiService implements LlmProvider {
       console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] [LLM Request] Attempt ${attempt}. Native URL: ${this.endpointBaseUrl}/${this.model}:streamGenerateContent, Method: POST`);
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout for Native API
+      const timeoutId = setTimeout(() => controller.abort(), 4000); // 4s timeout for Native API
       const onParentAbort = () => { controller.abort(); };
       if (input.abortSignal) {
          input.abortSignal.addEventListener('abort', onParentAbort);

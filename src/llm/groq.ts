@@ -21,7 +21,7 @@ function fallbackResponse(errorMessage: string): GenerateResponseResult {
   };
 }
 
-const MAX_RETRIES = 1;
+const MAX_RETRIES = 0;
 const RETRYABLE_STATUS_CODES = new Set([429, 503, 502, 500, 408]);
 
 function sleep(ms: number): Promise<void> {
@@ -140,7 +140,7 @@ export class GroqService implements LlmProvider {
       console.log(`[Diagnostic-Groq] [ReqID: ${reqIdForLogs}] [LLM Request] Attempt ${attempt}. URL: ${url}, Model: ${this.model}`);
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000); // Groq is fast, abort if 8s
+      const timeoutId = setTimeout(() => controller.abort(), 4000); // Groq is fast, abort if 4s
       const onParentAbort = () => { controller.abort(); };
       if (input.abortSignal) {
          input.abortSignal.addEventListener('abort', onParentAbort);

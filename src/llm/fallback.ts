@@ -51,6 +51,9 @@ export class FallbackProvider implements LlmProvider {
         // Success! Return the result.
         return result;
       } catch (err) {
+        if (input.abortSignal?.aborted) {
+            throw err;
+        }
         lastError = err instanceof Error ? err.message : String(err);
         console.error(`[FallbackProvider] Provider ${i + 1} failed: ${lastError}`);
         // Loop continues to next provider
