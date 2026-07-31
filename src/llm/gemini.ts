@@ -126,7 +126,7 @@ export class GeminiService implements LlmProvider {
       model: this.model,
       messages,
       temperature: 0.4,
-      max_tokens: 1024,
+      max_tokens: 4096,
       stream: true,
       tools: openaiTools,
       response_format: input.responseMimeType === 'application/json' ? { type: 'json_object' } : undefined
@@ -140,6 +140,7 @@ export class GeminiService implements LlmProvider {
       attempt++;
       const startTime = Date.now();
       console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] [LLM Request] Attempt ${attempt}. URL: ${url}, Model: ${this.model}, Method: POST`);
+      console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] requestBody: ${requestBodyStr}`);
       console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] exact messages[] array:\n${JSON.stringify(messages, null, 2)}`);
 
       try {
