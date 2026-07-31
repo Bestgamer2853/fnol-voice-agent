@@ -333,4 +333,64 @@ describe('ConversationManager P0 replay harness', () => {
     assert.equal(state.currentClaim.dateOfIncident, '2026-07-29');
     assert.equal(state.currentClaim.timeOfIncident, '15:00');
   });
+
+  it('progresses explicitly through FSM states', async () => {
+    const extractor = new ScriptedExtractor([
+      // Turn 1: user answers safety
+      {
+        responseToUser: 'Can you confirm your policy number?',
+        extractedData: { injuriesReported: false },
+      },
+      // Turn 2: user gives policy details
+      {
+        responseToUser: 'Got it. When did the incident happen?',
+        extractedData: { policyNumber: 'MMI-10234', callerName: 'Arjun Rao' },
+      },
+      // Turn 3: user gives incident details, triggers recommendations
+      {
+        responseToUser: 'Do you need towing?',
+        extractedData: { 
+          dateOfIncident: '2026-07-30',
+          timeOfIncident: '19:00',
+          locationOfIncident: 'MG Road, Bengaluru',
+          incidentDescription: 'Two cars collided at a junction.',
+          insuredVehicle: { make: 'Honda', model: 'City', registration: 'KA01AB1234' },
+          policeReportFiled: true,
+          policeReportReference: 'POL-123',
+          photosAvailable: true,
+          vehicleDrivable: false,
+        },
+      },
+      // Turn 4: user answers towing, triggers completion
+      {
+        responseToUser: 'Your claim has been logged.',
+        extractedData: {},
+      },
+    ]);
+    const logs: ClaimLogRecord[] = [];
+    const manager = createConversationManager(createDependencies(extractor, logs));
+    
+    let state = manager.start();
+    assert.equal(state.currentConversationStep, 'safety_check');
+    
+    // Turn 1
+    let result = await manager.handleUserMessage(state, 'Yes we are safe.');
+    state = result.state;
+    assert.equal(state.currentConversationStep, 'verification');
+    
+    // Turn 2
+    result = await manager.handleUserMessage(state, 'My policy is MMI-10234, name Arjun Rao.');
+    state = result.state;
+    assert.equal(state.currentConversationStep, 'collecting_fnol');
+    
+    // Turn 3
+    result = await manager.handleUserMessage(state, 'I hit a pole yesterday at MG road.');
+    state = result.state;
+    assert.equal(state.currentConversationStep, 'recommending_services');
+
+    // Turn 4
+    result = await manager.handleUserMessage(state, 'Yes please arrange towing.');
+    state = result.state;
+    assert.equal(state.currentConversationStep, 'completed');
+  });
 });

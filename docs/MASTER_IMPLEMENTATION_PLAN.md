@@ -137,23 +137,27 @@ Dependencies: P0-00; coordinate with deployment secrets.
 
 ### P0-03 Make FSM transitions explicit without replacing `ConversationManager`
 
+Status: COMPLETED
+Outcome: Updated `ConversationManager.ts` to assign correct explicit FSM state tags (`safety_check`, `verification`, `collecting_fnol`, `clarifying`, `recommending_services`, `escalation`, `callback_offer`, `completed`) by introspecting `updatedClaim` at the end of each turn. Added unit tests to `conversation-manager.test.ts` to assert exact state sequence progression.
+Commit: `refactor: explicitly route conversation states`
+
 Problem: Declared states are not the real business phases, causing repeated questions, unreliable prompt routing, and weak testability.
 
 Root cause: The manager only assigns terminal/service/escalation states; prompt routing is driven mostly by `missingFields[0]`.
 
-Evidence: `src/conversation/ConversationManager.ts` lines 446-454, 557, 581, 603, 685; `docs/fsm.md`.
+Evidence: `src/conversation/ConversationManager.ts` lines 448, 557, 581, 603, 685; intermediate phases stay stuck in `safety_check`.
 
 Files: `src/conversation/ConversationManager.ts`, `src/conversation/types.ts` only if the contract needs comments or narrowed states, tests, docs.
 
-Estimated time: 1-2 days.
+Estimated time: 1 day.
 
-Estimated risk: Medium. This touches the core conversation path.
+Estimated risk: Medium. If the LLM relies entirely on the state string rather than missing fields, prompts might break. Current prompts check state minimally but fallback heavily to field gaps.
 
-Expected latency improvement: Indirect; fewer repair turns and repeated questions.
+Expected latency improvement: None.
 
-Expected token reduction: Small to medium by reducing unnecessary follow-up turns.
+Expected token reduction: Minimal (shorter prompt instructions).
 
-Rollback strategy: Keep changes local to state assignment/routing helpers; rollback to prior state transitions while preserving tests that document the mismatch.
+Rollback strategy: Revert to leaving the step as `safety_check` until terminal paths.
 
 Validation plan: Replay suite asserts state progression through safety, verification, collection, recommendation, callback, escalation, and completed. Add assertions that first safety answer does not keep re-asking safety unless ambiguous.
 

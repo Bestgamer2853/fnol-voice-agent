@@ -621,6 +621,26 @@ export class DefaultConversationManager implements ConversationManager {
         return this.completeClaim(state, updatedClaim, historyWithUser, message, accumulatedResponse.trim(), finalExtractionResult.debugMetrics);
     }
 
+    let nextStep = state.currentConversationStep;
+
+    if (nextStep === 'safety_check') {
+        if (!verifiedPolicyObj) {
+            nextStep = 'verification';
+        } else {
+            nextStep = 'collecting_fnol';
+        }
+    }
+
+    if (nextStep === 'verification' && verifiedPolicyObj) {
+        nextStep = 'collecting_fnol';
+    }
+
+    if (newClarifications.length > 0) {
+        nextStep = 'clarifying';
+    } else if (nextStep === 'clarifying' && newClarifications.length === 0) {
+        nextStep = verifiedPolicyObj ? 'collecting_fnol' : 'verification';
+    }
+
     const trackedState = this.updateFieldTracking({
       ...state,
       currentClaim: updatedClaim,
@@ -629,6 +649,7 @@ export class DefaultConversationManager implements ConversationManager {
       pendingClarifications: newClarifications,
       lastUserMessage: message,
       verificationAttempts,
+      currentConversationStep: nextStep,
     });
     
     console.log(`[ConversationManager] EXITING handleUserMessage normally. Action message: "${accumulatedResponse.trim()}"`);
