@@ -227,11 +227,13 @@ const processingTurn = new Set<string>();
 const port = Number(process.env.PORT ?? DEFAULT_PORT);
 
 const server = app.listen(port, () => {
-  logInfo(`\n====================================`);
-  logInfo(`Provider : Gemini`);
-  logInfo(`Model : gemini-2.0-flash`); // Updated to match actual usage
-  logInfo(`Endpoint : https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`);
-  logInfo(`API Version : v1beta`);
+  const envModel = process.env.GEMINI_MODEL?.trim();
+  const activeModel = envModel || 'gemini-2.0-flash';
+  logInfo(`\n--------------------------------`);
+  logInfo(`Gemini Provider`);
+  logInfo(`Model: ${activeModel}`);
+  logInfo(`Source: ${envModel ? 'Environment' : 'Default'}`);
+  logInfo(`--------------------------------\n`);
   
   const rawKey = process.env.GEMINI_API_KEY || '';
   const maskedKey = rawKey.length > 12 ? rawKey.substring(0, 12) + '...' : 'NOT_SET_OR_TOO_SHORT';
@@ -279,13 +281,14 @@ wss.on('connection', (ws: WebSocket, req) => {
   ws.on('message', (data) => {
     try {
       const event = JSON.parse(data.toString());
-      logInfo(`Incoming interaction_type = ${event.interaction_type}`);
-      logInfo(`Entire JSON payload: ${JSON.stringify(event)}`);
+      logInfo(`\n--------------------------------`);
+      logInfo(`interaction_type: ${event.interaction_type}`);
       logInfo(`response_id: ${event.response_id}`);
-      logInfo(`transcript: ${JSON.stringify(event.transcript)}`);
-      logInfo(`transcript_with_tool_calls: ${JSON.stringify(event.transcript_with_tool_calls)}`);
-      logInfo(`metadata: ${JSON.stringify(event.metadata)}`);
-      logInfo(`call_id: ${event.call ? event.call.call_id : 'N/A'}`);
+      logInfo(`turntaking: ${event.turntaking || 'N/A'}`);
+      logInfo(`transcript length: ${event.transcript ? event.transcript.length : 0}`);
+      logInfo(`call id: ${event.call ? event.call.call_id : 'N/A'}`);
+      logInfo(`timestamp: ${new Date().toISOString()}`);
+      logInfo(`--------------------------------\n`);
 
       if (event.interaction_type === 'call_details') {
         logInfo(`Executing handleCallDetails()`);

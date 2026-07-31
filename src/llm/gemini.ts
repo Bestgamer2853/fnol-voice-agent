@@ -135,7 +135,7 @@ export class GeminiService implements LlmProvider {
     const url = `${this.endpointBaseUrl}/chat/completions`;
 
     let attempt = 0;
-    const reqIdForLogs = require('crypto').randomBytes(4).toString('hex');
+    const reqIdForLogs = Math.random().toString(36).substring(2, 10);
     while (attempt <= MAX_RETRIES) {
       attempt++;
       const startTime = Date.now();
