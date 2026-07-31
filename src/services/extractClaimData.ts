@@ -429,7 +429,6 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
     let parsedResponse: any = {};
     const rawResponse = result.assistantResponse || '{}';
     console.log(`[Diagnostic] Before JSON parse. Length: ${rawResponse.length}, Ends with }: ${rawResponse.trim().endsWith('}')}`);
-    console.log(`[Diagnostic] Raw response text: \n${rawResponse}`);
     try {
         parsedResponse = JSON.parse(rawResponse);
     } catch (e) {
@@ -448,8 +447,8 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       conversationAnalysis: '',
       debugMetrics: {
         rawExtractedSlots: parsedResponse.extractedData || {},
-        geminiPrompt: userPrompt,
-        geminiResponse: result.assistantResponse || '',
+        geminiPrompt: '[REDACTED]',
+        geminiResponse: '[REDACTED]',
         usageMetadata: result.usageMetadata,
         retries: result.retries || 0,
       },

@@ -81,6 +81,10 @@ Dependencies: None. This must precede behavioral fixes.
 
 ### P0-01 Redact/protect logs and sensitive diagnostics
 
+Status: COMPLETED
+Outcome: Redacted `content` and `transcript` from websocket payloads in `server.ts`. Bound `runtimeLogs` array to 1000 items. Masked user turn and assistant response lengths instead of raw text. Redacted `geminiPrompt` and `geminiResponse` from `extractClaimData.ts`. Protected `/view-logs` endpoint in production environments.
+Commit: `security: redact logs and protect diagnostics`
+
 Problem: Transcript, prompt, response, and payload PII can be logged and exposed through `/view-logs`.
 
 Root cause: Logging captures raw JSON and runtime messages without redaction, auth, bounds, or environment gating.

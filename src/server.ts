@@ -194,6 +194,7 @@ function logInfo(msg: string) {
   const prefix = reqId ? `[Request ${reqId}] ` : '';
   const formatted = `[INFO] [${new Date().toISOString()}] ${prefix}${msg}`;
   runtimeLogs.push(formatted);
+  if (runtimeLogs.length > 1000) runtimeLogs.shift();
   originalConsoleLog(formatted);
 }
 
@@ -202,12 +203,16 @@ function logError(msg: string, err?: any) {
   const prefix = reqId ? `[Request ${reqId}] ` : '';
   const formatted = `[ERROR] [${new Date().toISOString()}] ${prefix}${msg}${err ? ' ' + String(err?.stack || err) : ''}`;
   runtimeLogs.push(formatted);
+  if (runtimeLogs.length > 1000) runtimeLogs.shift();
   originalConsoleError(formatted);
 }
 
 function sendWsJson(ws: WebSocket, payload: any, tag: string) {
   const payloadStr = JSON.stringify(payload);
-  logInfo(`[${tag}] Outgoing JSON sent to Retell: ${payloadStr}`);
+  const scrubbed = { ...payload };
+  if ('content' in scrubbed) scrubbed.content = '[REDACTED]';
+  if ('transcript' in scrubbed) scrubbed.transcript = '[REDACTED]';
+  logInfo(`[${tag}] Outgoing JSON sent to Retell: ${JSON.stringify(scrubbed)}`);
   ws.send(payloadStr, (err) => {
     if (err) {
       logError(`[${tag}] ws.send completed with error`, err);
@@ -218,6 +223,10 @@ function sendWsJson(ws: WebSocket, payload: any, tag: string) {
 }
 
 app.get('/view-logs', (_req: Request, res: Response) => {
+  if (process.env.NODE_ENV === 'production' || process.env.ENVIRONMENT === 'production') {
+    res.status(403).send('Forbidden in production');
+    return;
+  }
   res.type('text/plain').send(runtimeLogs.join('\n'));
 });
 
@@ -397,7 +406,7 @@ wss.on('connection', (ws: WebSocket, req) => {
             logInfo(`Current conversation step before: ${currentState.currentConversationStep}`);
             logInfo(`Collected fields: ${JSON.stringify(currentState.collectedFields)}`);
             logInfo(`Missing fields: ${JSON.stringify(currentState.missingFields)}`);
-            logInfo(`Last user turn: ${lastUserTurn?.content ?? '(none)'}`);
+            logInfo(`Last user turn length: ${lastUserTurn?.content?.length ?? 0}`);
             
             if (!lastUserTurn) {
                 const fallbackMsg = currentState.lastAssistantMessage ?? "I'm here to help. Could you please go ahead?";
@@ -530,7 +539,7 @@ wss.on('connection', (ws: WebSocket, req) => {
             
             logInfo(`Current conversation step after: ${result.state.currentConversationStep}`);
             logInfo(`Response action type: ${result.action.type}`);
-            logInfo(`Response message: "${result.action.message}"`);
+            logInfo(`Response message length: ${result.action.message?.length ?? 0}`);
             
             // We already streamed the content of responseToUser. We don't want to re-send it.
             // But if the action message contains something extra (like an override), we should send it.
