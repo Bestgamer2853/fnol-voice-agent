@@ -6,7 +6,7 @@ interface GeminiServiceOptions {
   endpointBaseUrl?: string;
 }
 
-const DEFAULT_MODEL = 'gemini-3.6-flash';
+const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
 const DEFAULT_ENDPOINT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 function readEnvironmentValue(name: string): string | undefined {
@@ -37,7 +37,7 @@ export class GeminiService implements LlmProvider {
   constructor(options: GeminiServiceOptions = {}) {
     this.apiKey = options.apiKey ?? readEnvironmentValue('GEMINI_API_KEY');
       
-    // Default to gemini-flash-latest if not provided
+    // Default to gemini-3.5-flash-lite if not provided
     this.model = options.model ?? readEnvironmentValue('GEMINI_MODEL') ?? DEFAULT_MODEL;
     
     this.endpointBaseUrl =
@@ -121,7 +121,7 @@ export class GeminiService implements LlmProvider {
       console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] [LLM Request] Attempt ${attempt}. Native URL: ${this.endpointBaseUrl}/${this.model}:streamGenerateContent, Method: POST`);
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4500); // Evidence-based P95 (3733ms) + 15% safety margin
+      const timeoutId = setTimeout(() => controller.abort(), 6000); // Robust 6000ms timeout to avoid network jitter aborts
       const onParentAbort = () => { controller.abort(); };
       if (input.abortSignal) {
          input.abortSignal.addEventListener('abort', onParentAbort);
