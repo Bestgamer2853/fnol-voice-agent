@@ -341,23 +341,10 @@ function getFallbackResult(message: string, state: ConversationState): ExtractCl
   };
 }
 
-const responseCache = new Map<string, ExtractClaimDataResult>();
-
-function getCacheKey(input: ExtractClaimDataInput): string {
-  const toolContextLen = input.toolContext ? input.toolContext.length : 0;
-  return `${input.userMessage.trim()}|${input.state.conversationHistory.length}|${toolContextLen}`;
-}
-
 export class GeminiExtractClaimDataService implements ExtractClaimDataService {
   constructor(private readonly options: ExtractClaimDataServiceOptions) {}
 
   async extract(input: ExtractClaimDataInput): Promise<ExtractClaimDataResult> {
-    const cacheKey = getCacheKey(input);
-    const cached = responseCache.get(cacheKey);
-    if (cached) {
-      console.log(`[Gemini Cache Hit] Reusing previous response for: ${cacheKey}`);
-      return cached;
-    }
     const now = new Date();
     const dateStr = now.toISOString().split('T')[0];
     
@@ -456,7 +443,6 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       },
     };
 
-    responseCache.set(cacheKey, finalResult);
     return finalResult;
   }
 }

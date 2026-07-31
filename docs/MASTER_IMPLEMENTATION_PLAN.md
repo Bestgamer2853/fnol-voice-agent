@@ -221,6 +221,10 @@ Dependencies: P0-00; provider interface change must be small and documented.
 
 ### P0-06 Remove or safely scope the response cache
 
+Status: COMPLETED
+Outcome: Removed `responseCache` from `src/services/extractClaimData.ts`. The caching mechanism prevented the agent from correcting itself or moving forward if a previous response failed to meet confidence thresholds, causing it to endlessly replay the cached failure.
+Commit: `refactor: remove response cache to allow self-correction`
+
 Problem: The process-global extraction cache can reuse a response across sessions or incompatible claim states.
 
 Root cause: Cache key is only message text, history length, and tool context length.
