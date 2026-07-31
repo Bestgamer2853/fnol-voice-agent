@@ -472,11 +472,17 @@ export class DefaultConversationManager implements ConversationManager {
     console.log(`[ConversationManager] State step before: ${state.currentConversationStep}`);
     console.log(`[ConversationManager] User message: "${message}"`);
     if (state.currentConversationStep === 'completed') {
-      return this.withAssistantAction(
-        { ...state, lastUserMessage: message },
-        { type: 'complete', message: 'Goodbye, have a great day.', claim: state.currentClaim },
-        {}
-      );
+      if (this.isFinalAck(message)) {
+        return this.withAssistantAction(
+          { ...state, lastUserMessage: message },
+          {
+            type: 'complete',
+            message: "You're welcome. Thank you for choosing Meridian Motor Insurance. Have a safe day.",
+            claim: state.currentClaim,
+          },
+          {}
+        );
+      }
     }
 
     const historyWithUser = appendMessage(state.conversationHistory, 'user', message);
@@ -741,9 +747,8 @@ export class DefaultConversationManager implements ConversationManager {
     });
 
     return this.withAssistantAction(nextState, {
-      type: 'complete',
+      type: 'respond',
       message: responseToUser,
-      claim: claimWithSummary,
     }, extractionDebug);
   }
 
@@ -783,6 +788,18 @@ export class DefaultConversationManager implements ConversationManager {
         ...(extractionDebug?.ttftMs !== undefined ? { ttftMs: extractionDebug.ttftMs } : {}),
       }
     };
+  }
+
+  private isFinalAck(userMessage: string): boolean {
+    const normalized = userMessage.trim().toLowerCase();
+    
+    if (/\b(what|when|how|where|why|can|could|will|would|is|do|does|have|one more|another)\b/i.test(normalized) || normalized.includes('?')) {
+      return false;
+    }
+    
+    const completionPattern = /\b(no|nope|nah|nothing|that's all|thats all|all set|i'm good|im good|thanks|thank you|bye|goodbye|that's it|thats it|nothing else|no thanks|no thank you|everything|all good)\b/i;
+    
+    return completionPattern.test(normalized);
   }
 }
 

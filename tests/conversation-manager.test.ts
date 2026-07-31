@@ -138,16 +138,6 @@ async function playTurns(turns: ScriptedTurn[], messages: string[]): Promise<{
 }
 
 describe('ConversationManager P0 replay harness', () => {
-  let originalLog: typeof console.log;
-
-  beforeEach(() => {
-    originalLog = console.log;
-    console.log = () => undefined;
-  });
-
-  afterEach(() => {
-    console.log = originalLog;
-  });
 
   it('replays a happy path through service recommendation and completion', async () => {
     const completeClaim: Partial<Claim> = {
@@ -176,20 +166,81 @@ describe('ConversationManager P0 replay harness', () => {
           extractedData: completeClaim,
         },
         {
-          responseToUser: 'Your claim has been logged.',
+          responseToUser: 'Your claim has been logged under CLM-20260731-0001. Is there anything else I can help you with today?',
+          extractedData: {},
+        },
+        {
+          responseToUser: "You're welcome. Thank you for choosing Meridian Motor Insurance. Have a safe day.",
           extractedData: {},
         },
       ],
-      ['All details in one message.', 'Yes, please arrange towing.'],
+      ['All details in one message.', 'Yes, please arrange towing.', "No, that's everything."],
     );
 
-    assert.deepEqual(actions, ['respond', 'complete']);
+    assert.deepEqual(actions, ['respond', 'respond', 'complete']);
     assert.equal(state.currentConversationStep, 'completed');
     assert.equal(state.currentClaim.claimReferenceNumber, 'CLM-20260731-0001');
     assert.deepEqual(state.currentClaim.recommendedServices, ['towing', 'adjuster callback']);
     assert.equal(logs.length, 1);
     assert.equal(logs[0]?.claimNumber, 'CLM-20260731-0001');
     assert.equal(extractor.inputs.length, 2);
+  });
+
+  it('handles conversational call termination variants correctly', async () => {
+    const completeClaim: Partial<Claim> = {
+      policyNumber: 'MMI-10234',
+      callerName: 'Arjun Rao',
+      dateOfIncident: '2026-07-30',
+      timeOfIncident: '19:00',
+      locationOfIncident: 'MG Road, Bengaluru',
+      incidentDescription: 'Two cars collided.',
+      insuredVehicle: { make: 'Honda', model: 'City', registration: 'KA01AB1234' },
+      injuriesReported: false,
+      policeReportFiled: true,
+      policeReportReference: 'POL-123',
+      photosAvailable: true,
+      vehicleDrivable: true,
+    };
+
+    // Variant A: "Thanks."
+    const extractorA = new ScriptedExtractor([
+      { responseToUser: 'Recommend services.', extractedData: completeClaim },
+      { responseToUser: 'Claim logged. Anything else?', extractedData: {} },
+      { responseToUser: 'Closing statement.', extractedData: {} },
+    ]);
+    const managerA = createConversationManager(createDependencies(extractorA, []));
+    let stateA = managerA.start();
+    const actionsA: string[] = [];
+    for (const msg of ['Details provided.', 'No towing needed.', 'Thanks.']) {
+      const res = await managerA.handleUserMessage(stateA, msg);
+      stateA = res.state;
+      console.error(`[DEBUG TURN] msg: "${msg}", stepAfter: "${stateA.currentConversationStep}", actionType: "${res.action.type}"`);
+      actionsA.push(res.action.type);
+    }
+    assert.deepEqual(actionsA, ['respond', 'respond', 'complete']);
+
+    // Variant B: "Bye."
+    const testBye = await playTurns(
+      [
+        { responseToUser: 'Recommend services.', extractedData: completeClaim },
+        { responseToUser: 'Claim logged. Anything else?', extractedData: {} },
+        { responseToUser: 'Closing statement.', extractedData: {} },
+      ],
+      ['Details provided.', 'No towing needed.', 'Bye.'],
+    );
+    assert.deepEqual(testBye.actions, ['respond', 'respond', 'complete']);
+
+    // Variant C: "Actually I have one more question..."
+    const testQuestion = await playTurns(
+      [
+        { responseToUser: 'Recommend services.', extractedData: completeClaim },
+        { responseToUser: 'Claim logged. Anything else?', extractedData: {} },
+        { responseToUser: 'Yes, repairs usually take 3-5 business days. Anything else?', extractedData: {} },
+      ],
+      ['Details provided.', 'No towing needed.', 'Actually I have one more question about repairs...'],
+    );
+    assert.deepEqual(testQuestion.actions, ['respond', 'respond', 'respond']);
+    assert.equal(testQuestion.state.currentConversationStep, 'completed');
   });
 
   it('escalates when injury is reported and captures the current known disposition bug', async () => {
