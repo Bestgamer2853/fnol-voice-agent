@@ -77,8 +77,13 @@ class MultiClaimLogger implements ClaimLoggerService {
 
 export function createRuntimeDependencies(): ConversationManagerDependencies {
   const geminiProvider = createGeminiService();
-  const groqProvider = createGroqService();
-  const llmProvider = createFallbackProvider([geminiProvider, groqProvider]);
+  const providers: LlmProvider[] = [geminiProvider];
+  
+  if (process.env.GROQ_API_KEY && process.env.GROQ_API_KEY.trim().length > 0) {
+    providers.push(createGroqService());
+  }
+
+  const llmProvider = createFallbackProvider(providers);
 
   const localLogger = createLocalJsonClaimLogger(DEFAULT_CLAIMS_FILE_PATH);
   const sheetsLogger = new GoogleSheetsClaimLogger('1bRu1nK9IL8a7DCSXSQ-jXHczpfcPNJ3PJoWw-zjzcJw');
