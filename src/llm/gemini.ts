@@ -6,8 +6,8 @@ interface GeminiServiceOptions {
   endpointBaseUrl?: string;
 }
 
-const DEFAULT_MODEL = 'gemini-flash-latest';
-const DEFAULT_ENDPOINT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/openai';
+const DEFAULT_MODEL = 'gemini-3.6-flash';
+const DEFAULT_ENDPOINT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 function readEnvironmentValue(name: string): string | undefined {
   const value = process.env[name];
@@ -23,48 +23,10 @@ function fallbackResponse(errorMessage: string): GenerateResponseResult {
 }
 
 const MAX_RETRIES = 2;
-const RETRYABLE_STATUS_CODES = new Set([429, 503, 408]);
+const RETRYABLE_STATUS_CODES = new Set([429, 503, 502, 500, 408]);
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function translateSchema(schema: any): any {
-  if (!schema) return schema;
-  if (Array.isArray(schema)) return schema.map(translateSchema);
-  if (typeof schema === 'object') {
-    const newObj: any = {};
-    for (const [k, v] of Object.entries(schema)) {
-      if (k === 'type' && typeof v === 'string') {
-        newObj[k] = v.toLowerCase();
-      } else {
-        newObj[k] = translateSchema(v);
-      }
-    }
-    return newObj;
-  }
-  return schema;
-}
-
-function translateTools(geminiTools?: any[]): any[] | undefined {
-  if (!geminiTools || geminiTools.length === 0) return undefined;
-  
-  const openaiTools: any[] = [];
-  for (const group of geminiTools) {
-    if (group.functionDeclarations) {
-      for (const func of group.functionDeclarations) {
-        openaiTools.push({
-          type: "function",
-          function: {
-            name: func.name,
-            description: func.description,
-            parameters: translateSchema(func.parameters)
-          }
-        });
-      }
-    }
-  }
-  return openaiTools.length > 0 ? openaiTools : undefined;
 }
 
 export class GeminiService implements LlmProvider {
@@ -75,7 +37,9 @@ export class GeminiService implements LlmProvider {
   constructor(options: GeminiServiceOptions = {}) {
     this.apiKey = options.apiKey ?? readEnvironmentValue('GEMINI_API_KEY');
       
+    // Default to gemini-flash-latest if not provided
     this.model = options.model ?? readEnvironmentValue('GEMINI_MODEL') ?? DEFAULT_MODEL;
+    
     this.endpointBaseUrl =
       options.endpointBaseUrl ??
       readEnvironmentValue('GEMINI_ENDPOINT_BASE_URL') ??
@@ -89,69 +53,81 @@ export class GeminiService implements LlmProvider {
       return fallbackResponse('API Key is not configured.');
     }
 
-    const openaiTools = translateTools(input.tools);
+    const contents: any[] = [];
     
-    const messages: any[] = [
-      { role: 'system', content: input.systemPrompt },
-      { role: 'user', content: `Conversation context:\n${input.conversationContext}\n\nCurrent task:\n${input.userPrompt}` }
-    ];
+    contents.push({
+      role: 'user',
+      parts: [{ text: `Conversation context:\n${input.conversationContext}\n\nCurrent task:\n${input.userPrompt}` }]
+    });
 
     if (input.toolContext) {
       for (const ctx of input.toolContext) {
-        messages.push({
-          role: 'assistant',
-          content: ctx.assistantMessage || null,
-          tool_calls: ctx.toolCalls.map(tc => ({
-            id: tc.id,
-            type: 'function',
-            function: {
-              name: tc.name,
-              arguments: JSON.stringify(tc.args)
-            }
-          }))
-        });
+        if (ctx.assistantMessage || ctx.toolCalls.length > 0) {
+          const parts: any[] = [];
+          if (ctx.assistantMessage) {
+            parts.push({ text: ctx.assistantMessage });
+          }
+          for (const tc of ctx.toolCalls) {
+            parts.push({
+              functionCall: {
+                name: tc.name,
+                args: tc.args
+              }
+            });
+          }
+          contents.push({ role: 'model', parts });
+        }
 
-        for (const res of ctx.toolResults) {
-          messages.push({
-            role: 'tool',
-            tool_call_id: res.id,
-            name: res.name,
-            content: res.result
-          });
+        if (ctx.toolResults.length > 0) {
+          const parts: any[] = ctx.toolResults.map(res => ({
+            functionResponse: {
+              name: res.name,
+              response: { result: res.result }
+            }
+          }));
+          contents.push({ role: 'user', parts });
         }
       }
     }
     
-    const requestBodyStr = JSON.stringify({
-      model: this.model,
-      messages,
-      temperature: 0.4,
-      max_tokens: 4096,
-      stream: true,
-      tools: openaiTools,
-      response_format: input.responseMimeType === 'application/json' ? { type: 'json_object' } : undefined
-    });
+    const requestBody: any = {
+      systemInstruction: {
+        parts: [{ text: input.systemPrompt }]
+      },
+      contents,
+      generationConfig: {
+        temperature: 0.4,
+        maxOutputTokens: 4096,
+      }
+    };
+    
+    if (input.responseMimeType === 'application/json') {
+      requestBody.generationConfig.responseMimeType = 'application/json';
+    }
+    
+    if (input.tools && input.tools.length > 0) {
+      requestBody.tools = input.tools; // Google native format is already what we had!
+    }
+    
+    const requestBodyStr = JSON.stringify(requestBody);
 
-    const url = `${this.endpointBaseUrl}/chat/completions`;
+    const url = `${this.endpointBaseUrl}/${this.model}:streamGenerateContent?key=${this.apiKey}&alt=sse`;
 
     let attempt = 0;
     const reqIdForLogs = Math.random().toString(36).substring(2, 10);
     while (attempt <= MAX_RETRIES) {
       attempt++;
       const startTime = Date.now();
-      console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] [LLM Request] Attempt ${attempt}. URL: ${url}, Model: ${this.model}, Method: POST`);
-      console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] requestBody: ${requestBodyStr}`);
-      console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] exact messages[] array:\n${JSON.stringify(messages, null, 2)}`);
+      console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] [LLM Request] Attempt ${attempt}. Native URL: ${this.endpointBaseUrl}/${this.model}:streamGenerateContent, Method: POST`);
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout for Native API
 
       try {
         const response = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.apiKey}`,
           },
           body: requestBodyStr,
           signal: controller.signal
@@ -160,8 +136,6 @@ export class GeminiService implements LlmProvider {
 
         const latency = Date.now() - startTime;
         console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] HTTP Status: ${response.status}`);
-        console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] Response Headers:`);
-        response.headers.forEach((v, k) => console.log(`  ${k}: ${v}`));
 
         if (!response.ok) {
           const errorBody = await response.text();
@@ -186,11 +160,12 @@ export class GeminiService implements LlmProvider {
         const reader = response.body.getReader();
         const decoder = new TextDecoder('utf-8');
         let fullAssistantResponse = '';
-        const activeToolCalls = new Map<number, {id: string, name: string, arguments: string}>();
         let finishReason = '';
         let usageMetadata: any = undefined;
+        const allToolCalls: any[] = [];
         
         let buffer = '';
+        
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -209,39 +184,39 @@ export class GeminiService implements LlmProvider {
               if (dataStr !== '[DONE]') {
                 try {
                   const data = JSON.parse(dataStr);
-                  if (data.usage) {
-                    usageMetadata = data.usage;
+                  if (data.usageMetadata) {
+                    usageMetadata = {
+                      promptTokenCount: data.usageMetadata.promptTokenCount,
+                      candidatesTokenCount: data.usageMetadata.candidatesTokenCount,
+                      totalTokenCount: data.usageMetadata.totalTokenCount
+                    };
                   }
                   
-                  if (data.choices && data.choices[0]) {
-                    const choice = data.choices[0];
-                    if (choice.delta) {
-                      const delta = choice.delta;
-                      if (delta.content) {
-                        fullAssistantResponse += delta.content;
-                        if (input.onContentChunk) {
-                          input.onContentChunk(delta.content);
-                        }
-                      }
-                      
-                      if (delta.tool_calls) {
-                        for (const tc of delta.tool_calls) {
-                          const idx = tc.index;
-                          if (!activeToolCalls.has(idx)) {
-                             activeToolCalls.set(idx, { id: tc.id || '', name: tc.function?.name || '', arguments: '' });
-                          }
-                          if (tc.function?.arguments) {
-                             activeToolCalls.get(idx)!.arguments += tc.function.arguments;
-                          }
-                        }
-                      }
+                  if (data.candidates && data.candidates[0]) {
+                    const candidate = data.candidates[0];
+                    if (candidate.finishReason) {
+                      finishReason = candidate.finishReason;
                     }
-                    if (choice.finish_reason) {
-                      finishReason = choice.finish_reason;
+                    if (candidate.content && candidate.content.parts) {
+                      for (const part of candidate.content.parts) {
+                        if (part.text) {
+                          fullAssistantResponse += part.text;
+                          if (input.onContentChunk) {
+                            input.onContentChunk(part.text);
+                          }
+                        }
+                        if (part.functionCall) {
+                           allToolCalls.push({
+                              id: Math.random().toString(36).substring(2, 9),
+                              name: part.functionCall.name,
+                              args: part.functionCall.args
+                           });
+                        }
+                      }
                     }
                   }
                 } catch (e) {
-                  console.error('Failed to parse SSE chunk', e);
+                  // Ignore JSON parse errors for incomplete chunks
                 }
               }
             }
@@ -249,27 +224,8 @@ export class GeminiService implements LlmProvider {
           }
         }
 
-        const allToolCalls: any[] = [];
-        for (const [idx, tc] of activeToolCalls.entries()) {
-          try {
-            allToolCalls.push({
-              id: tc.id,
-              name: tc.name,
-              args: JSON.parse(tc.arguments)
-            });
-          } catch (e) {
-            console.error(`Failed to parse arguments for tool ${tc.name}: ${tc.arguments}`, e);
-          }
-        }
-
         console.log(`[LLM Response Success] Latency: ${latency}ms, ToolCalls: ${allToolCalls.length}`);
-        console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] [LLM Response] fullAssistantResponse: "${fullAssistantResponse}"`);
-        console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] [LLM Response] finishReason: "${finishReason}"`);
-        console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] [LLM Response] usageMetadata: ${JSON.stringify(usageMetadata)}`);
-        if (allToolCalls.length > 0) {
-          console.log(`[LLM Response] tool_calls:\n${JSON.stringify(allToolCalls, null, 2)}`);
-        }
-
+        
         if (!fullAssistantResponse && allToolCalls.length === 0) {
           return fallbackResponse('LLM returned no assistant text and no tool calls.');
         }
@@ -309,3 +265,4 @@ export function createGeminiService(
 ): LlmProvider {
   return new GeminiService(options);
 }
+
