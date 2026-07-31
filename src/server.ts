@@ -278,9 +278,22 @@ wss.on('connection', (ws: WebSocket, req) => {
   
   logInfo(`Current conversation step after: ${session.state.currentConversationStep}`);
 
+  ws.on('close', (code, reason) => {
+    logInfo(`\n========================\nWEBSOCKET CLOSED`);
+    logInfo(`Close code: ${code}`);
+    logInfo(`Reason: ${reason.toString()}`);
+    logInfo(`Timestamp: ${new Date().toISOString()}\n========================\n`);
+  });
+
+  ws.on('error', (err) => {
+    logError(`WEBSOCKET ERROR`, err);
+  });
+
   ws.on('message', (data) => {
+    const rawData = data.toString();
+    logInfo(`\n========================\nRAW WEBSOCKET MESSAGE\n${rawData}\n========================\n`);
     try {
-      const event = JSON.parse(data.toString());
+      const event = JSON.parse(rawData);
       logInfo(`\n--------------------------------`);
       logInfo(`interaction_type: ${event.interaction_type}`);
       logInfo(`response_id: ${event.response_id}`);
