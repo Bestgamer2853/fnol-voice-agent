@@ -209,8 +209,10 @@ describe('ConversationManager P0 replay harness', () => {
     assert.deepEqual(actions, ['escalate']);
     assert.equal(state.currentConversationStep, 'escalation');
     assert.equal(state.severity, 'high');
-    assert.equal(state.escalationRequired, false, 'Known P0-04 bug: escalationRequired is not persisted yet.');
-    assert.equal(logs.length, 0);
+    assert.equal(state.escalationRequired, true, 'escalationRequired is persisted');
+    assert.equal(logs.length, 1);
+    assert.equal(logs[0]?.escalationRequired, true);
+    assert.ok(logs[0]?.summary.includes('Escalated:'));
   });
 
   it('offers callback after two failed policy verification attempts', async () => {
@@ -238,7 +240,8 @@ describe('ConversationManager P0 replay harness', () => {
     assert.equal(state.currentConversationStep, 'callback_offer');
     assert.equal(state.verificationAttempts, 2);
     assert.equal(state.verifiedPolicy, undefined);
-    assert.equal(logs.length, 0);
+    assert.equal(logs.length, 1);
+    assert.ok(logs[0]?.summary.includes('Callback offered'));
   });
 
   it('normalizes vehicle registration while preserving field tracking', async () => {

@@ -553,8 +553,22 @@ export class DefaultConversationManager implements ConversationManager {
     }
 
     if (isEscalated) {
+        const nextState = { ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, currentConversationStep: 'escalation', escalationRequired: true } as ConversationState;
+        const claimReferenceNumber = updatedClaim.claimReferenceNumber ?? this.dependencies.claimNumberGenerator.generate();
+        updatedClaim.claimReferenceNumber = claimReferenceNumber;
+        
+        await this.dependencies.claimLogger.log({
+            claimNumber: claimReferenceNumber,
+            summary: `Escalated: ${escalationReason}`,
+            timestamp: timestamp(),
+            claim: updatedClaim,
+            ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}),
+            conversationHistory: historyWithUser,
+            escalationRequired: true
+        });
+
         return this.withAssistantAction(
-            { ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, currentConversationStep: 'escalation' },
+            nextState,
             { type: 'escalate', message: accumulatedResponse.trim() || 'I understand this is an emergency. Please hang up and dial emergency services immediately.', reason: escalationReason },
             finalExtractionResult.debugMetrics
         );
@@ -577,8 +591,22 @@ export class DefaultConversationManager implements ConversationManager {
     }
 
     if (callbackOffered) {
+        const nextState = { ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, currentConversationStep: 'callback_offer', verificationAttempts } as ConversationState;
+        const claimReferenceNumber = updatedClaim.claimReferenceNumber ?? this.dependencies.claimNumberGenerator.generate();
+        updatedClaim.claimReferenceNumber = claimReferenceNumber;
+
+        await this.dependencies.claimLogger.log({
+            claimNumber: claimReferenceNumber,
+            summary: 'Callback offered due to failed verification.',
+            timestamp: timestamp(),
+            claim: updatedClaim,
+            ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}),
+            conversationHistory: historyWithUser,
+            escalationRequired: false
+        });
+
         return this.withAssistantAction(
-            { ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, currentConversationStep: 'callback_offer', verificationAttempts },
+            nextState,
             { type: 'complete', message: accumulatedResponse.trim() || 'I apologize, but I am unable to verify your policy details at this time. A claims agent will call you back shortly to assist you. Goodbye.', claim: updatedClaim },
             finalExtractionResult.debugMetrics
         );

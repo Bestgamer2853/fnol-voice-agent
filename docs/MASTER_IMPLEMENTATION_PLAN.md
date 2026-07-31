@@ -165,6 +165,10 @@ Dependencies: P0-00.
 
 ### P0-04 Persist escalation and callback dispositions correctly
 
+Status: COMPLETED
+Outcome: Updated `ConversationManager.ts` to call `claimLogger.log` in both the `isEscalated` and `callbackOffered` paths, passing `escalationRequired` correctly. Updated the `conversation-manager.test.ts` suite to assert that the claim logger is invoked in these branches with the correct state.
+Commit: `fix: persist escalation and callback dispositions`
+
 Problem: Urgent injury/severe incident disposition is not persisted as `escalationRequired`, and callback completion is not modeled as a distinct durable outcome.
 
 Root cause: Escalation branch mutates severity only; persistence logs `nextState.escalationRequired` later, which remains false.
