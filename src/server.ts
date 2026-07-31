@@ -262,6 +262,16 @@ wss.on('connection', (ws: WebSocket, req) => {
 
   let hasGreeted = false;
 
+  // 1. Proactive Config Transmission
+  const configPayload = {
+    response_type: 'config',
+    config: {
+      auto_reconnect: true,
+      call_details: true,
+    }
+  };
+  sendWsJson(ws, configPayload, 'Config');
+
   // Send greeting immediately upon WebSocket connection as required by Retell protocol
   logInfo(`Executing handleGreeting() (Immediate on connection)`);
   logInfo(`Current conversation step before: ${session.state.currentConversationStep}`);
@@ -327,6 +337,14 @@ wss.on('connection', (ws: WebSocket, req) => {
           logInfo(`Already greeted, skipping duplicate greeting on call_details.`);
         }
         return;
+      }
+
+      if (event.interaction_type === 'ping_pong') {
+        const pongPayload = {
+          response_type: 'ping_pong',
+          timestamp: event.timestamp,
+        };
+        sendWsJson(ws, pongPayload, 'PingPong');
       }
 
       if (event.interaction_type === 'ping') {
