@@ -18,6 +18,8 @@ export interface ConversationTurnResult {
     geminiResponse: string;
     usageMetadata?: unknown;
     retries?: number;
+    ttfbMs?: number;
+    ttftMs?: number;
   };
 }
 

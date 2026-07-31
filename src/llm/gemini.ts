@@ -121,7 +121,7 @@ export class GeminiService implements LlmProvider {
       console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] [LLM Request] Attempt ${attempt}. Native URL: ${this.endpointBaseUrl}/${this.model}:streamGenerateContent, Method: POST`);
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000); // 4s timeout for Native API
+      const timeoutId = setTimeout(() => controller.abort(), 4500); // Evidence-based P95 (3733ms) + 15% safety margin
       const onParentAbort = () => { controller.abort(); };
       if (input.abortSignal) {
          input.abortSignal.addEventListener('abort', onParentAbort);
@@ -140,12 +140,12 @@ export class GeminiService implements LlmProvider {
         clearTimeout(timeoutId);
         if (input.abortSignal) input.abortSignal.removeEventListener('abort', onParentAbort);
 
-        const latency = Date.now() - startTime;
-        console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] HTTP Status: ${response.status}`);
+        const ttfbMs = Date.now() - startTime;
+        console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] HTTP Status: ${response.status}, TTFB: ${ttfbMs}ms`);
 
         if (!response.ok) {
           const errorBody = await response.text();
-          console.error(`[LLM Response Error] Attempt ${attempt}, Status: ${response.status}, Latency: ${latency}ms, Error: ${errorBody}`);
+          console.error(`[LLM Response Error] Attempt ${attempt}, Status: ${response.status}, Latency: ${ttfbMs}ms, Error: ${errorBody}`);
 
           if (attempt <= MAX_RETRIES && RETRYABLE_STATUS_CODES.has(response.status)) {
             const baseBackoff = Math.pow(2, attempt - 1) * 300;
@@ -171,10 +171,14 @@ export class GeminiService implements LlmProvider {
         const allToolCalls: any[] = [];
         
         let buffer = '';
+        let ttftMs: number | undefined;
         
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
+          if (ttftMs === undefined) {
+             ttftMs = Date.now() - startTime;
+          }
 
           buffer += decoder.decode(value, { stream: true });
           
@@ -230,7 +234,8 @@ export class GeminiService implements LlmProvider {
           }
         }
 
-        console.log(`[LLM Response Success] Latency: ${latency}ms, ToolCalls: ${allToolCalls.length}`);
+        const totalDuration = Date.now() - startTime;
+        console.log(`[LLM Response Success] Latency: ${totalDuration}ms, ToolCalls: ${allToolCalls.length}`);
         
         if (!fullAssistantResponse && allToolCalls.length === 0) {
           return fallbackResponse('LLM returned no assistant text and no tool calls.');
@@ -241,6 +246,8 @@ export class GeminiService implements LlmProvider {
           finishReason,
           usageMetadata,
           retries: attempt - 1,
+          ...(ttfbMs !== undefined ? { ttfbMs } : {}),
+          ...(ttftMs !== undefined ? { ttftMs } : {}),
         };
         if (allToolCalls.length > 0) finalResponse.toolCalls = allToolCalls;
         return finalResponse;
@@ -250,9 +257,9 @@ export class GeminiService implements LlmProvider {
         if (input.abortSignal?.aborted) {
             throw new Error('AbortError: LLM generation was aborted.');
         }
-        const latency = Date.now() - startTime;
+        const duration = Date.now() - startTime;
         const message = error instanceof Error ? error.message : 'Unknown LLM error.';
-        console.error(`[LLM Network Error] Attempt ${attempt}, Latency: ${latency}ms, Message: ${message}`);
+        console.error(`[LLM Network Error] Attempt ${attempt}, Latency: ${duration}ms, Message: ${message}`);
         
         if (attempt <= MAX_RETRIES) {
           const baseBackoff = Math.pow(2, attempt - 1) * 300;

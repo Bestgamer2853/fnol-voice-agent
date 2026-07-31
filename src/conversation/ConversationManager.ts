@@ -507,11 +507,7 @@ export class DefaultConversationManager implements ConversationManager {
     
     let accumulatedResponse = extractionResult.responseToUser;
     
-    // Anti-repetition logic, except for connection issue fallbacks
-    const fallbackMessage = "I'm having a temporary connection issue with my AI service. Please give me a moment.";
-    if (accumulatedResponse === state.lastAssistantMessage && accumulatedResponse !== fallbackMessage) {
-        accumulatedResponse = "Could you please clarify that?";
-    }
+    // Removed anti-repetition logic loop
     
     finalExtractionResult = extractionResult;
     let newClarifications: PendingClarification[] = [];
@@ -526,9 +522,7 @@ export class DefaultConversationManager implements ConversationManager {
         const { validatedPatch, pendingClarifications } = validateClaimPatch(rawSlots as Partial<Claim>, state);
         const normalizedPatch = normalizeClaimPatch(validatedPatch);
         
-        if (confidence < 0.40) {
-            newClarifications.push({ field: 'incidentDescription', prompt: 'I wasn\'t quite sure I caught that correctly. Could you please repeat it?' });
-        } else if (pendingClarifications.length > 0) {
+        if (pendingClarifications.length > 0) {
             for (const c of pendingClarifications) {
                 newClarifications.push({ field: 'incidentDescription', prompt: c });
             }
@@ -785,6 +779,8 @@ export class DefaultConversationManager implements ConversationManager {
         geminiResponse: extractionDebug?.geminiResponse ?? '',
         usageMetadata: extractionDebug?.usageMetadata,
         retries: extractionDebug?.retries ?? 0,
+        ...(extractionDebug?.ttfbMs !== undefined ? { ttfbMs: extractionDebug.ttfbMs } : {}),
+        ...(extractionDebug?.ttftMs !== undefined ? { ttftMs: extractionDebug.ttftMs } : {}),
       }
     };
   }

@@ -27,6 +27,8 @@ export interface ExtractClaimDataResult {
     geminiResponse: string;
     usageMetadata?: unknown;
     retries?: number;
+    ttfbMs?: number;
+    ttftMs?: number;
   };
 }
 
@@ -177,24 +179,19 @@ function sanitizeExtractedClaimPatch(value: unknown): Partial<Claim> {
 }
 
 function buildExtractionContext(state: ConversationState, fsmInstruction: string, schemaInstruction: string): string {
-  const recentHistory = state.conversationHistory.slice(-4);
+  const recentHistory = state.conversationHistory.slice(-3);
   const historyStr = recentHistory
-    .map((msg) => `${msg.role.toUpperCase()}: ${msg.content}`)
+    .map((msg) => `${msg.role === 'user' ? 'U' : 'A'}: ${msg.content}`)
     .join('\n');
 
   const knownFieldsStr = Object.entries(state.currentClaim)
      .filter(([k, v]) => v !== undefined && v !== null && k !== 'insuredVehicle')
-     .map(([k, v]) => `${k}: ${v}`)
+     .map(([k, v]) => `${k}:${v}`)
      .join(', ');
-  const vehicleStr = state.currentClaim.insuredVehicle ? `insuredVehicle: ${JSON.stringify(state.currentClaim.insuredVehicle)}` : '';
+  const vehicleStr = state.currentClaim.insuredVehicle ? `insuredVehicle:${JSON.stringify(state.currentClaim.insuredVehicle)}` : '';
   const stateContext = [knownFieldsStr, vehicleStr].filter(Boolean).join(', ');
 
-  return [
-    `KNOWN_STATE: ${stateContext || 'None'}`,
-    `FSM_INSTRUCTION: ${fsmInstruction}`,
-    `JSON_SCHEMA:\n${schemaInstruction}`,
-    `RECENT_HISTORY:\n${historyStr}`,
-  ].join('\n');
+  return `STATE: ${stateContext || 'None'}\nFSM: ${fsmInstruction}\nSCHEMA: ${schemaInstruction}\nHISTORY:\n${historyStr}`;
 }
 
 function sentenceCaseName(value: string): string {
@@ -345,62 +342,53 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
   constructor(private readonly options: ExtractClaimDataServiceOptions) {}
 
   async extract(input: ExtractClaimDataInput): Promise<ExtractClaimDataResult> {
-    const now = new Date();
-    const dateStr = now.toISOString().split('T')[0];
+    const dateStr = new Date().toISOString().split('T')[0];
     
-    const systemPrompt = [
-      'You are the voice of an FNOL motor insurance agent.',
-      `Current date: ${dateStr}. Resolve relative dates (e.g. "yesterday", "today") to YYYY-MM-DD.`,
-      '',
-      'RULES:',
-      '1. Follow the FSM_INSTRUCTION strictly.',
-      '2. Be brief and natural. NEVER repeat the user\'s answers back to them. Keep transitions tight (e.g. "Got it,").',
-      '3. Extract times as HH:MM.',
-      '4. Output ONLY valid JSON matching the schema.',
-    ].join('\n');
+    const systemPrompt = `FNOL Insurance Agent. Date: ${dateStr}.
+RULES:
+1. Follow FSM_INSTRUCTION.
+2. Be natural & empathetic. Do not ask user for ISO/HH:MM formats.
+3. Output valid JSON.`;
     
-    // Construct dynamic schema instruction
     let schemaObj: any = {
-      responseToUser: "Your spoken conversational response here.",
-      extractedData: {
-          confidence: "number (0.0 to 1.0)"
-      }
+      responseToUser: "Spoken response",
+      extractedData: {}
     };
     
-    // FSM Instruction Logic
-    let fsmInstruction = "Acknowledge briefly.";
+    let fsmInstruction = "Respond naturally and acknowledge their input.";
     if (input.state.pendingClarifications && input.state.pendingClarifications.length > 0) {
-        fsmInstruction = `Ask the user to clarify: ${input.state.pendingClarifications[0]?.prompt || ''}`;
+        fsmInstruction = `Ask clarification: ${input.state.pendingClarifications[0]?.prompt || ''}`;
     } else if (input.state.missingFields && input.state.missingFields.length > 0) {
         const nextField = input.state.missingFields[0] || 'details';
-        fsmInstruction = `Acknowledge briefly, then ask for their ${nextField.replace(/([A-Z])/g, ' $1').toLowerCase()}.`;
+        fsmInstruction = `Steer conversation to collect ${nextField.replace(/([A-Z])/g, ' $1').toLowerCase()}.`;
         
-        // Always allow extraction/correction of policy number and caller name until verified
         if (!input.state.verifiedPolicy) {
-            schemaObj.extractedData.policyNumber = "string or boolean or null";
-            schemaObj.extractedData.callerName = "string or boolean or null";
+            schemaObj.extractedData.policyNumber = "string|null";
+            schemaObj.extractedData.callerName = "string|null";
         }
 
         for (const field of input.state.missingFields.slice(0, 3)) {
-            schemaObj.extractedData[field] = "string or boolean or null";
+            if (field === 'dateOfIncident') {
+                 schemaObj.extractedData[field] = "YYYY-MM-DD|null";
+            } else if (field === 'timeOfIncident') {
+                 schemaObj.extractedData[field] = "HH:MM|null";
+            } else {
+                 schemaObj.extractedData[field] = "string|boolean|null";
+            }
         }
         if (input.state.missingFields.includes('insuredVehicle')) {
-             schemaObj.extractedData.insuredVehicle = { make: "string", model: "string", registration: "string" };
+             schemaObj.extractedData.insuredVehicle = { make: "str", model: "str", registration: "str" };
         }
     } else if (input.state.currentConversationStep === 'recommending_services') {
         const recommendedServices = input.state.currentClaim.recommendedServices?.join(' and ') || 'towing';
-        fsmInstruction = `The user's vehicle isn't drivable. Recommend ${recommendedServices} and ask if they need it.`;
-        schemaObj.extractedData.recommendedServices = ["array of strings"];
+        fsmInstruction = `Recommend ${recommendedServices} and ask if needed.`;
+        schemaObj.extractedData.recommendedServices = ["string"];
     } else if (input.state.currentConversationStep === 'completed') {
-        fsmInstruction = "Summarize the claim verbally and explain that an adjuster will contact them within 24 hours.";
+        fsmInstruction = "Summarize claim verbally; adjuster contacts within 24h.";
     }
 
-    const conversationContext = buildExtractionContext(input.state, fsmInstruction, JSON.stringify(schemaObj, null, 2));
-    const userPrompt = [
-      'Output a JSON object containing both the extracted data and the conversational response.',
-      '',
-      `User message: ${input.userMessage}`,
-    ].join('\n');
+    const conversationContext = buildExtractionContext(input.state, fsmInstruction, JSON.stringify(schemaObj));
+    const userPrompt = `User message: ${input.userMessage}`;
 
     const result = await this.options.llmProvider.generateResponse({
       systemPrompt,
@@ -440,6 +428,8 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
         geminiResponse: '[REDACTED]',
         usageMetadata: result.usageMetadata,
         retries: result.retries || 0,
+        ...(result.ttfbMs !== undefined ? { ttfbMs: result.ttfbMs } : {}),
+        ...(result.ttftMs !== undefined ? { ttftMs: result.ttftMs } : {}),
       },
     };
 

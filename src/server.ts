@@ -519,7 +519,8 @@ wss.on('connection', (ws: WebSocket, req) => {
                     foundStart: false,
                     isEnded: false,
                     buffer: '',
-                    emittedLength: 0
+                    emittedLength: 0,
+                    firstTokenTime: 0,
                 };
 
                 const result = await conversationManager.handleUserMessage(
@@ -532,10 +533,15 @@ wss.on('connection', (ws: WebSocket, req) => {
                     
                     parseState.buffer += chunk;
                     if (!parseState.foundStart) {
-                        const match = parseState.buffer.match(/"responseToUser"\s*:\s*"/);
-                        if (match) {
-                            parseState.foundStart = true;
-                            parseState.buffer = parseState.buffer.slice(match.index! + match[0].length);
+                        const idx = parseState.buffer.indexOf('"responseToUser":');
+                        if (idx !== -1) {
+                            const quoteIdx = parseState.buffer.indexOf('"', idx + 17);
+                            if (quoteIdx !== -1) {
+                                parseState.foundStart = true;
+                                parseState.buffer = parseState.buffer.slice(quoteIdx + 1);
+                            } else {
+                                return;
+                            }
                         } else {
                             return;
                         }
@@ -557,6 +563,9 @@ wss.on('connection', (ws: WebSocket, req) => {
                         
                         const newText = textReady.slice(parseState.emittedLength);
                         if (newText.length > 0) {
+                            if (parseState.firstTokenTime === 0) {
+                                parseState.firstTokenTime = Date.now() - startTime;
+                            }
                             parseState.emittedLength += newText.length;
                             sendWsJson(ws, {
                               response_type: 'response',
@@ -586,7 +595,10 @@ wss.on('connection', (ws: WebSocket, req) => {
                   `LLM Calls: ${numLlmCalls}`,
                   `Prompt Tokens: ${(result.debugMetrics?.usageMetadata as any)?.promptTokenCount ?? 0}`,
                   `Completion Tokens: ${(result.debugMetrics?.usageMetadata as any)?.candidatesTokenCount ?? 0}`,
-                  `Latency: ${latencyMs}ms`,
+                  `TTFB (HTTP Status): ${result.debugMetrics?.ttfbMs ?? 0}ms`,
+                  `TTFT (First SSE chunk): ${result.debugMetrics?.ttftMs ?? 0}ms`,
+                  `First Token Streamed to Retell: ${parseState.firstTokenTime}ms`,
+                  `Total Turn Latency: ${latencyMs}ms`,
                   `Retries: ${result.debugMetrics?.retries ?? 0}`,
                   `Conversation Step: ${result.state.currentConversationStep}`,
                   `Missing Fields: ${result.state.missingFields.join(', ')}`,

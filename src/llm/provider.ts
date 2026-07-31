@@ -25,6 +25,8 @@ export interface GenerateResponseResult {
   errorMessage?: string;
   usageMetadata?: UsageMetadata;
   retries?: number;
+  ttfbMs?: number;
+  ttftMs?: number;
 }
 
 export interface UsageMetadata {
