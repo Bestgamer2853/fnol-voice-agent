@@ -222,7 +222,7 @@ app.get('/view-logs', (_req: Request, res: Response) => {
 });
 
 // Per-session processing lock to prevent duplicate LLM calls
-const processingTurn = new Set<string>();
+const activeResponseIds = new Map<string, number>();
 
 const port = Number(process.env.PORT ?? DEFAULT_PORT);
 
@@ -369,19 +369,20 @@ wss.on('connection', (ws: WebSocket, req) => {
         console.log(`[Diagnostic] RECEIVED response_required event for session ${sessionId}`);
         logInfo(`Executing handleResponseRequired() / handleReminderRequired()`);
         
-        if (processingTurn.has(sessionId)) {
-            logInfo(`Already processing a turn for session ${sessionId}, ignoring duplicate response_required`);
+        const responseId = event.response_id;
+        const currentActive = activeResponseIds.get(sessionId);
+        if (currentActive !== undefined && currentActive >= responseId) {
+            logInfo(`Already processing a newer or equal turn for session ${sessionId} (active: ${currentActive}, received: ${responseId}), ignoring`);
             return;
         }
         
-        processingTurn.add(sessionId);
+        activeResponseIds.set(sessionId, responseId);
 
         const requestId = crypto.randomBytes(3).toString('hex');
 
         requestContext.run(requestId, () => {
           (async () => {
             try {
-              const responseId = event.response_id;
             
             const transcript = event.transcript || [];
             const lastUserTurn = [...transcript].reverse().find((t: any) => t.role === 'user');
@@ -430,6 +431,7 @@ wss.on('connection', (ws: WebSocket, req) => {
               currentState,
               lastUserTurn.content,
               (chunk: string) => {
+                if (activeResponseIds.get(sessionId) !== responseId) return; // Drop outdated stream chunks
                 streamedText += chunk;
                 const payload = {
                   response_type: 'response',
@@ -440,6 +442,12 @@ wss.on('connection', (ws: WebSocket, req) => {
                 sendWsJson(ws, payload, 'StreamChunk');
               }
             );
+            
+            // If a newer turn started while we were awaiting the LLM, abort updating state and sending final response
+            if (activeResponseIds.get(sessionId) !== responseId) {
+                logInfo(`[Request ${requestId}] Aborting completion for response_id ${responseId} because a newer turn is active.`);
+                return;
+            }
             const latencyMs = Date.now() - startTime;
             
             numLlmCalls = 1; // Exactly 1 LLM request per turn in the new architecture
@@ -510,8 +518,10 @@ wss.on('connection', (ws: WebSocket, req) => {
           } catch (err) {
             logError('Error in processing turn:', err);
             } finally {
-              processingTurn.delete(sessionId);
-              logInfo(`Locked processing finished (resolved or rejected) for response_id ${event.response_id}`);
+              if (activeResponseIds.get(sessionId) === responseId) {
+                  activeResponseIds.delete(sessionId);
+              }
+              logInfo(`Processing finished (resolved or rejected) for response_id ${responseId}`);
             }
           })();
         });
@@ -523,7 +533,7 @@ wss.on('connection', (ws: WebSocket, req) => {
 
   ws.on('close', () => {
     logInfo(`Connection closed for session ${sessionId}`);
-    processingTurn.delete(sessionId);
+    activeResponseIds.delete(sessionId);
   });
   
   ws.on('error', (error) => {
