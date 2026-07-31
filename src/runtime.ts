@@ -14,6 +14,8 @@ import {
 import { createExtractClaimDataService } from './services/extractClaimData.js';
 import { createGenerateSummaryService } from './services/generateSummary.js';
 import { createGeminiService } from './llm/gemini.js';
+import { createGroqService } from './llm/groq.js';
+import { createFallbackProvider } from './llm/fallback.js';
 import type { LlmProvider, GenerateResponseInput, GenerateResponseResult } from './llm/provider.js';
 import { createRecommendServicesService } from './services/recommendServices.js';
 import { createVerifyPolicyService } from './services/verifyPolicy.js';
@@ -74,7 +76,9 @@ class MultiClaimLogger implements ClaimLoggerService {
 }
 
 export function createRuntimeDependencies(): ConversationManagerDependencies {
-  const llmProvider = createGeminiService();
+  const geminiProvider = createGeminiService();
+  const groqProvider = createGroqService();
+  const llmProvider = createFallbackProvider([geminiProvider, groqProvider]);
 
   const localLogger = createLocalJsonClaimLogger(DEFAULT_CLAIMS_FILE_PATH);
   const sheetsLogger = new GoogleSheetsClaimLogger('1bRu1nK9IL8a7DCSXSQ-jXHczpfcPNJ3PJoWw-zjzcJw');
