@@ -60,6 +60,64 @@ const scenarios = [
       'Yes, please arrange towing.',
       'Yes, confirm'
     ]
+  },
+  {
+    name: 'Hesitant user / partial info',
+    turns: [
+      'Yes, we are safe.',
+      'I am Arjun Rao. My policy is MMI-10234.',
+      'It happened yesterday.',
+      'I dont remember the exact time, maybe afternoon?',
+      'On Main Street.',
+      'I hit a pole. No injuries, no police, drivable. Toyota Camry XYZ 123. No photos.',
+      'Confirm.'
+    ]
+  },
+  {
+    name: 'Out of order info dump',
+    turns: [
+      'Yes. My name is Priya Nair, MMI-10871. I crashed into a tree on First Avenue yesterday morning at 9am. I have no injuries, the car is a Honda Civic ABC 999. It is drivable, I have photos, no police report, no other parties.',
+      'Yes, please confirm.'
+    ]
+  },
+  {
+    name: 'Correction mid-conversation',
+    turns: [
+      'Yes safe.',
+      'Arjun Rao, MMI-10234.',
+      'Today at 1pm.',
+      'Wait, no, it was yesterday at 2pm.',
+      'Main street. I hit a parked car.',
+      'No injuries, no police, drivable. Toyota Camry XYZ 123. No photos.',
+      'Confirm.'
+    ]
+  },
+  {
+    name: 'Ambiguous injury',
+    turns: [
+      'Yes.',
+      'Arjun Rao, MMI-10234.',
+      'Yesterday 3pm Main Street. I bumped into someone.',
+      'My neck hurts a little bit, but no ambulance.',
+    ]
+  },
+  {
+    name: 'Full conversational flow with clarifying',
+    turns: [
+      'Yes we are fine.',
+      'I am Priya Nair, MMI-10871.',
+      'It happened this morning around 8.',
+      'Near the junction of First Avenue.',
+      'Someone rear-ended me.',
+      'Just the other car.',
+      'No injuries.',
+      'Yes I called the police, the report is 998877.',
+      'I took some pictures.',
+      'No, the car is totally smashed.',
+      'Honda Civic ABC 999.',
+      'Yes, please arrange towing.',
+      'Yes, confirm.'
+    ]
   }
 ];
 

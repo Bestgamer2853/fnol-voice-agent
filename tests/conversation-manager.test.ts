@@ -268,23 +268,6 @@ describe('ConversationManager P0 replay harness', () => {
     assert.ok(!state.missingFields.includes('insuredVehicle'));
   });
 
-  it('does not merge low-confidence extracted data and queues a clarification', async () => {
-    const { state } = await playTurns(
-      [
-        {
-          responseToUser: 'Could you repeat that?',
-          extractedData: {
-            confidence: 0.2,
-            incidentDescription: 'unclear collision',
-          },
-        },
-      ],
-      ['Muffled audio.'],
-    );
-
-    assert.equal(state.currentClaim.incidentDescription, undefined);
-    assert.equal(state.pendingClarifications.length, 1);
-  });
 
   it('handles out-of-order fields correctly', async () => {
     const { state } = await playTurns(

@@ -14,7 +14,7 @@
     "demo:conversation-manager": "tsx src/demo/conversationManagerDemo.ts",
     "demo:gemini-conversation": "tsx src/demo/geminiConversationDemo.ts",
     "demo:extract-claim-data": "tsx src/demo/extractClaimDataDemo.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --import tsx --test tests/*.test.ts"
   },
   "keywords": [],
   "author": "",
