@@ -301,13 +301,7 @@ function validateClaimPatch(patch: Partial<Claim>, state: ConversationState): { 
   for (const field of textFields) {
     const value = sanitizeText(patch[field]);
     if (value) {
-      if (field === 'dateOfIncident' && !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-          pendingClarifications.push(`The date format for "${value}" is not valid. Please provide it as YYYY-MM-DD.`);
-      } else if (field === 'timeOfIncident' && !/^(?:[01]?\d|2[0-3]):[0-5]\d\s*(?:am|pm)?$/i.test(value)) {
-          pendingClarifications.push(`The time format for "${value}" is not valid. Please provide it like HH:MM am/pm.`);
-      } else {
-          validatedPatch[field] = value;
-      }
+      validatedPatch[field] = value;
     }
   }
 
@@ -529,7 +523,7 @@ export class DefaultConversationManager implements ConversationManager {
         const { validatedPatch, pendingClarifications } = validateClaimPatch(rawSlots as Partial<Claim>, state);
         const normalizedPatch = normalizeClaimPatch(validatedPatch);
         
-        if (confidence < 0.65) {
+        if (confidence < 0.40) {
             newClarifications.push({ field: 'incidentDescription', prompt: 'I wasn\'t quite sure I caught that correctly. Could you please repeat it?' });
         } else if (pendingClarifications.length > 0) {
             for (const c of pendingClarifications) {

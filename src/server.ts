@@ -422,24 +422,74 @@ wss.on('connection', (ws: WebSocket, req) => {
               logInfo(`Executing handleVerification()`);
             }
 
-            let numLlmCalls = 0; // In a single pass FSM, this is 1 if everything succeeds. We'll extract it from metrics.
+            let numLlmCalls = 0; 
             let retries = 0;
 
             const startTime = Date.now();
             let streamedText = '';
+            
+            // State for JSON stream parsing to minimize TTFB
+            let parseState = {
+                foundStart: false,
+                isEnded: false,
+                buffer: '',
+                emittedLength: 0
+            };
+
             const result = await conversationManager.handleUserMessage(
               currentState,
               lastUserTurn.content,
               (chunk: string) => {
-                if (activeResponseIds.get(sessionId) !== responseId) return; // Drop outdated stream chunks
+                if (activeResponseIds.get(sessionId) !== responseId) return; 
                 streamedText += chunk;
-                const payload = {
-                  response_type: 'response',
-                  response_id: responseId,
-                  content: chunk,
-                  content_complete: false,
-                };
-                sendWsJson(ws, payload, 'StreamChunk');
+                
+                if (parseState.isEnded) return; // We already finished extracting responseToUser
+                
+                parseState.buffer += chunk;
+                
+                if (!parseState.foundStart) {
+                    const match = parseState.buffer.match(/"responseToUser"\s*:\s*"/);
+                    if (match) {
+                        parseState.foundStart = true;
+                        parseState.buffer = parseState.buffer.slice(match.index! + match[0].length);
+                    } else {
+                        return; // Still waiting for the key
+                    }
+                }
+                
+                if (parseState.foundStart) {
+                    // Find end of string: an unescaped quote
+                    let endIndex = -1;
+                    for (let i = 0; i < parseState.buffer.length; i++) {
+                        if (parseState.buffer[i] === '"' && (i === 0 || parseState.buffer[i-1] !== '\\')) {
+                            endIndex = i;
+                            break;
+                        }
+                    }
+                    
+                    let textReady = '';
+                    if (endIndex !== -1) {
+                        parseState.isEnded = true;
+                        textReady = parseState.buffer.slice(0, endIndex);
+                    } else {
+                        textReady = parseState.buffer;
+                    }
+                    
+                    // Unescape simple JSON escapes (\\n, \\")
+                    textReady = textReady.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+                    
+                    const newText = textReady.slice(parseState.emittedLength);
+                    if (newText.length > 0) {
+                        parseState.emittedLength += newText.length;
+                        const payload = {
+                          response_type: 'response',
+                          response_id: responseId,
+                          content: newText,
+                          content_complete: false,
+                        };
+                        sendWsJson(ws, payload, 'StreamChunk');
+                    }
+                }
               }
             );
             
@@ -482,16 +532,18 @@ wss.on('connection', (ws: WebSocket, req) => {
             logInfo(`Response action type: ${result.action.type}`);
             logInfo(`Response message: "${result.action.message}"`);
             
+            // We already streamed the content of responseToUser. We don't want to re-send it.
+            // But if the action message contains something extra (like an override), we should send it.
+            // For now, we will assume result.action.message is the full final string.
+            // Since we streamed it incrementally, we just send a final content_complete.
+            // We can send the remaining difference if any.
             let finalContent = '';
-            if (result.action.message && result.action.message !== streamedText) {
-                if (result.action.message.startsWith(streamedText)) {
-                    finalContent = result.action.message.slice(streamedText.length);
-                } else {
-                    finalContent = ' ' + result.action.message; // Append the override
-                }
-            }
+            const fullSentMessage = result.action.message || '';
             
-            const fullSentMessage = streamedText + finalContent;
+            // If we didn't stream anything (e.g. fallback triggered), just send the full thing.
+            if (parseState.emittedLength === 0) {
+                 finalContent = fullSentMessage;
+            }
             
             // Prevent duplicate final responses
             const updatedRec = sessions.get(sessionId);

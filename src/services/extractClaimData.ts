@@ -181,10 +181,18 @@ function buildExtractionContext(state: ConversationState, fsmInstruction: string
     .map((msg) => `${msg.role.toUpperCase()}: ${msg.content}`)
     .join('\n');
 
+  const knownFieldsStr = Object.entries(state.currentClaim)
+     .filter(([k, v]) => v !== undefined && v !== null && k !== 'insuredVehicle')
+     .map(([k, v]) => `${k}: ${v}`)
+     .join(', ');
+  const vehicleStr = state.currentClaim.insuredVehicle ? `insuredVehicle: ${JSON.stringify(state.currentClaim.insuredVehicle)}` : '';
+  const stateContext = [knownFieldsStr, vehicleStr].filter(Boolean).join(', ');
+
   return [
+    `KNOWN_STATE: ${stateContext || 'None'}`,
     `FSM_INSTRUCTION: ${fsmInstruction}`,
-    `\nJSON_SCHEMA:\n${schemaInstruction}`,
-    `\nRECENT_HISTORY:\n${historyStr}`,
+    `JSON_SCHEMA:\n${schemaInstruction}`,
+    `RECENT_HISTORY:\n${historyStr}`,
   ].join('\n');
 }
 
@@ -349,39 +357,36 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       console.log(`[Gemini Cache Hit] Reusing previous response for: ${cacheKey}`);
       return cached;
     }
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    
     const systemPrompt = [
-      'You are an expert conversational AI agent for FNOL motor insurance claims.',
-      'You act purely as the linguistic translation layer. The ConversationManager (FSM) owns the logic.',
+      'You are the voice of an FNOL motor insurance agent.',
+      `Current date: ${dateStr}. Resolve relative dates (e.g. "yesterday", "today") to YYYY-MM-DD.`,
       '',
       'RULES:',
-      '1. Follow the FSM_INSTRUCTION strictly. Generate a natural spoken response answering the instruction.',
-      '2. EMPATHY: Show empathy exactly once when distress or injury is first detected. Never apologize repetitively. Keep transitions tight ("Got it", "Understood").',
-      '3. INFER IMPLICIT DATA: If the user says they went to a hospital, infer injuriesReported=true. If their car was towed, infer vehicleDrivable=false.',
-      '4. DO NOT generate fields that are not present in the JSON_SCHEMA. Only extract what you are explicitly asked for.',
-      '5. CONFIDENCE: Give a confidence score (0.0 to 1.0) on how clearly the user answered the missing fields. If it was mumbled or unrelated, score it low.',
-      '',
-      'JSON OUTPUT REQUIRED:',
-      'You must strictly output a valid JSON object matching the JSON_SCHEMA provided in the context.',
+      '1. Follow the FSM_INSTRUCTION strictly.',
+      '2. Be brief and natural. NEVER repeat the user\'s answers back to them. Keep transitions tight (e.g. "Got it,").',
+      '3. Extract times as HH:MM.',
+      '4. Output ONLY valid JSON matching the schema.',
     ].join('\n');
     
     // Construct dynamic schema instruction
     let schemaObj: any = {
+      responseToUser: "Your spoken conversational response here.",
       extractedData: {
           confidence: "number (0.0 to 1.0)"
-      },
-      responseToUser: "Your spoken conversational response here."
+      }
     };
     
     // FSM Instruction Logic
-    let fsmInstruction = "Acknowledge their response.";
+    let fsmInstruction = "Acknowledge briefly.";
     if (input.state.pendingClarifications && input.state.pendingClarifications.length > 0) {
         fsmInstruction = `Ask the user to clarify: ${input.state.pendingClarifications[0]?.prompt || ''}`;
     } else if (input.state.missingFields && input.state.missingFields.length > 0) {
         const nextField = input.state.missingFields[0] || 'details';
-        fsmInstruction = `Acknowledge any new info briefly and naturally, then ask the user to provide their ${nextField.replace(/([A-Z])/g, ' $1').toLowerCase()}.`;
+        fsmInstruction = `Acknowledge briefly, then ask for their ${nextField.replace(/([A-Z])/g, ' $1').toLowerCase()}.`;
         
-        // Only ask the LLM to extract fields we are actually missing right now, to save tokens.
-        // We'll just list the top 3 missing fields to keep it very tight.
         for (const field of input.state.missingFields.slice(0, 3)) {
             schemaObj.extractedData[field] = "string or boolean or null";
         }
