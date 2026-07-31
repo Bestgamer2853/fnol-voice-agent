@@ -387,6 +387,12 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
         const nextField = input.state.missingFields[0] || 'details';
         fsmInstruction = `Acknowledge briefly, then ask for their ${nextField.replace(/([A-Z])/g, ' $1').toLowerCase()}.`;
         
+        // Always allow extraction/correction of policy number and caller name until verified
+        if (!input.state.verifiedPolicy) {
+            schemaObj.extractedData.policyNumber = "string or boolean or null";
+            schemaObj.extractedData.callerName = "string or boolean or null";
+        }
+
         for (const field of input.state.missingFields.slice(0, 3)) {
             schemaObj.extractedData[field] = "string or boolean or null";
         }
