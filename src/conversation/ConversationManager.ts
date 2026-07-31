@@ -466,6 +466,7 @@ export class DefaultConversationManager implements ConversationManager {
     state: ConversationState,
     message: string,
     onContentChunk?: (chunk: string) => void,
+    abortSignal?: AbortSignal,
   ): Promise<ConversationTurnResult> {
     console.log(`\n\n[ConversationManager] ENTERING handleUserMessage`);
     console.log(`[ConversationManager] State step before: ${state.currentConversationStep}`);
@@ -498,7 +499,8 @@ export class DefaultConversationManager implements ConversationManager {
             currentClaim: updatedClaim, 
             ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}) 
         },
-        onContentChunk: onContentChunk
+        onContentChunk: onContentChunk,
+        ...(abortSignal ? { abortSignal } : {})
     });
     const extractionLatency = Date.now() - extractionStartTime;
     console.log(`[ConversationManager] finishReason: ${extractionResult.finishReason}`);

@@ -13,6 +13,7 @@ export interface ExtractClaimDataInput {
       toolCalls: { id: string, name: string, args: any }[];
       toolResults: { id: string, name: string, result: string }[];
   }[];
+  abortSignal?: AbortSignal;
 }
 
 export interface ExtractClaimDataResult {
@@ -419,6 +420,7 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
       conversationContext,
       userPrompt,
       responseMimeType: 'application/json',
+      ...(input.abortSignal ? { abortSignal: input.abortSignal } : {}),
     });
 
     if (result.errorMessage) {

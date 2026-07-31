@@ -18,6 +18,8 @@ interface SessionRecord {
   state: ConversationState;
   updatedAt: number;
   lastSentMessage?: string;
+  turnLock?: Promise<void>;
+  abortController?: AbortController;
 }
 
 const SESSION_TTL_MS = 60 * 60 * 1000;
@@ -152,14 +154,25 @@ app.post(
     }
 
     const session = getOrCreateSession(request.body.sessionId);
+    const sessionRecord = sessions.get(session.sessionId)!;
 
     try {
-      const result = await conversationManager.handleUserMessage(
-        session.state,
-        userMessage,
-      );
+      const prevLock = sessionRecord.turnLock || Promise.resolve();
+      let turnResult: any;
 
-      updateSession(session.sessionId, result.state);
+      const executeTurn = async () => {
+        turnResult = await conversationManager.handleUserMessage(
+          sessionRecord.state,
+          userMessage,
+        );
+        updateSession(session.sessionId, turnResult.state);
+      };
+
+      const currentLock = prevLock.then(() => {}, () => {}).then(executeTurn);
+      sessionRecord.turnLock = currentLock.then(() => {}, () => {});
+      
+      await currentLock;
+      const result = turnResult;
 
       const responsePayload: Record<string, unknown> = {
         sessionId: session.sessionId,
@@ -440,202 +453,198 @@ wss.on('connection', (ws: WebSocket, req) => {
         
         activeResponseIds.set(sessionId, responseId);
 
+        const currentRec = sessions.get(sessionId);
+        if (!currentRec) {
+          logError(`FATAL: Session ${sessionId} not found in Map!`);
+          return;
+        }
+
+        if (currentRec.abortController) {
+            currentRec.abortController.abort();
+        }
+        const abortController = new AbortController();
+        currentRec.abortController = abortController;
+
         const requestId = crypto.randomBytes(3).toString('hex');
 
         requestContext.run(requestId, () => {
           (async () => {
             try {
-            
-            const transcript = event.transcript || [];
-            const lastUserTurn = [...transcript].reverse().find((t: any) => t.role === 'user');
-            
-            const currentRec = sessions.get(sessionId);
-            if (!currentRec) {
-              logError(`FATAL: Session ${sessionId} not found in Map!`);
-              return;
-            }
-            const currentState = currentRec.state;
-            
-            logInfo(`Current conversation step before: ${currentState.currentConversationStep}`);
-            logInfo(`Collected fields: ${JSON.stringify(currentState.collectedFields)}`);
-            logInfo(`Missing fields: ${JSON.stringify(currentState.missingFields)}`);
-            logInfo(`Last user turn length: ${lastUserTurn?.content?.length ?? 0}`);
-            
-            if (!lastUserTurn) {
-                const fallbackMsg = currentState.lastAssistantMessage ?? "I'm here to help. Could you please go ahead?";
-                if (currentRec.lastSentMessage === fallbackMsg) {
-                    logInfo(`Skipping duplicate fallback: "${fallbackMsg}"`);
-                    return;
+              const transcript = event.transcript || [];
+              const lastUserTurn = [...transcript].reverse().find((t: any) => t.role === 'user');
+              
+              if (!lastUserTurn) {
+                  const fallbackMsg = currentRec.state.lastAssistantMessage ?? "I'm here to help. Could you please go ahead?";
+                  if (currentRec.lastSentMessage === fallbackMsg) {
+                      logInfo(`Skipping duplicate fallback: "${fallbackMsg}"`);
+                      return;
+                  }
+                  logInfo(`No user turn found, sending fallback: "${fallbackMsg}"`);
+                  currentRec.lastSentMessage = fallbackMsg;
+                  const payload = {
+                    response_type: 'response',
+                    response_id: responseId,
+                    content: fallbackMsg,
+                    content_complete: true,
+                    end_call: false,
+                  };
+                  sendWsJson(ws, payload, 'FallbackNoTurn');
+                  return;
+              }
+
+              const prevLock = currentRec.turnLock || Promise.resolve();
+              let turnResult: any;
+              
+              const executeTurn = async () => {
+                if (activeResponseIds.get(sessionId) !== responseId) {
+                    throw new Error('AbortError: Superseded before starting');
                 }
-                logInfo(`No user turn found, sending fallback: "${fallbackMsg}"`);
-                currentRec.lastSentMessage = fallbackMsg;
-                const payload = {
-                  response_type: 'response',
-                  response_id: responseId,
-                  content: fallbackMsg,
-                  content_complete: true,
-                  end_call: false,
+                
+                const currentState = currentRec.state;
+                
+                logInfo(`Current conversation step before: ${currentState.currentConversationStep}`);
+                logInfo(`Collected fields: ${JSON.stringify(currentState.collectedFields)}`);
+                logInfo(`Missing fields: ${JSON.stringify(currentState.missingFields)}`);
+                logInfo(`Last user turn length: ${lastUserTurn.content?.length ?? 0}`);
+                
+                if (currentState.currentConversationStep === 'verification') {
+                  logInfo(`Executing handleVerification()`);
+                }
+
+                let numLlmCalls = 0; 
+                const startTime = Date.now();
+                let streamedText = '';
+                
+                let parseState = {
+                    foundStart: false,
+                    isEnded: false,
+                    buffer: '',
+                    emittedLength: 0
                 };
-                sendWsJson(ws, payload, 'FallbackNoTurn');
-                return;
-            }
 
-            if (currentState.currentConversationStep === 'verification') {
-              logInfo(`Executing handleVerification()`);
-            }
-
-            let numLlmCalls = 0; 
-            let retries = 0;
-
-            const startTime = Date.now();
-            let streamedText = '';
-            
-            // State for JSON stream parsing to minimize TTFB
-            let parseState = {
-                foundStart: false,
-                isEnded: false,
-                buffer: '',
-                emittedLength: 0
-            };
-
-            const result = await conversationManager.handleUserMessage(
-              currentState,
-              lastUserTurn.content,
-              (chunk: string) => {
-                if (activeResponseIds.get(sessionId) !== responseId) return; 
-                streamedText += chunk;
-                
-                if (parseState.isEnded) return; // We already finished extracting responseToUser
-                
-                parseState.buffer += chunk;
-                
-                if (!parseState.foundStart) {
-                    const match = parseState.buffer.match(/"responseToUser"\s*:\s*"/);
-                    if (match) {
-                        parseState.foundStart = true;
-                        parseState.buffer = parseState.buffer.slice(match.index! + match[0].length);
-                    } else {
-                        return; // Still waiting for the key
-                    }
-                }
-                
-                if (parseState.foundStart) {
-                    // Find end of string: an unescaped quote
-                    let endIndex = -1;
-                    for (let i = 0; i < parseState.buffer.length; i++) {
-                        if (parseState.buffer[i] === '"' && (i === 0 || parseState.buffer[i-1] !== '\\')) {
-                            endIndex = i;
-                            break;
+                const result = await conversationManager.handleUserMessage(
+                  currentState,
+                  lastUserTurn.content,
+                  (chunk: string) => {
+                    if (activeResponseIds.get(sessionId) !== responseId) return; 
+                    streamedText += chunk;
+                    if (parseState.isEnded) return;
+                    
+                    parseState.buffer += chunk;
+                    if (!parseState.foundStart) {
+                        const match = parseState.buffer.match(/"responseToUser"\s*:\s*"/);
+                        if (match) {
+                            parseState.foundStart = true;
+                            parseState.buffer = parseState.buffer.slice(match.index! + match[0].length);
+                        } else {
+                            return;
                         }
                     }
                     
-                    let textReady = '';
-                    if (endIndex !== -1) {
-                        parseState.isEnded = true;
-                        textReady = parseState.buffer.slice(0, endIndex);
-                    } else {
-                        textReady = parseState.buffer;
+                    if (parseState.foundStart) {
+                        let endIndex = -1;
+                        for (let i = 0; i < parseState.buffer.length; i++) {
+                            if (parseState.buffer[i] === '"' && (i === 0 || parseState.buffer[i-1] !== '\\')) {
+                                endIndex = i;
+                                break;
+                            }
+                        }
+                        
+                        let textReady = endIndex !== -1 ? parseState.buffer.slice(0, endIndex) : parseState.buffer;
+                        if (endIndex !== -1) parseState.isEnded = true;
+                        
+                        textReady = textReady.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+                        
+                        const newText = textReady.slice(parseState.emittedLength);
+                        if (newText.length > 0) {
+                            parseState.emittedLength += newText.length;
+                            sendWsJson(ws, {
+                              response_type: 'response',
+                              response_id: responseId,
+                              content: newText,
+                              content_complete: false,
+                            }, 'StreamChunk');
+                        }
                     }
-                    
-                    // Unescape simple JSON escapes (\\n, \\")
-                    textReady = textReady.replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
-                    
-                    const newText = textReady.slice(parseState.emittedLength);
-                    if (newText.length > 0) {
-                        parseState.emittedLength += newText.length;
-                        const payload = {
-                          response_type: 'response',
-                          response_id: responseId,
-                          content: newText,
-                          content_complete: false,
-                        };
-                        sendWsJson(ws, payload, 'StreamChunk');
-                    }
-                }
-              }
-            );
-            
-            // If a newer turn started while we were awaiting the LLM, abort updating state and sending final response
-            if (activeResponseIds.get(sessionId) !== responseId) {
-                logInfo(`[Request ${requestId}] Aborting completion for response_id ${responseId} because a newer turn is active.`);
-                return;
-            }
-            const latencyMs = Date.now() - startTime;
-            
-            numLlmCalls = 1; // Exactly 1 LLM request per turn in the new architecture
-            if (result.debugMetrics?.geminiResponse === '') {
-                 numLlmCalls = 0; // If fallback triggered immediately due to no response, might be 1 request that failed. Let's assume 1.
-                 numLlmCalls = 1;
-            }
-
-            // PRODUCTION TURN LOGGING
-            const turnLog = [
-              `\n==================================`,
-              `TURN # ${currentState.conversationHistory.length / 2 + 1}`,
-              `Request ID: ${requestId}`,
-              `Interaction Type: ${event.interaction_type}`,
-              `LLM Calls: ${numLlmCalls}`,
-              `Prompt Tokens: ${(result.debugMetrics?.usageMetadata as any)?.promptTokenCount ?? 0}`,
-              `Completion Tokens: ${(result.debugMetrics?.usageMetadata as any)?.candidatesTokenCount ?? 0}`,
-              `Latency: ${latencyMs}ms`,
-              `Retries: ${result.debugMetrics?.retries ?? 0}`,
-              `Conversation Step: ${result.state.currentConversationStep}`,
-              `Missing Fields: ${result.state.missingFields.join(', ')}`,
-              `==================================\n`
-            ].join('\n');
-            logInfo(turnLog);
-
-            // Save updated state back to the Map
-            updateSession(sessionId, result.state);
-
-            const isComplete = result.action.type === 'complete';
-            
-            logInfo(`Current conversation step after: ${result.state.currentConversationStep}`);
-            logInfo(`Response action type: ${result.action.type}`);
-            logInfo(`Response message length: ${result.action.message?.length ?? 0}`);
-            
-            // We already streamed the content of responseToUser. We don't want to re-send it.
-            // But if the action message contains something extra (like an override), we should send it.
-            // For now, we will assume result.action.message is the full final string.
-            // Since we streamed it incrementally, we just send a final content_complete.
-            // We can send the remaining difference if any.
-            let finalContent = '';
-            const fullSentMessage = result.action.message || '';
-            
-            // If we didn't stream anything (e.g. fallback triggered), just send the full thing.
-            if (parseState.emittedLength === 0) {
-                 finalContent = fullSentMessage;
-            }
-            
-            // Prevent duplicate final responses
-            const updatedRec = sessions.get(sessionId);
-            if (updatedRec) {
-                if (updatedRec.lastSentMessage === fullSentMessage.trim()) {
-                    logInfo(`Skipping duplicate final response: "${fullSentMessage.trim()}"`);
+                  },
+                  abortController.signal
+                );
+                
+                if (activeResponseIds.get(sessionId) !== responseId) {
+                    logInfo(`[Request ${requestId}] Aborting completion for response_id ${responseId} because a newer turn is active.`);
                     return;
                 }
-                updatedRec.lastSentMessage = fullSentMessage.trim();
-            }
+                const latencyMs = Date.now() - startTime;
+                
+                numLlmCalls = result.debugMetrics?.geminiResponse === '' ? 1 : 1;
 
-            const payload = {
-              response_type: 'response',
-              response_id: responseId,
-              content: finalContent,
-              content_complete: true,
-              end_call: isComplete,
-            };
-            sendWsJson(ws, payload, 'FinalResponse');
+                const turnLog = [
+                  `\n==================================`,
+                  `TURN # ${currentState.conversationHistory.length / 2 + 1}`,
+                  `Request ID: ${requestId}`,
+                  `Interaction Type: ${event.interaction_type}`,
+                  `LLM Calls: ${numLlmCalls}`,
+                  `Prompt Tokens: ${(result.debugMetrics?.usageMetadata as any)?.promptTokenCount ?? 0}`,
+                  `Completion Tokens: ${(result.debugMetrics?.usageMetadata as any)?.candidatesTokenCount ?? 0}`,
+                  `Latency: ${latencyMs}ms`,
+                  `Retries: ${result.debugMetrics?.retries ?? 0}`,
+                  `Conversation Step: ${result.state.currentConversationStep}`,
+                  `Missing Fields: ${result.state.missingFields.join(', ')}`,
+                  `==================================\n`
+                ].join('\n');
+                logInfo(turnLog);
 
-            if (isComplete) {
-                logInfo(`Call complete for session ${sessionId}`);
-            }
-          } catch (err) {
-            logError('Error in processing turn:', err);
-            } finally {
-              if (activeResponseIds.get(sessionId) === responseId) {
-                  activeResponseIds.delete(sessionId);
+                updateSession(sessionId, result.state);
+                turnResult = { result, parseState };
+              };
+
+              const currentLock = prevLock.then(() => {}, () => {}).then(executeTurn);
+              currentRec.turnLock = currentLock.then(() => {}, () => {});
+              
+              await currentLock;
+              if (!turnResult) return; // Superseded or aborted
+              const { result, parseState } = turnResult;
+
+              const isComplete = result.action.type === 'complete';
+              
+              logInfo(`Current conversation step after: ${result.state.currentConversationStep}`);
+              logInfo(`Response action type: ${result.action.type}`);
+              logInfo(`Response message length: ${result.action.message?.length ?? 0}`);
+              
+              let finalContent = parseState.emittedLength === 0 ? (result.action.message || '') : '';
+              const fullSentMessage = result.action.message || '';
+              
+              const updatedRec = sessions.get(sessionId);
+              if (updatedRec) {
+                  if (updatedRec.lastSentMessage === fullSentMessage.trim()) {
+                      logInfo(`Skipping duplicate final response: "${fullSentMessage.trim()}"`);
+                      return;
+                  }
+                  updatedRec.lastSentMessage = fullSentMessage.trim();
               }
-              logInfo(`Processing finished (resolved or rejected) for response_id ${responseId}`);
+
+              sendWsJson(ws, {
+                response_type: 'response',
+                response_id: responseId,
+                content: finalContent,
+                content_complete: true,
+                end_call: isComplete,
+              }, 'FinalResponse');
+
+              if (isComplete) {
+                  logInfo(`Call complete for session ${sessionId}`);
+              }
+            } catch (err: any) {
+                if (err?.message?.includes('AbortError')) {
+                    logInfo(`Turn ${responseId} aborted.`);
+                } else {
+                    logError('Error in processing turn:', err);
+                }
+            } finally {
+                if (activeResponseIds.get(sessionId) === responseId) {
+                    activeResponseIds.delete(sessionId);
+                }
+                logInfo(`Processing finished (resolved or rejected) for response_id ${responseId}`);
             }
           })();
         });

@@ -122,6 +122,11 @@ export class GeminiService implements LlmProvider {
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout for Native API
+      const onParentAbort = () => { controller.abort(); };
+      if (input.abortSignal) {
+         input.abortSignal.addEventListener('abort', onParentAbort);
+         if (input.abortSignal.aborted) controller.abort();
+      }
 
       try {
         const response = await fetch(url, {
@@ -133,6 +138,7 @@ export class GeminiService implements LlmProvider {
           signal: controller.signal
         });
         clearTimeout(timeoutId);
+        if (input.abortSignal) input.abortSignal.removeEventListener('abort', onParentAbort);
 
         const latency = Date.now() - startTime;
         console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] HTTP Status: ${response.status}`);
@@ -239,6 +245,11 @@ export class GeminiService implements LlmProvider {
         if (allToolCalls.length > 0) finalResponse.toolCalls = allToolCalls;
         return finalResponse;
       } catch (error) {
+        clearTimeout(timeoutId);
+        if (input.abortSignal) input.abortSignal.removeEventListener('abort', onParentAbort);
+        if (input.abortSignal?.aborted) {
+            throw new Error('AbortError: LLM generation was aborted.');
+        }
         const latency = Date.now() - startTime;
         const message = error instanceof Error ? error.message : 'Unknown LLM error.';
         console.error(`[LLM Network Error] Attempt ${attempt}, Latency: ${latency}ms, Message: ${message}`);

@@ -11,6 +11,7 @@ export interface GenerateResponseInput {
       toolCalls: { id: string, name: string, args: any }[];
       toolResults: { id: string, name: string, result: string }[];
   }[];
+  abortSignal?: AbortSignal;
 }
 
 export interface GenerateResponseResult {

@@ -26,6 +26,7 @@ export interface ConversationManager {
   handleUserMessage(
     state: ConversationState,
     message: string,
-    onContentChunk?: ((chunk: string) => void) | undefined,
+    onContentChunk?: (chunk: string) => void,
+    abortSignal?: AbortSignal,
   ): Promise<ConversationTurnResult>;
 }

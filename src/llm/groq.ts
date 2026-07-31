@@ -141,6 +141,11 @@ export class GroqService implements LlmProvider {
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000); // Groq is fast, abort if 8s
+      const onParentAbort = () => { controller.abort(); };
+      if (input.abortSignal) {
+         input.abortSignal.addEventListener('abort', onParentAbort);
+         if (input.abortSignal.aborted) controller.abort();
+      }
 
       try {
         const response = await fetch(url, {
@@ -153,6 +158,7 @@ export class GroqService implements LlmProvider {
           signal: controller.signal
         });
         clearTimeout(timeoutId);
+        if (input.abortSignal) input.abortSignal.removeEventListener('abort', onParentAbort);
 
         const latency = Date.now() - startTime;
         console.log(`[Diagnostic-Groq] [ReqID: ${reqIdForLogs}] HTTP Status: ${response.status}`);
@@ -269,6 +275,10 @@ export class GroqService implements LlmProvider {
         return finalResponse;
       } catch (error) {
         clearTimeout(timeoutId);
+        if (input.abortSignal) input.abortSignal.removeEventListener('abort', onParentAbort);
+        if (input.abortSignal?.aborted) {
+            throw new Error('AbortError: LLM generation was aborted.');
+        }
         const latency = Date.now() - startTime;
         const message = error instanceof Error ? error.message : 'Unknown LLM error.';
         console.error(`[LLM Network Error] Groq Attempt ${attempt}, Latency: ${latency}ms, Message: ${message}`);

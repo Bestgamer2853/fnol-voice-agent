@@ -193,6 +193,10 @@ Dependencies: P0-00; confirm business wording for emergency/callback handoff.
 
 ### P0-05 Serialize per-session turns and cancel stale work
 
+Status: COMPLETED
+Outcome: Added `turnLock` and `abortController` to `SessionRecord` in `server.ts`. Both HTTP `/chat` and WebSocket `/` routes now acquire `turnLock` to process one interaction at a time per session. For WebSocket interruptions (`response_required`), a new `AbortSignal` is generated, which is wired all the way down through `ExtractClaimDataService` to `GeminiService` and `GroqService`. These LLM providers abort the `fetch` call and throw an `AbortError`, stopping stale processing and saving tokens.
+Commit: `feat: serialize turns and abort stale LLM calls`
+
 Problem: Concurrent HTTP turns can overwrite state; Retell interruptions suppress final sends but stale LLM calls continue spending tokens and capacity.
 
 Root cause: Sessions have no lock/version queue; provider calls create their own timeout controllers and do not accept caller abort signals.
