@@ -451,6 +451,7 @@ function buildInitialState(): ConversationState {
     pendingClarifications: [],
     lastAssistantMessage: greeting,
     empathyPhrasesUsed: [],
+    servicesRecommended: false,
   };
 }
 
@@ -587,7 +588,32 @@ export class DefaultConversationManager implements ConversationManager {
     if (verifiedPolicyObj) {
         const missing = calculateMissingFields(updatedClaim);
         if (missing.length === 0) {
-            claimCompleted = true;
+            if (!state.servicesRecommended) {
+                const recommendations = await this.dependencies.recommendServices.recommend({ claim: updatedClaim, policy: verifiedPolicyObj });
+                if (recommendations.recommendations.length > 0) {
+                    updatedClaim.recommendedServices = recommendations.recommendations;
+                    const trackedState = this.updateFieldTracking({
+                        ...state,
+                        currentClaim: updatedClaim,
+                        conversationHistory: historyWithUser,
+                        verifiedPolicy: verifiedPolicyObj,
+                        pendingClarifications: newClarifications,
+                        lastUserMessage: message,
+                        verificationAttempts,
+                        currentConversationStep: 'recommending_services',
+                        servicesRecommended: true,
+                    });
+                    return this.withAssistantAction(trackedState, {
+                        type: 'respond',
+                        message: accumulatedResponse.trim() || 'Do you need towing or roadside assistance?'
+                    }, finalExtractionResult.debugMetrics);
+                } else {
+                    // No services to recommend, proceed to complete
+                    claimCompleted = true;
+                }
+            } else {
+                claimCompleted = true;
+            }
         }
     }
 

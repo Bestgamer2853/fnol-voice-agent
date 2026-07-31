@@ -27,4 +27,5 @@ export interface ConversationState {
   lastAssistantMessage?: string;
   verificationAttempts: number;
   empathyPhrasesUsed: string[];
+  servicesRecommended?: boolean;
 }

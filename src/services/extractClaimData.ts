@@ -399,6 +399,10 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
         if (input.state.missingFields.includes('insuredVehicle')) {
              schemaObj.extractedData.insuredVehicle = { make: "string", model: "string", registration: "string" };
         }
+    } else if (input.state.currentConversationStep === 'recommending_services') {
+        const recommendedServices = input.state.currentClaim.recommendedServices?.join(' and ') || 'towing';
+        fsmInstruction = `The user's vehicle isn't drivable. Recommend ${recommendedServices} and ask if they need it.`;
+        schemaObj.extractedData.recommendedServices = ["array of strings"];
     } else if (input.state.currentConversationStep === 'completed') {
         fsmInstruction = "Summarize the claim verbally and explain that an adjuster will contact them within 24 hours.";
     }

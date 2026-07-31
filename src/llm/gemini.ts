@@ -22,7 +22,7 @@ function fallbackResponse(errorMessage: string): GenerateResponseResult {
   };
 }
 
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 2;
 const RETRYABLE_STATUS_CODES = new Set([429, 503, 408]);
 
 function sleep(ms: number): Promise<void> {
@@ -143,6 +143,9 @@ export class GeminiService implements LlmProvider {
       console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] requestBody: ${requestBodyStr}`);
       console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] exact messages[] array:\n${JSON.stringify(messages, null, 2)}`);
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
       try {
         const response = await fetch(url, {
           method: 'POST',
@@ -151,7 +154,9 @@ export class GeminiService implements LlmProvider {
             'Authorization': `Bearer ${this.apiKey}`,
           },
           body: requestBodyStr,
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
 
         const latency = Date.now() - startTime;
         console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] HTTP Status: ${response.status}`);
@@ -163,8 +168,8 @@ export class GeminiService implements LlmProvider {
           console.error(`[LLM Response Error] Attempt ${attempt}, Status: ${response.status}, Latency: ${latency}ms, Error: ${errorBody}`);
 
           if (attempt <= MAX_RETRIES && RETRYABLE_STATUS_CODES.has(response.status)) {
-            const baseBackoff = Math.pow(2, attempt - 1) * 1000;
-            const jitter = Math.random() * 500;
+            const baseBackoff = Math.pow(2, attempt - 1) * 300;
+            const jitter = Math.random() * 200;
             const backoff = baseBackoff + jitter;
             console.log(`[LLM Retry] Status ${response.status}. Retrying in ${Math.round(backoff)}ms...`);
             await sleep(backoff);
@@ -283,8 +288,8 @@ export class GeminiService implements LlmProvider {
         console.error(`[LLM Network Error] Attempt ${attempt}, Latency: ${latency}ms, Message: ${message}`);
         
         if (attempt <= MAX_RETRIES) {
-          const baseBackoff = Math.pow(2, attempt - 1) * 1000;
-          const jitter = Math.random() * 500;
+          const baseBackoff = Math.pow(2, attempt - 1) * 300;
+          const jitter = Math.random() * 200;
           const backoff = baseBackoff + jitter;
           console.log(`[LLM Retry] Network Error. Retrying in ${Math.round(backoff)}ms...`);
           await sleep(backoff);

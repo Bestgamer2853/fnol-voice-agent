@@ -6,7 +6,7 @@ const scenarios = [
     name: 'Happy path',
     turns: [
       'Yes, everyone is safe.',
-      'My name is John Doe and my policy number is POL-12345.',
+      'My name is Arjun Rao and my policy number is MMI-10234.',
       'It happened yesterday.',
       'At 3pm.',
       'On Main Street.',
@@ -24,7 +24,7 @@ const scenarios = [
     name: 'Phonetic Policy & Natural Numbers',
     turns: [
       'Yeah we are safe.',
-      'I am Jane Smith. My policy is papa oscar lima one two three four five.',
+      'I am Priya Nair. My policy is mike mike india one zero eight seven one.',
       'It was today at two thirty in the afternoon.',
       'I crashed into a pole on First Avenue.',
       'No one else was involved, no injuries, no police, I took a picture.',
@@ -44,7 +44,21 @@ const scenarios = [
     turns: [
       'Yes we are safe.',
       'I am Bob. Policy is BAD-999.', // Should trigger retry
-      'Okay, wait, it is POL-12345 and I am John Doe.'
+      'Okay, wait, it is MMI-10234 and I am Arjun Rao.'
+    ]
+  },
+  {
+    name: 'Towing recommendation',
+    turns: [
+      'Yes, safe.',
+      'Arjun Rao, MMI-10234.',
+      'Yesterday at 3pm on Main Street.',
+      'I crashed.',
+      'No one else. No injuries. No police. No photos.',
+      'My car is not drivable.',
+      'Toyota Camry XYZ 123.',
+      'Yes, please arrange towing.',
+      'Yes, confirm'
     ]
   }
 ];
