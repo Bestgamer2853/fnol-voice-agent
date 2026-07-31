@@ -46,20 +46,46 @@ async function readExistingRecords(filePath: string): Promise<ClaimLogRecord[]> 
   }
 }
 
+class Mutex {
+  private promise = Promise.resolve();
+  async runExclusive<T>(fn: () => Promise<T>): Promise<T> {
+      let release: () => void;
+      const nextPromise = new Promise<void>(resolve => release = resolve);
+      const prevPromise = this.promise;
+      this.promise = prevPromise.then(() => nextPromise, () => nextPromise);
+      await prevPromise.catch(() => {});
+      try {
+          return await fn();
+      } finally {
+          release!();
+      }
+  }
+}
+
 export class LocalJsonClaimLogger implements ClaimLoggerService {
+  private mutex = new Mutex();
+
   constructor(private readonly filePath = DEFAULT_CLAIMS_FILE_PATH) {}
 
   async log(record: ClaimLogRecord): Promise<void> {
-    await mkdir(dirname(this.filePath), { recursive: true });
+    await this.mutex.runExclusive(async () => {
+      await mkdir(dirname(this.filePath), { recursive: true });
 
-    const existingRecords = await readExistingRecords(this.filePath);
-    const updatedRecords = [...existingRecords, record];
+      const existingRecords = await readExistingRecords(this.filePath);
+      const index = existingRecords.findIndex(r => r.claimNumber === record.claimNumber);
+      
+      if (index >= 0) {
+        existingRecords[index] = record;
+      } else {
+        existingRecords.push(record);
+      }
 
-    await writeFile(
-      this.filePath,
-      `${JSON.stringify(updatedRecords, null, 2)}\n`,
-      'utf8',
-    );
+      await writeFile(
+        this.filePath,
+        `${JSON.stringify(existingRecords, null, 2)}\n`,
+        'utf8',
+      );
+    });
   }
 }
 

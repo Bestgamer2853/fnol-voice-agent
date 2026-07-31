@@ -215,7 +215,7 @@ export class GoogleSheetsClaimLogger implements ClaimLoggerService {
       console.log(`Successfully logged claim ${record.claimNumber} to Google Sheets.`);
     } catch (error) {
       console.error(`Failed to log claim ${record.claimNumber} to Google Sheets:`, error);
-      // We don't re-throw here to prevent failing the entire claim process if Sheets is down
+      throw error;
     }
   }
 }

@@ -277,6 +277,10 @@ Dependencies: P0-00; best after P0-05 if abort signals are introduced.
 
 ### P0-08 Make persistence idempotent and explicit about partial failure
 
+Status: COMPLETED
+Outcome: Introduced an async `Mutex` in `LocalJsonClaimLogger` to serialize file writes and prevent JSON corruption. Added idempotency by deduplicating records by `claimNumber` during the JSON rewrite. Modified `GoogleSheetsClaimLogger` to throw errors instead of swallowing them. Upgraded `MultiClaimLogger` to use `Promise.allSettled`, which catches partial failures (like Sheets outages) and durably writes the failed `ClaimLogRecord` to `outbox.json` using a secondary `LocalJsonClaimLogger`.
+Commit: `feat: make persistence idempotent and implement outbox for partial failures`
+
 Problem: Completed FNOL records can be lost, duplicated, or partially persisted without clear outcome.
 
 Root cause: Local JSON does read-modify-write; claim numbers are per-process; Sheets errors are swallowed; multi-logger has no idempotency/outbox.

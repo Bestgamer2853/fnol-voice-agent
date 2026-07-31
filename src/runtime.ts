@@ -68,10 +68,26 @@ function readInitialClaimSequence(filePath: string): number {
 import { GoogleSheetsClaimLogger } from './storage/googleSheets.js';
 
 class MultiClaimLogger implements ClaimLoggerService {
-  constructor(private readonly loggers: ClaimLoggerService[]) {}
+  constructor(
+      private readonly loggers: ClaimLoggerService[],
+      private readonly outbox?: ClaimLoggerService
+  ) {}
 
   async log(record: any): Promise<void> {
-    await Promise.all(this.loggers.map((logger) => logger.log(record)));
+    const results = await Promise.allSettled(this.loggers.map((logger) => logger.log(record)));
+    
+    const failures = results.filter(r => r.status === 'rejected');
+    if (failures.length > 0) {
+      console.error(`[MultiClaimLogger] Partial failure detected for claim ${record.claimNumber}. ${failures.length} logger(s) failed.`);
+      if (this.outbox) {
+          try {
+             await this.outbox.log(record);
+             console.log(`[MultiClaimLogger] Claim ${record.claimNumber} written to outbox.`);
+          } catch (outboxErr) {
+             console.error(`[MultiClaimLogger] FATAL: Failed to write claim ${record.claimNumber} to outbox:`, outboxErr);
+          }
+      }
+    }
   }
 }
 
@@ -86,8 +102,9 @@ export function createRuntimeDependencies(): ConversationManagerDependencies {
   const llmProvider = createFallbackProvider(providers);
 
   const localLogger = createLocalJsonClaimLogger(DEFAULT_CLAIMS_FILE_PATH);
+  const outboxLogger = createLocalJsonClaimLogger(DEFAULT_CLAIMS_FILE_PATH.replace('claims.json', 'outbox.json'));
   const sheetsLogger = new GoogleSheetsClaimLogger('1bRu1nK9IL8a7DCSXSQ-jXHczpfcPNJ3PJoWw-zjzcJw');
-  const claimLogger = new MultiClaimLogger([localLogger, sheetsLogger]);
+  const claimLogger = new MultiClaimLogger([localLogger, sheetsLogger], outboxLogger);
 
   return {
     verifyPolicy: createVerifyPolicyService(),
