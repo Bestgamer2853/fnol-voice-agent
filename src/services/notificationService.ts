@@ -66,11 +66,14 @@ export class ResendNotificationService implements NotificationService {
     const timestamp = record.timestamp || new Date().toISOString();
 
     const targetRecipient = activeConfig.defaultEmailTo || 'aurallonbiz@gmail.com';
-    const senderEmail = activeConfig.emailFrom || 'onboarding@resend.dev';
+    let rawSender = activeConfig.emailFrom || 'onboarding@resend.dev';
+    if (!rawSender.includes('@') && !rawSender.includes('<')) {
+      rawSender = `claims@${rawSender}`;
+    }
 
-    const formattedFrom = senderEmail.includes('<')
-      ? senderEmail
-      : `"Meridian Motor Insurance" <${senderEmail}>`;
+    const formattedFrom = rawSender.includes('<')
+      ? rawSender
+      : `"Meridian Motor Insurance" <${rawSender}>`;
 
     const subject = `[Meridian Insurance] Claim Confirmation - ${claimNumber}`;
 
