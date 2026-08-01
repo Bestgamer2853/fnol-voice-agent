@@ -8,6 +8,7 @@ import express, { type Request, type Response } from 'express';
 
 import type { ConversationState } from './conversation/ConversationState.js';
 import { createRuntimeConversationManager } from './runtime.js';
+import { latestSendMailInfo } from './services/notificationService.js';
 
 interface ChatRequestBody {
   sessionId?: unknown;
@@ -279,6 +280,10 @@ app.get('/view-logs', (_req: Request, res: Response) => {
     return;
   }
   res.type('text/plain').send(runtimeLogs.join('\n'));
+});
+
+app.get('/api/latest-email-status', (_req: Request, res: Response) => {
+  res.json(latestSendMailInfo || { message: 'No email sent yet' });
 });
 
 // Per-session processing lock to prevent duplicate LLM calls

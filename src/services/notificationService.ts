@@ -8,6 +8,21 @@ export interface NotificationResult {
   error?: string;
 }
 
+export interface RawSendMailInfo {
+  messageId?: string;
+  accepted?: any;
+  rejected?: any;
+  envelope?: any;
+  response?: string;
+  simulated?: boolean;
+  timestamp?: string;
+  error?: string;
+  code?: string;
+  command?: string;
+}
+
+export let latestSendMailInfo: RawSendMailInfo | null = null;
+
 export interface NotificationService {
   sendClaimConfirmation(record: ClaimLogRecord): Promise<NotificationResult>;
 }
@@ -139,6 +154,16 @@ Meridian Motor Insurance Claims Team
           html: htmlContent,
         });
 
+        latestSendMailInfo = {
+          messageId: info.messageId,
+          accepted: info.accepted,
+          rejected: info.rejected,
+          envelope: info.envelope,
+          response: info.response,
+          simulated: false,
+          timestamp: new Date().toISOString(),
+        };
+
         console.log(`[NotificationService] RAW NODEMAILER SENDMAIL RESULT:`);
         console.log(`- messageId: ${info.messageId}`);
         console.log(`- accepted:  ${JSON.stringify(info.accepted)}`);
@@ -161,6 +186,16 @@ Meridian Motor Insurance Claims Team
           html: htmlContent,
         });
 
+        latestSendMailInfo = {
+          messageId: info.messageId,
+          accepted: [recipientEmail],
+          rejected: [],
+          envelope: info.envelope,
+          response: info.response || '250 Simulated OK',
+          simulated: true,
+          timestamp: new Date().toISOString(),
+        };
+
         console.log(`[NotificationService] SIMULATED NODEMAILER SENDMAIL RESULT (No SMTP credentials in env):`);
         console.log(`- messageId: ${info.messageId}`);
         console.log(`- accepted:  ${JSON.stringify(info.accepted)}`);
@@ -176,6 +211,15 @@ Meridian Motor Insurance Claims Team
       }
     } catch (err: unknown) {
       const errorObj = err as any;
+      latestSendMailInfo = {
+        error: errorObj?.message || String(err),
+        code: errorObj?.code,
+        command: errorObj?.command,
+        response: errorObj?.response,
+        simulated: false,
+        timestamp: new Date().toISOString(),
+      };
+
       console.error(`[NotificationService] RAW NODEMAILER SENDMAIL ERROR:`);
       console.error(`- message:      ${errorObj?.message || String(err)}`);
       if (errorObj?.code) console.error(`- code:         ${errorObj.code}`);
