@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mxfile host="Electron" modified="2026-08-01T12:00:00.000Z" agent="Antigravity Architecture Generator" version="21.6.8" type="device">
+<mxfile host="Electron" modified="2026-08-01T13:00:00.000Z" agent="Antigravity Architecture Generator" version="21.6.8" type="device">
   <diagram id="fnol-voice-agent-arch" name="Meridian FNOL Voice Agent Architecture">
     <mxGraphModel dx="1422" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" background="#0f172a" math="0" shadow="0">
       <root>
@@ -56,11 +56,8 @@
         <mxCell id="box_ai" value="AI &amp; EXTRACTION LAYER" style="swimlane;whiteSpace=wrap;html=1;fillColor=#1e293b;strokeColor=#f59e0b;fontColor=#fcd34d;fontStyle=1;startSize=30;rounded=1;" vertex="1" parent="1">
           <mxGeometry x="960" y="100" width="260" height="240" as="geometry" />
         </mxCell>
-        <mxCell id="node_gemini" value="✨ Gemini 2.5 Flash Lite&#xa;(Primary SSE Stream)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#fbbf24;fontColor=#f8fafc;fontSize=12;" vertex="1" parent="box_ai">
-          <mxGeometry x="20" y="45" width="220" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="node_groq" value="⚡ Groq LLaMA 3.3 70B&#xa;(Fallback Provider)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#fbbf24;fontColor=#94a3b8;fontSize=12;" vertex="1" parent="box_ai">
-          <mxGeometry x="20" y="140" width="220" height="60" as="geometry" />
+        <mxCell id="node_gemini" value="✨ Gemini 2.5 Flash Lite&#xa;(Native SSE Stream Engine)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#fbbf24;fontColor=#f8fafc;fontSize=12;fontStyle=1;" vertex="1" parent="box_ai">
+          <mxGeometry x="20" y="80" width="220" height="90" as="geometry" />
         </mxCell>
 
         <!-- CONTAINER: PERSISTENCE & NOTIFICATIONS -->

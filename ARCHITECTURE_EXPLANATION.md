@@ -4,7 +4,7 @@
 
 The **Meridian Motor Insurance FNOL Voice Agent** is a production-grade, low-latency Voice AI system engineered using a **Hybrid Deterministic Orchestration + LLM Extraction Pattern**.
 
-By decoupling non-deterministic natural language processing (handled by **Google Gemini 2.5 Flash Lite**) from strict business logic and policy state management (handled by a **Deterministic Finite State Machine in TypeScript**), the architecture guarantees 100% adherence to insurance compliance rules, policy verification thresholds, required field collection, towing entitlements, and emergency escalation paths.
+By decoupling non-deterministic natural language processing (handled exclusively by **Google Gemini 2.5 Flash Lite**) from strict business logic and policy state management (handled by a **Deterministic Finite State Machine in TypeScript**), the architecture guarantees 100% adherence to insurance compliance rules, policy verification thresholds, required field collection, towing entitlements, and emergency escalation paths.
 
 ---
 
@@ -18,7 +18,7 @@ By decoupling non-deterministic natural language processing (handled by **Google
 +-----------------------------------------------------------------------------------+
 | BACKEND & HOSTING    | Railway Cloud (Node.js ESM, Express, WS Gateway, FSM)     |
 +-----------------------------------------------------------------------------------+
-| AI & EXTRACTION      | Primary: Gemini 2.5 Flash Lite (SSE) | Fallback: Groq LLaMA 70B|
+| AI & EXTRACTION      | Google Gemini 2.5 Flash Lite (Native SSE Engine)           |
 +-----------------------------------------------------------------------------------+
 | PERSISTENCE          | Google Sheets API (Structured Claims) & Local JSON Logs   |
 +-----------------------------------------------------------------------------------+

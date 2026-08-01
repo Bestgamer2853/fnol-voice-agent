@@ -29,12 +29,10 @@ flowchart TD
     end
 
     subgraph AI_LAYER["AI & Extraction Layer"]
-        GeminiPrimary["✨ Gemini 2.5 Flash Lite (Primary SSE)"]
-        GroqFallback["⚡ Groq LLaMA 3.3 70B (Fallback)"]
+        GeminiPrimary["✨ Gemini 2.5 Flash Lite (Native SSE Engine)"]
         ExtractService["🔍 ExtractClaimDataService"]
         
         ExtractService --> GeminiPrimary
-        ExtractService -. Failover .-> GroqFallback
     end
 
     subgraph PERSISTENCE_LAYER["Persistence Layer"]

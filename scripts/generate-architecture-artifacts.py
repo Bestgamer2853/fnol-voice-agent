@@ -12,7 +12,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # -----------------------------------------------------------------------------
 def generate_drawio_xml():
     xml_content = """<?xml version="1.0" encoding="UTF-8"?>
-<mxfile host="Electron" modified="2026-08-01T12:00:00.000Z" agent="Antigravity Architecture Generator" version="21.6.8" type="device">
+<mxfile host="Electron" modified="2026-08-01T13:00:00.000Z" agent="Antigravity Architecture Generator" version="21.6.8" type="device">
   <diagram id="fnol-voice-agent-arch" name="Meridian FNOL Voice Agent Architecture">
     <mxGraphModel dx="1422" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" background="#0f172a" math="0" shadow="0">
       <root>
@@ -69,11 +69,8 @@ def generate_drawio_xml():
         <mxCell id="box_ai" value="AI &amp; EXTRACTION LAYER" style="swimlane;whiteSpace=wrap;html=1;fillColor=#1e293b;strokeColor=#f59e0b;fontColor=#fcd34d;fontStyle=1;startSize=30;rounded=1;" vertex="1" parent="1">
           <mxGeometry x="960" y="100" width="260" height="240" as="geometry" />
         </mxCell>
-        <mxCell id="node_gemini" value="✨ Gemini 2.5 Flash Lite&#xa;(Primary SSE Stream)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#fbbf24;fontColor=#f8fafc;fontSize=12;" vertex="1" parent="box_ai">
-          <mxGeometry x="20" y="45" width="220" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="node_groq" value="⚡ Groq LLaMA 3.3 70B&#xa;(Fallback Provider)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#fbbf24;fontColor=#94a3b8;fontSize=12;" vertex="1" parent="box_ai">
-          <mxGeometry x="20" y="140" width="220" height="60" as="geometry" />
+        <mxCell id="node_gemini" value="✨ Gemini 2.5 Flash Lite&#xa;(Native SSE Stream Engine)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#fbbf24;fontColor=#f8fafc;fontSize=12;fontStyle=1;" vertex="1" parent="box_ai">
+          <mxGeometry x="20" y="80" width="220" height="90" as="geometry" />
         </mxCell>
 
         <!-- CONTAINER: PERSISTENCE & NOTIFICATIONS -->
@@ -197,12 +194,10 @@ def generate_svg():
   <!-- AI & Extraction Layer -->
   <rect x="1140" y="145" width="310" height="240" class="card-bg" stroke="#f59e0b" />
   <text x="1160" y="175" font-size="14" font-weight="700" fill="#fcd34d">AI &amp; EXTRACTION LAYER</text>
-  <rect x="1160" y="195" width="270" height="70" class="box-bg" stroke="#f59e0b" />
-  <text x="1175" y="225" class="node-title">✨ Gemini 2.5 Flash Lite</text>
-  <text x="1175" y="245" class="node-desc">Primary Native SSE Stream (&lt;700ms)</text>
-  <rect x="1160" y="285" width="270" height="70" class="box-bg" stroke="#f59e0b" />
-  <text x="1175" y="315" class="node-title">⚡ Groq LLaMA 3.3 70B</text>
-  <text x="1175" y="335" class="node-desc">Automatic Fallback Provider</text>
+  <rect x="1160" y="210" width="270" height="120" class="box-bg" stroke="#f59e0b" />
+  <text x="1175" y="250" font-size="15" font-weight="800" fill="#fbbf24">✨ Gemini 2.5 Flash Lite</text>
+  <text x="1175" y="275" class="node-desc">Primary Native SSE Engine (&lt;700ms)</text>
+  <text x="1175" y="295" class="node-desc">Structured Extraction &amp; Empathetic Voice</text>
 
   <!-- Persistence & Notifications -->
   <rect x="1500" y="145" width="370" height="240" class="card-bg" stroke="#ec4899" />
@@ -219,7 +214,7 @@ def generate_svg():
   <!-- CONNECTORS (TOP HALF) -->
   <line x1="290" y1="230" x2="380" y2="230" class="edge" stroke="#60a5fa" />
   <line x1="620" y1="320" x2="710" y2="222" class="edge" stroke="#a78bfa" />
-  <line x1="1070" y1="287" x2="1160" y2="230" class="edge" stroke="#34d399" />
+  <line x1="1070" y1="287" x2="1160" y2="270" class="edge" stroke="#34d399" />
   <line x1="1070" y1="287" x2="1520" y2="222" class="edge-async" stroke="#ec4899" />
   <line x1="1070" y1="287" x2="1520" y2="287" class="edge-async" stroke="#ec4899" />
 
