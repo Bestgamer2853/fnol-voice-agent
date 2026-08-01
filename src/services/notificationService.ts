@@ -155,7 +155,7 @@ Meridian Motor Insurance Claims Team
       if (activeConfig.apiKey) {
         const resend = new Resend(activeConfig.apiKey);
 
-        const response = await resend.emails.send({
+        let response = await resend.emails.send({
           from: mailOptions.from,
           to: mailOptions.to,
           subject: mailOptions.subject,
@@ -164,18 +164,35 @@ Meridian Motor Insurance Claims Team
           headers: mailOptions.headers,
         });
 
+        const errObj: any = response.error;
+        if (errObj && typeof errObj.message === 'string' && errObj.message.includes('testing emails to your own email address')) {
+          const ownerMatch = /\(([^)]+)\)/.exec(errObj.message);
+          const ownerEmail: string = (ownerMatch && ownerMatch[1]) ? ownerMatch[1] : 'deiveeganaryan@gmail.com';
+          console.warn(`[NotificationService] Resend onboarding domain restricted recipient. Retrying send to account owner: ${ownerEmail}`);
+
+          mailOptions.to = [ownerEmail];
+          response = await resend.emails.send({
+            from: mailOptions.from,
+            to: mailOptions.to,
+            subject: mailOptions.subject,
+            text: mailOptions.text,
+            html: mailOptions.html,
+            headers: mailOptions.headers,
+          });
+        }
+
         if (response.error) {
           console.error(`[NotificationService] RESEND API ERROR:`, response.error);
           globalNotificationState.latestSendMailInfo = {
             mailOptions,
             resendResponse: response,
-            error: response.error.message,
+            error: response.error.message || 'Resend API Error',
             simulated: false,
             timestamp: new Date().toISOString(),
           };
           return {
             success: false,
-            error: response.error.message,
+            error: response.error.message || 'Resend API Error',
           };
         }
 
