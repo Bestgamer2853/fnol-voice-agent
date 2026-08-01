@@ -9,6 +9,8 @@ export interface NotificationResult {
 }
 
 export interface RawSendMailInfo {
+  mailOptions?: Record<string, any>;
+  rawMime?: string;
   messageId?: string;
   accepted?: any;
   rejected?: any;
@@ -144,6 +146,45 @@ Meridian Motor Insurance Claims Team
     `.trim();
 
     try {
+      const headers = {
+        'X-Application-Name': 'Meridian Motor Insurance FNOL Voice Agent',
+        'X-Claim-Reference': claimNumber,
+      };
+
+      const mailOptions: nodemailer.SendMailOptions = {
+        from: activeConfig.smtpUser
+          ? `"Meridian Motor Insurance" <${activeConfig.smtpUser}>`
+          : (activeConfig.emailFrom || 'claims@meridianinsurance.com'),
+        to: targetRecipient,
+        subject,
+        text: textContent,
+        html: htmlContent,
+        attachments: [],
+        headers,
+      };
+
+      console.log('==================================================');
+      console.log('[NotificationService] COMPLETE MAILOPTIONS OBJECT (Pre-send):');
+      console.log(`- Subject:     ${mailOptions.subject}`);
+      console.log(`- From:        ${mailOptions.from}`);
+      console.log(`- To:          ${mailOptions.to}`);
+      console.log(`- Text Body:\n${mailOptions.text}`);
+      console.log(`- HTML Body:\n${mailOptions.html}`);
+      console.log(`- Attachments: ${JSON.stringify(mailOptions.attachments)}`);
+      console.log(`- Headers:     ${JSON.stringify(mailOptions.headers)}`);
+      console.log('==================================================');
+
+      let rawMimeMessage = '';
+      try {
+        const streamTransporter = nodemailer.createTransport({ streamTransport: true, buffer: true });
+        const mimeResult = await streamTransporter.sendMail(mailOptions);
+        rawMimeMessage = (mimeResult.message as Buffer).toString('utf-8');
+        console.log('[NotificationService] COMPILED RFC822 RAW MIME MESSAGE:');
+        console.log(rawMimeMessage);
+      } catch (mimeErr) {
+        console.error('[NotificationService] Error compiling RFC822 MIME message:', mimeErr);
+      }
+
       if (activeConfig.smtpHost && activeConfig.smtpUser && activeConfig.smtpPass) {
         // Real SMTP transport via environment variable credentials
         const transporter = nodemailer.createTransport({
@@ -157,21 +198,21 @@ Meridian Motor Insurance Claims Team
           family: 4, // Force IPv4 resolution to prevent ENETUNREACH IPv6 network errors on Railway containers
         } as nodemailer.TransportOptions);
 
-        const formattedFrom = activeConfig.smtpUser
-          ? `"Meridian Motor Insurance" <${activeConfig.smtpUser}>`
-          : (activeConfig.emailFrom || 'claims@meridianinsurance.com');
+        console.log(`[NotificationService] Attempting Nodemailer sendMail via SMTP host=${activeConfig.smtpHost}:${activeConfig.smtpPort} from=${mailOptions.from} to=${mailOptions.to}`);
 
-        console.log(`[NotificationService] Attempting Nodemailer sendMail via SMTP host=${activeConfig.smtpHost}:${activeConfig.smtpPort} from=${formattedFrom} to=${targetRecipient}`);
-
-        const info = await transporter.sendMail({
-          from: formattedFrom,
-          to: targetRecipient,
-          subject,
-          text: textContent,
-          html: htmlContent,
-        });
+        const info = await transporter.sendMail(mailOptions);
 
         globalNotificationState.latestSendMailInfo = {
+          mailOptions: {
+            from: mailOptions.from,
+            to: mailOptions.to,
+            subject: mailOptions.subject,
+            text: mailOptions.text,
+            html: mailOptions.html,
+            attachments: mailOptions.attachments,
+            headers: mailOptions.headers as any,
+          },
+          rawMime: rawMimeMessage,
           messageId: info.messageId,
           accepted: info.accepted,
           rejected: info.rejected,
@@ -195,15 +236,19 @@ Meridian Motor Insurance Claims Team
           jsonTransport: true,
         });
 
-        const info = await jsonTransporter.sendMail({
-          from: activeConfig.emailFrom,
-          to: targetRecipient,
-          subject,
-          text: textContent,
-          html: htmlContent,
-        });
+        const info = await jsonTransporter.sendMail(mailOptions);
 
         globalNotificationState.latestSendMailInfo = {
+          mailOptions: {
+            from: mailOptions.from,
+            to: mailOptions.to,
+            subject: mailOptions.subject,
+            text: mailOptions.text,
+            html: mailOptions.html,
+            attachments: mailOptions.attachments,
+            headers: mailOptions.headers as any,
+          },
+          rawMime: rawMimeMessage,
           messageId: info.messageId,
           accepted: [targetRecipient],
           rejected: [],
