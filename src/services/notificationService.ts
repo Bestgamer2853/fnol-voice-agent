@@ -21,7 +21,9 @@ export interface RawSendMailInfo {
   command?: string;
 }
 
-export let latestSendMailInfo: RawSendMailInfo | null = null;
+export const globalNotificationState: { latestSendMailInfo: RawSendMailInfo | null } = {
+  latestSendMailInfo: null,
+};
 
 export interface NotificationService {
   sendClaimConfirmation(record: ClaimLogRecord): Promise<NotificationResult>;
@@ -38,14 +40,21 @@ export interface NotificationServiceConfig {
 }
 
 export function getConfigFromEnv(): NotificationServiceConfig {
+  const smtpHost = process.env.SMTP_HOST?.trim() || process.env.SMTP_SERVER?.trim();
+  const smtpUser = process.env.SMTP_USER?.trim() || process.env.SMTP_USERNAME?.trim() || process.env.EMAIL_USER?.trim();
+  const smtpPass = process.env.SMTP_PASS?.trim() || process.env.SMTP_PASSWORD?.trim() || process.env.EMAIL_PASS?.trim();
+  const smtpPortStr = process.env.SMTP_PORT || process.env.EMAIL_PORT;
+  const smtpPort = smtpPortStr ? parseInt(smtpPortStr, 10) : 587;
+  const smtpSecure = process.env.SMTP_SECURE === 'true' || smtpPort === 465;
+
   return {
-    smtpHost: process.env.SMTP_HOST?.trim(),
-    smtpPort: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587,
-    smtpUser: process.env.SMTP_USER?.trim(),
-    smtpPass: process.env.SMTP_PASS?.trim(),
-    smtpSecure: process.env.SMTP_SECURE === 'true',
-    emailFrom: process.env.NOTIFICATION_EMAIL_FROM?.trim() || 'claims@meridianinsurance.com',
-    defaultEmailTo: process.env.NOTIFICATION_EMAIL_TO?.trim() || 'customer@example.com',
+    smtpHost,
+    smtpPort,
+    smtpUser,
+    smtpPass,
+    smtpSecure,
+    emailFrom: process.env.NOTIFICATION_EMAIL_FROM?.trim() || process.env.EMAIL_FROM?.trim() || smtpUser || 'claims@meridianinsurance.com',
+    defaultEmailTo: process.env.NOTIFICATION_EMAIL_TO?.trim() || process.env.EMAIL_TO?.trim() || smtpUser || 'customer@example.com',
   };
 }
 
@@ -154,7 +163,7 @@ Meridian Motor Insurance Claims Team
           html: htmlContent,
         });
 
-        latestSendMailInfo = {
+        globalNotificationState.latestSendMailInfo = {
           messageId: info.messageId,
           accepted: info.accepted,
           rejected: info.rejected,
@@ -186,7 +195,7 @@ Meridian Motor Insurance Claims Team
           html: htmlContent,
         });
 
-        latestSendMailInfo = {
+        globalNotificationState.latestSendMailInfo = {
           messageId: info.messageId,
           accepted: [recipientEmail],
           rejected: [],
@@ -211,7 +220,7 @@ Meridian Motor Insurance Claims Team
       }
     } catch (err: unknown) {
       const errorObj = err as any;
-      latestSendMailInfo = {
+      globalNotificationState.latestSendMailInfo = {
         error: errorObj?.message || String(err),
         code: errorObj?.code,
         command: errorObj?.command,
