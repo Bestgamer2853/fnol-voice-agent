@@ -66,12 +66,20 @@ export class NodemailerNotificationService implements NotificationService {
   }
 
   async sendClaimConfirmation(record: ClaimLogRecord): Promise<NotificationResult> {
+    const activeConfig = getConfigFromEnv();
     const claimNumber = record.claimNumber;
     const policyNumber = record.verifiedPolicy?.policyNumber || record.claim.policyNumber || 'N/A';
     const customerName = record.verifiedPolicy?.policyholderName || record.claim.callerName || 'Valued Customer';
     const incidentSummary = record.summary || record.claim.incidentDescription || 'No description provided';
     const timestamp = record.timestamp || new Date().toISOString();
-    const recipientEmail = this.config.defaultEmailTo || 'customer@example.com';
+
+    // Priority for destination address:
+    // 1. NOTIFICATION_EMAIL_TO env var (if configured and not default mock)
+    // 2. SMTP_USER env var (if NOTIFICATION_EMAIL_TO is omitted/default)
+    // 3. customer@example.com fallback
+    const targetRecipient = (activeConfig.defaultEmailTo && activeConfig.defaultEmailTo !== 'customer@example.com')
+      ? activeConfig.defaultEmailTo
+      : (activeConfig.smtpUser || 'customer@example.com');
 
     const subject = `[Meridian Insurance] Claim Confirmation - ${claimNumber}`;
 
@@ -135,28 +143,23 @@ Meridian Motor Insurance Claims Team
     `.trim();
 
     try {
-      if (this.config.smtpHost && this.config.smtpUser && this.config.smtpPass) {
+      if (activeConfig.smtpHost && activeConfig.smtpUser && activeConfig.smtpPass) {
         // Real SMTP transport via environment variable credentials
         const transporter = nodemailer.createTransport({
-          host: this.config.smtpHost,
-          port: this.config.smtpPort,
-          secure: this.config.smtpSecure,
+          host: activeConfig.smtpHost,
+          port: activeConfig.smtpPort,
+          secure: activeConfig.smtpSecure,
           auth: {
-            user: this.config.smtpUser,
-            pass: this.config.smtpPass,
+            user: activeConfig.smtpUser,
+            pass: activeConfig.smtpPass,
           },
           family: 4, // Force IPv4 resolution to prevent ENETUNREACH IPv6 network errors on Railway containers
         } as nodemailer.TransportOptions);
 
-        // Determine destination: NOTIFICATION_EMAIL_TO, or SMTP_USER if default
-        const targetRecipient = (this.config.defaultEmailTo && this.config.defaultEmailTo !== 'customer@example.com')
-          ? this.config.defaultEmailTo
-          : (this.config.smtpUser || recipientEmail);
-
-        console.log(`[NotificationService] Attempting Nodemailer sendMail via SMTP host=${this.config.smtpHost}:${this.config.smtpPort} to=${targetRecipient}`);
+        console.log(`[NotificationService] Attempting Nodemailer sendMail via SMTP host=${activeConfig.smtpHost}:${activeConfig.smtpPort} to=${targetRecipient}`);
 
         const info = await transporter.sendMail({
-          from: this.config.emailFrom || this.config.smtpUser,
+          from: activeConfig.emailFrom || activeConfig.smtpUser,
           to: targetRecipient,
           subject,
           text: textContent,
@@ -188,8 +191,8 @@ Meridian Motor Insurance Claims Team
         });
 
         const info = await jsonTransporter.sendMail({
-          from: this.config.emailFrom,
-          to: recipientEmail,
+          from: activeConfig.emailFrom,
+          to: targetRecipient,
           subject,
           text: textContent,
           html: htmlContent,
@@ -197,7 +200,7 @@ Meridian Motor Insurance Claims Team
 
         globalNotificationState.latestSendMailInfo = {
           messageId: info.messageId,
-          accepted: [recipientEmail],
+          accepted: [targetRecipient],
           rejected: [],
           envelope: info.envelope,
           response: info.response || '250 Simulated OK',
