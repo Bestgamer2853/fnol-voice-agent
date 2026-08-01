@@ -65,15 +65,8 @@ export class ResendNotificationService implements NotificationService {
     const incidentSummary = record.summary || record.claim.incidentDescription || 'No description provided';
     const timestamp = record.timestamp || new Date().toISOString();
 
-    let targetRecipient = activeConfig.defaultEmailTo || 'deiveeganaryan@gmail.com';
+    const targetRecipient = activeConfig.defaultEmailTo || 'aurallonbiz@gmail.com';
     const senderEmail = activeConfig.emailFrom || 'onboarding@resend.dev';
-
-    // Resend free tier onboarding domain restriction:
-    // When sending from onboarding@resend.dev without custom domain verification,
-    // Resend API only allows sending to the registered account owner email.
-    if (senderEmail.includes('resend.dev')) {
-      targetRecipient = 'deiveeganaryan@gmail.com';
-    }
 
     const formattedFrom = senderEmail.includes('<')
       ? senderEmail
