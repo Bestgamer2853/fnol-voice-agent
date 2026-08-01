@@ -1,121 +1,92 @@
 %% ============================================================================
-%% MERIDIAN MOTOR INSURANCE — FNOL VOICE AGENT ARCHITECTURE SUITE
+%% MERIDIAN MOTOR INSURANCE — FNOL VOICE AGENT C4 ARCHITECTURE SUITE
 %% ============================================================================
 
 %% ----------------------------------------------------------------------------
-%% 1. HIGH-LEVEL SYSTEM ARCHITECTURE
+%% 1. SYSTEM CONTEXT DIAGRAM (C4 LEVEL 1)
 %% ----------------------------------------------------------------------------
 flowchart TD
-    subgraph CLIENT_LAYER["Client Layer"]
-        Caller["📞 Telephony Caller / Phone"]
-        BrowserUI["💻 Hosted Browser Demo UI"]
-    end
+    Customer["📞 Customer / Telephony Caller"]
+    RetellGateway["🎙️ Retell AI Telephony Gateway"]
+    FNOLBackend["🚀 FNOL Voice Agent (Railway Node.js Engine)"]
+    GeminiAPI["✨ Google Gemini 2.5 Flash Lite API"]
+    SheetsAPI["📊 Google Sheets API"]
+    ResendAPI["✉️ Resend REST Email API"]
 
-    subgraph VOICE_PLATFORM["Voice Platform (Retell AI)"]
-        RetellEngine["🎙️ Retell Telephony & STT Engine"]
-        VoiceAgent["🤖 Custom LLM Agent (agent_e907d38b...)"]
-        RetellEngine --- VoiceAgent
-    end
-
-    subgraph BACKEND_LAYER["Backend & Orchestration (Railway Cloud)"]
-        WSEndpoint["🔌 WebSocket Gateway (wss://...)"]
-        ExpressApp["🚀 Express HTTP & Static Server"]
-        ConversationManager["🧠 ConversationManager Orchestrator"]
-        StateEngine["🔄 ConversationState Machine"]
-        
-        WSEndpoint --> ExpressApp
-        ExpressApp --> ConversationManager
-        ConversationManager <--> StateEngine
-    end
-
-    subgraph AI_LAYER["AI & Extraction Layer"]
-        GeminiPrimary["✨ Gemini 2.5 Flash Lite (Native SSE Engine)"]
-        ExtractService["🔍 ExtractClaimDataService"]
-        
-        ExtractService --> GeminiPrimary
-    end
-
-    subgraph PERSISTENCE_LAYER["Persistence Layer"]
-        GoogleSheets["📊 Google Sheets API (Claim Database)"]
-        LocalJSON["📁 Local JSON Logger (claims/*.json)"]
-        ClaimLogger["📝 ClaimLoggerService"]
-        
-        ClaimLogger --> GoogleSheets
-        ClaimLogger --> LocalJSON
-    end
-
-    subgraph NOTIFICATION_LAYER["Notification Layer"]
-        ResendAPI["✉️ Resend REST API (v3)"]
-        NotificationService["🔔 ResendNotificationService"]
-        TargetInbox["📥 Recipient Inbox (aurallonbiz@gmail.com)"]
-        
-        NotificationService --> ResendAPI
-        ResendAPI --> TargetInbox
-    end
-
-    Caller --> RetellEngine
-    BrowserUI --> WSEndpoint
-    VoiceAgent <== WebSocket / JSON ==> WSEndpoint
-    ConversationManager <--> ExtractService
-    ConversationManager -- Async Log --> ClaimLogger
-    ClaimLogger -- Async Notify --> NotificationService
+    Customer -->|Inbound Voice Call| RetellGateway
+    RetellGateway <== WebSocket WSS ==> FNOLBackend
+    FNOLBackend -->|HTTPS SSE Extraction| GeminiAPI
+    FNOLBackend -. Async Claim Append .-> SheetsAPI
+    FNOLBackend -. Async Confirmation Mail .-> ResendAPI
 
 %% ----------------------------------------------------------------------------
-%% 2. INTERNAL COMPONENT DIAGRAM
+%% 2. CONTAINER DIAGRAM (C4 LEVEL 2)
+%% ----------------------------------------------------------------------------
+flowchart TD
+    subgraph CLIENTS["External Clients & Gateways"]
+        Caller["📞 PSTN Phone / Web Demo UI"]
+        RetellWSS["🎙️ Retell AI WSS Client"]
+    end
+
+    subgraph RAILWAY_CONTAINER["Railway Cloud Container (Node.js ESM Runtime)"]
+        ServerApp["🔌 Express HTTP & WS Server (server.ts / Port 3000)"]
+        ConvMgr["🧠 ConversationManager Orchestrator"]
+        StateEngine["🔄 ConversationState Machine Engine"]
+        LLMService["🔍 ExtractClaimDataService"]
+        LoggerService["📝 ClaimLoggerService"]
+        NotificationSvc["🔔 ResendNotificationService"]
+        ConfigEnv["⚙️ Environment Variables & Config"]
+
+        ServerApp --> ConvMgr
+        ConvMgr <--> StateEngine
+        ConvMgr --> LLMService
+        ConvMgr --> LoggerService
+        ConvMgr --> NotificationSvc
+        ConvMgr --- ConfigEnv
+    end
+
+    subgraph SAAS_APIS["External SaaS Services"]
+        GeminiEngine["✨ Gemini 2.5 Flash Lite"]
+        GoogleSheetsDB["📊 Google Sheets API"]
+        ResendEmailSDK["✉️ Resend REST API"]
+    end
+
+    Caller --> RetellWSS
+    RetellWSS <== WSS ==> ServerApp
+    LLMService -->|REST SSE| GeminiEngine
+    LoggerService -. REST API .-> GoogleSheetsDB
+    NotificationSvc -. REST API .-> ResendEmailSDK
+
+%% ----------------------------------------------------------------------------
+%% 3. COMPONENT DIAGRAM (C4 LEVEL 3)
 %% ----------------------------------------------------------------------------
 flowchart LR
-    subgraph TRANSPORT["Transport & Hosting"]
-        ServerTS["server.ts"]
-        RuntimeTS["runtime.ts"]
-        BrowserSocket["browserSocket.ts"]
+    subgraph CORE_ORCHESTRATOR["ConversationManager.ts"]
+        CMCore["ConversationManager Engine"]
     end
 
-    subgraph ORCHESTRATION["Core Orchestration & FSM"]
-        CM["ConversationManager.ts"]
-        CS["ConversationState.ts"]
-        Actions["actions.ts"]
-        Types["types.ts"]
-        Empathy["EmpathyEngine.ts"]
+    subgraph DEPENDENT_COMPONENTS["Modular Domain Services"]
+        VP["VerifyPolicyService (verifyPolicy.ts)"]
+        ECD["ExtractClaimDataService (extractClaimData.ts)"]
+        NCD["NormalizeClaimDataService (normalizeClaimData.ts)"]
+        RS["RecommendServicesService (recommendServices.ts)"]
+        GS["GenerateSummaryService (generateSummary.ts)"]
+        CL["ClaimLoggerService (claimLogger.ts)"]
+        NS["ResendNotificationService (notificationService.ts)"]
+        EE["EmpathyEngine (EmpathyEngine.ts)"]
     end
 
-    subgraph SERVICES["Business Logic & Domain Services"]
-        VP["verifyPolicy.ts"]
-        ECD["extractClaimData.ts"]
-        NCD["normalizeClaimData.ts"]
-        RS["recommendServices.ts"]
-        GS["generateSummary.ts"]
-        CL["claimLogger.ts"]
-        NS["notificationService.ts"]
-    end
-
-    subgraph INFRASTRUCTURE["Storage & Utilities"]
-        Sheets["googleSheets.ts"]
-        ClaimNum["claimNumber.ts"]
-        Constants["constants.ts"]
-        PoliciesJSON["policies.json"]
-        ReqFields["requiredFields.ts"]
-    end
-
-    ServerTS --> RuntimeTS
-    RuntimeTS --> CM
-    CM --> CS
-    CM --> VP
-    CM --> ECD
-    CM --> NCD
-    CM --> RS
-    CM --> GS
-    CM --> CL
-    CM --> Empathy
-    
-    VP --> PoliciesJSON
-    CL --> Sheets
-    CL --> NS
-    CM --> ClaimNum
-    CM --> Constants
-    CM --> ReqFields
+    CMCore --> VP
+    CMCore --> ECD
+    CMCore --> NCD
+    CMCore --> RS
+    CMCore --> GS
+    CMCore --> CL
+    CMCore --> NS
+    CMCore --> EE
 
 %% ----------------------------------------------------------------------------
-%% 3. REQUEST FLOW & SEQUENCE DIAGRAM
+%% 4. REQUEST FLOW & SEQUENCE DIAGRAM
 %% ----------------------------------------------------------------------------
 sequenceDiagram
     autonumber
@@ -124,129 +95,97 @@ sequenceDiagram
     participant Server as Railway WS Server (server.ts)
     participant CM as ConversationManager
     participant Gemini as Gemini 2.5 Flash Lite
-    participant Sheets as Google Sheets API
-    participant Resend as Resend Email REST API
+    participant SheetsResend as Google Sheets & Resend Email
 
-    Caller->>Retell: Initiates Phone / Web Call
-    Retell->>Server: WS Connect (wss://fnol-voice-agent...)
-    Server-->>Retell: WS Established
-
-    Retell->>Server: call_details { call_id, metadata }
-    Server->>CM: start()
-    CM-->>Server: Initial State + Greeting
-    Server-->>Retell: response { content: "Before we begin, are you safe?" }
-    Retell-->>Caller: Plays Greeting Audio
-
-    Caller->>Retell: "Yes, everyone is safe. Policy MMI-10234 Arjun Rao."
-    Retell->>Server: response_required { response_id: 1, transcript }
+    Caller->>Retell: 1. Dial / Initiate Call
+    Retell->>Server: 2. WS Connect & call_details
+    Server-->>Retell: 3. Greeting ("Before we begin, are you safe?")
+    Caller->>Retell: 4. "Yes safe. Policy MMI-10234 Arjun Rao."
+    Retell->>Server: 5. response_required
+    Server->>CM: 6. handleUserMessage()
+    CM->>Gemini: 7. extract(userMessage, state) [SSE Stream]
+    Gemini-->>CM: 8. Extracted Slots + Natural Response
+    CM-->>Server: 9. Verified Policy & Response Text
+    Server-->>Retell: 10. response { content, content_complete }
     
-    Server->>CM: handleUserMessage(state, message)
-    CM->>Gemini: extract(userMessage, state) [SSE Stream]
-    Gemini-->>CM: Extracted Slots JSON + Natural Response Text
-    
-    CM->>CM: Validate & Merge Slots
-    CM->>CM: verifyPolicy("MMI-10234", "Arjun Rao") -> VERIFIED
-    CM-->>Server: Updated State + Response Text
-
-    Server-->>Retell: response { response_id: 1, content: "Thank you. When did it happen?", content_complete: true }
-    Retell-->>Caller: Plays Spoken Audio
-
-    Note over CM, Resend: ASYNCHRONOUS BACKGROUND PERSISTENCE (Non-Blocking)
-    par Async Claim Persistence
-        CM->>Sheets: log(claimRecord) -> Append Row
-        Sheets-->>CM: 200 OK
-    and Async Email Dispatch
-        CM->>Resend: sendClaimConfirmation(claims@aurallon.com -> aurallonbiz@gmail.com)
-        Resend-->>CM: 200 OK (Message ID: de32e35f...)
+    Note over CM, SheetsResend: ASYNCHRONOUS NON-BLOCKING PERSISTENCE
+    par Async Log
+        CM->>SheetsResend: 11. Async log() -> Append Google Sheet Row
+    and Async Mail
+        CM->>SheetsResend: 12. Async sendMail() -> claims@aurallon.com
     end
 
 %% ----------------------------------------------------------------------------
-%% 4. CLAIM STATE MACHINE (FSM)
+%% 5. FINITE STATE MACHINE (FSM)
 %% ----------------------------------------------------------------------------
 stateDiagram-v2
-    [*] --> safety_check : Call Initialized
+    [*] --> safety_check : Call Setup
 
-    safety_check --> verification : Caller fine / safe
-    safety_check --> escalation : Injury reported / Severe crash
-    
+    safety_check --> escalation : Injury / Severe Incident
+    safety_check --> verification : Caller Safe
+
     state verification {
         [*] --> check_policy
         check_policy --> verified : Policy + Name Match
-        check_policy --> retry_failed : Mismatch (Attempt < 2)
-        retry_failed --> check_policy : Retry prompt
-        check_policy --> callback_offer : Mismatch (Attempt >= 2)
+        check_policy --> callback_offer : Attempts >= 2
     }
 
     verification --> collecting_details : Verified
-    verification --> callback_offer : Failed Verification (Max 2)
+    verification --> callback_offer : Verification Failed
 
-    collecting_details --> clarifying : Invalid reg / Ambiguous input
-    clarifying --> collecting_details : Clarification received
+    collecting_details --> clarifying : Invalid Reg / Ambiguous
+    clarifying --> collecting_details : Clarified Input
 
     collecting_details --> recommending_services : All Required Fields Collected
-    collecting_details --> escalation : Injury mentioned mid-call
 
-    recommending_services --> completed : Towing / Garage selected or waived
-    
-    escalation --> completed : Emergency advisory delivered
-    callback_offer --> completed : Callback scheduled
+    recommending_services --> completed : Services Handled
+    escalation --> completed : Emergency Advisory
+    callback_offer --> completed : Callback Logged
 
-    completed --> [*] : Call Terminated (end_call: true)
+    completed --> [*] : Terminated
 
 %% ----------------------------------------------------------------------------
-%% 5. DEPLOYMENT DIAGRAM
+%% 6. DEPLOYMENT DIAGRAM
 %% ----------------------------------------------------------------------------
 flowchart TD
-    subgraph RAILWAY_CLOUD["Railway Cloud Platform"]
-        subgraph CONTAINER["Node.js ESM App Container"]
-            ServerProcess["Node.js Process (server.ts)"]
-            Port["Port 3000 (HTTP + WS)"]
-        end
-        
-        subgraph ENV_VARS["Environment Variables"]
-            EnvGemini["GEMINI_API_KEY"]
-            EnvResend["RESEND_API_KEY / RESEND_FROM_EMAIL"]
-            EnvRetell["RETELL_API_KEY"]
-            EnvSheets["GOOGLE_CREDENTIALS_JSON / GOOGLE_SHEET_ID"]
-        end
-        
-        ServerProcess --- ENV_VARS
+    subgraph CLIENT_ENV["Client Environment"]
+        UserPhone["📞 User Phone / Browser"]
     end
 
-    subgraph RETELL_CLOUD["Retell AI Cloud"]
-        RetellAgent["Custom LLM Agent (agent_e907d38b...)"]
-        RetellWS["WSS Connection Manager"]
+    subgraph RETELL_ENV["Retell Telephony Cloud"]
+        RetellService["Retell Custom LLM Agent (agent_e907d38b...)"]
     end
 
-    subgraph GOOGLE_CLOUD["Google Cloud Platform"]
-        GeminiAPI["Gemini API (generativelanguage.googleapis.com)"]
-        SheetsAPI["Google Sheets API (sheets.googleapis.com)"]
-        ServiceAccount["GCP Service Account Credential"]
+    subgraph RAILWAY_ENV["Railway Cloud Platform"]
+        NodeContainer["Node.js ESM App Container (Port 3000)"]
+        EnvVariables["Env Vars: GEMINI_API_KEY, RESEND_API_KEY, etc."]
+        NodeContainer --- EnvVariables
     end
 
-    subgraph RESEND_CLOUD["Resend Email Platform"]
-        ResendSDK["Resend REST API (api.resend.com)"]
-        VerifiedDomain["DNS Verified Domain (aurallon.com)"]
+    subgraph GCP_ENV["Google Cloud Platform"]
+        GeminiEndpoint["Gemini 2.5 Flash Lite API"]
+        SheetsEndpoint["Google Sheets v4 API"]
     end
 
-    RetellWS <== WSS ==> Port
-    ServerProcess -- HTTPS REST --> GeminiAPI
-    ServerProcess -- Service Account Auth --> SheetsAPI
-    ServerProcess -- Bearer Auth --> ResendSDK
-    ResendSDK --- VerifiedDomain
+    subgraph RESEND_ENV["Resend Cloud"]
+        ResendEndpoint["Resend REST API (aurallon.com)"]
+    end
+
+    UserPhone --> RetellService
+    RetellService <== WSS ==> NodeContainer
+    NodeContainer -- HTTPS REST --> GeminiEndpoint
+    NodeContainer -- Service Account Auth --> SheetsEndpoint
+    NodeContainer -- Bearer Auth --> ResendEndpoint
 
 %% ----------------------------------------------------------------------------
-%% 6. DATA FLOW DIAGRAM
+%% 7. DATA FLOW DIAGRAM
 %% ----------------------------------------------------------------------------
 flowchart LR
-    A["🎙️ Spoken Audio"] -->|STT Transcribe| B["📝 Raw Text Transcript"]
-    B -->|Prompt & State| C["🤖 Gemini 2.5 Flash Lite"]
-    C -->|Raw JSON Slots| D["🔍 validateClaimPatch"]
-    D -->|Validated Patch| E["⚙️ normalizeClaimData"]
-    E -->|Cleaned Data| F["🔄 ConversationState Merge"]
-    F -->|Completed Claim| G["📊 generateSummary"]
-    G -->|Summary & Severity| H["📝 ClaimLoggerService"]
-    
-    H -->|Row Array| I["📊 Google Sheets"]
-    H -->|Email Payload| J["✉️ Resend REST API"]
-    J -->|HTML / Text Email| K["📥 Recipient Inbox"]
+    S1["1. Spoken Audio"] --> S2["2. Raw Transcript"]
+    S2 --> S3["3. Gemini Extraction"]
+    S3 --> S4["4. Normalized Claim Patch"]
+    S4 --> S5["5. ConversationState Merge"]
+    S5 --> S6["6. Call Summary & Severity"]
+    S6 --> S7["7. Google Sheets Row"]
+    S7 --> S8["8. Resend Email Payload"]
+    S8 --> S9["9. Claim Completed"]

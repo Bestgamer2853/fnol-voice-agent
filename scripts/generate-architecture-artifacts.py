@@ -1,375 +1,428 @@
 import os
-import xml.etree.ElementTree as ET
-from svglib.svglib import svg2rlg
-from reportlab.graphics import renderPDF
 import fitz  # PyMuPDF
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# -----------------------------------------------------------------------------
-# 1. DRAW.IO XML GENERATOR (Architecture.drawio & Architecture.xml)
-# -----------------------------------------------------------------------------
-def generate_drawio_xml():
-    xml_content = """<?xml version="1.0" encoding="UTF-8"?>
-<mxfile host="Electron" modified="2026-08-01T13:30:00.000Z" agent="Antigravity Architecture Generator" version="21.6.8" type="device">
-  <diagram id="fnol-voice-agent-arch" name="Meridian FNOL Voice Agent Architecture">
-    <mxGraphModel dx="1422" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1400" background="#0f172a" math="0" shadow="0">
-      <root>
-        <mxCell id="0" />
-        <mxCell id="1" parent="0" />
+# COLOR PALETTE (C4 / Modern Architectural Standard)
+COLOR_BG = colors.HexColor('#ffffff')
+COLOR_HEADER_BG = colors.HexColor('#0f172a')
+COLOR_TEXT_MAIN = colors.HexColor('#0f172a')
+COLOR_TEXT_MUTED = colors.HexColor('#64748b')
+COLOR_BORDER = colors.HexColor('#cbd5e1')
 
-        <!-- TITLE -->
-        <mxCell id="title" value="MERIDIAN MOTOR INSURANCE — FNOL VOICE AGENT ARCHITECTURE" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;fontColor=#f8fafc;" vertex="1" parent="1">
-          <mxGeometry x="460" y="20" width="1000" height="40" as="geometry" />
-        </mxCell>
+COLOR_GREY = colors.HexColor('#475569')      # User / Customer
+COLOR_BLUE = colors.HexColor('#2563eb')      # Platform / Voice Gateway (Retell)
+COLOR_GREEN = colors.HexColor('#059669')     # Backend / Core (Railway, Express, FSM)
+COLOR_ORANGE = colors.HexColor('#d97706')    # AI / Model Services (Gemini)
+COLOR_PURPLE = colors.HexColor('#7c3aed')    # External Services (Sheets, Resend)
+COLOR_RED = colors.HexColor('#dc2626')       # Escalation / Emergency
 
-        <!-- SUBTITLE -->
-        <mxCell id="subtitle" value="Production Solutions Architecture, Sequence Request Flow &amp; Finite State Machine" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#94a3b8;" vertex="1" parent="1">
-          <mxGeometry x="560" y="55" width="800" height="25" as="geometry" />
-        </mxCell>
+def draw_header_footer(c, page_num, title, subtitle):
+    # Header Bar
+    c.setFillColor(COLOR_HEADER_BG)
+    c.rect(0, 560, 792, 52, fill=True, stroke=False)
+    
+    c.setFillColor(colors.HexColor('#ffffff'))
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(30, 588, "MERIDIAN MOTOR INSURANCE — FNOL VOICE AGENT ARCHITECTURE")
+    
+    c.setFillColor(colors.HexColor('#94a3b8'))
+    c.setFont("Helvetica", 9)
+    c.drawRightString(762, 588, f"DIAGRAM {page_num} OF 7: {title.upper()}")
+    
+    # Subtitle bar
+    c.setFillColor(colors.HexColor('#f1f5f9'))
+    c.rect(0, 535, 792, 25, fill=True, stroke=False)
+    c.setFillColor(COLOR_TEXT_MUTED)
+    c.setFont("Helvetica-Oblique", 9)
+    c.drawString(30, 543, subtitle)
+    
+    # Footer Bar
+    c.setStrokeColor(COLOR_BORDER)
+    c.setLineWidth(0.5)
+    c.line(30, 30, 762, 30)
+    
+    c.setFillColor(COLOR_TEXT_MUTED)
+    c.setFont("Helvetica", 8)
+    c.drawString(30, 18, "Version: v1.0.0  |  Author: Principal Solutions Architect  |  System Target: Meridian FNOL Voice Agent")
+    c.drawRightString(762, 18, f"Page {page_num} of 7")
 
-        <!-- CONTAINER: CLIENT LAYER -->
-        <mxCell id="box_client" value="CLIENT LAYER" style="swimlane;whiteSpace=wrap;html=1;fillColor=#1e293b;strokeColor=#3b82f6;fontColor=#93c5fd;fontStyle=1;startSize=30;rounded=1;" vertex="1" parent="1">
-          <mxGeometry x="40" y="100" width="220" height="240" as="geometry" />
-        </mxCell>
-        <mxCell id="node_caller" value="📞 Telephony Caller&#xa;(PSTN Phone Call)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#60a5fa;fontColor=#f8fafc;fontSize=12;" vertex="1" parent="box_client">
-          <mxGeometry x="20" y="45" width="180" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="node_browser" value="💻 Browser Demo UI&#xa;(WebRTC / WS Client)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#60a5fa;fontColor=#f8fafc;fontSize=12;" vertex="1" parent="box_client">
-          <mxGeometry x="20" y="140" width="180" height="60" as="geometry" />
-        </mxCell>
+    # Draw Legend at bottom right
+    legend_x = 520
+    legend_y = 38
+    c.setFont("Helvetica-Bold", 7)
+    
+    c.setFillColor(COLOR_GREY); c.rect(legend_x, legend_y, 8, 8, fill=True, stroke=False)
+    c.setFillColor(COLOR_TEXT_MAIN); c.drawString(legend_x + 11, legend_y + 1, "User")
+    
+    c.setFillColor(COLOR_BLUE); c.rect(legend_x + 45, legend_y, 8, 8, fill=True, stroke=False)
+    c.setFillColor(COLOR_TEXT_MAIN); c.drawString(legend_x + 56, legend_y + 1, "Platform")
+    
+    c.setFillColor(COLOR_GREEN); c.rect(legend_x + 100, legend_y, 8, 8, fill=True, stroke=False)
+    c.setFillColor(COLOR_TEXT_MAIN); c.drawString(legend_x + 111, legend_y + 1, "Backend")
+    
+    c.setFillColor(COLOR_ORANGE); c.rect(legend_x + 155, legend_y, 8, 8, fill=True, stroke=False)
+    c.setFillColor(COLOR_TEXT_MAIN); c.drawString(legend_x + 166, legend_y + 1, "AI Engine")
+    
+    c.setFillColor(COLOR_PURPLE); c.rect(legend_x + 205, legend_y, 8, 8, fill=True, stroke=False)
+    c.setFillColor(COLOR_TEXT_MAIN); c.drawString(legend_x + 216, legend_y + 1, "External API")
 
-        <!-- CONTAINER: VOICE PLATFORM -->
-        <mxCell id="box_voice" value="VOICE PLATFORM (RETELL AI)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#1e293b;strokeColor=#8b5cf6;fontColor=#c4b5fd;fontStyle=1;startSize=30;rounded=1;" vertex="1" parent="1">
-          <mxGeometry x="300" y="100" width="240" height="240" as="geometry" />
-        </mxCell>
-        <mxCell id="node_retell_stt" value="🎙️ Retell Telephony &amp; STT&#xa;(Audio Streaming Engine)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#a78bfa;fontColor=#f8fafc;fontSize=12;" vertex="1" parent="box_voice">
-          <mxGeometry x="20" y="45" width="200" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="node_retell_agent" value="🤖 Custom LLM Agent&#xa;(agent_e907d38b...)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#a78bfa;fontColor=#f8fafc;fontSize=12;" vertex="1" parent="box_voice">
-          <mxGeometry x="20" y="140" width="200" height="60" as="geometry" />
-        </mxCell>
-
-        <!-- CONTAINER: BACKEND & ORCHESTRATION -->
-        <mxCell id="box_backend" value="BACKEND &amp; ORCHESTRATION (RAILWAY CLOUD)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#1e293b;strokeColor=#10b981;fontColor=#6ee7b7;fontStyle=1;startSize=30;rounded=1;" vertex="1" parent="1">
-          <mxGeometry x="580" y="100" width="340" height="240" as="geometry" />
-        </mxCell>
-        <mxCell id="node_ws_gateway" value="🔌 WebSocket Gateway &amp; Express&#xa;(wss://fnol-voice-agent...)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#34d399;fontColor=#f8fafc;fontSize=12;" vertex="1" parent="box_backend">
-          <mxGeometry x="20" y="45" width="300" height="50" as="geometry" />
-        </mxCell>
-        <mxCell id="node_cm" value="🧠 ConversationManager Orchestrator&#xa;(State Transitions &amp; Business Rules)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#34d399;fontColor=#f8fafc;fontSize=12;" vertex="1" parent="box_backend">
-          <mxGeometry x="20" y="115" width="300" height="50" as="geometry" />
-        </mxCell>
-        <mxCell id="node_fsm" value="🔄 ConversationState Machine&#xa;(safety | verification | collecting | completed)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#34d399;fontColor=#f8fafc;fontSize=11;" vertex="1" parent="box_backend">
-          <mxGeometry x="20" y="180" width="300" height="45" as="geometry" />
-        </mxCell>
-
-        <!-- CONTAINER: AI & EXTRACTION -->
-        <mxCell id="box_ai" value="AI &amp; EXTRACTION LAYER" style="swimlane;whiteSpace=wrap;html=1;fillColor=#1e293b;strokeColor=#f59e0b;fontColor=#fcd34d;fontStyle=1;startSize=30;rounded=1;" vertex="1" parent="1">
-          <mxGeometry x="960" y="100" width="260" height="240" as="geometry" />
-        </mxCell>
-        <mxCell id="node_gemini" value="✨ Gemini 2.5 Flash Lite&#xa;(Native SSE Stream Engine)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#fbbf24;fontColor=#f8fafc;fontSize=12;fontStyle=1;" vertex="1" parent="box_ai">
-          <mxGeometry x="20" y="75" width="220" height="100" as="geometry" />
-        </mxCell>
-
-        <!-- CONTAINER: PERSISTENCE & NOTIFICATIONS -->
-        <mxCell id="box_persistence" value="PERSISTENCE &amp; NOTIFICATIONS (ASYNC)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#1e293b;strokeColor=#ec4899;fontColor=#fbcfe8;fontStyle=1;startSize=30;rounded=1;" vertex="1" parent="1">
-          <mxGeometry x="1260" y="100" width="300" height="240" as="geometry" />
-        </mxCell>
-        <mxCell id="node_sheets" value="📊 Google Sheets API&#xa;(Structured Claim Database)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#f472b6;fontColor=#f8fafc;fontSize=12;" vertex="1" parent="box_persistence">
-          <mxGeometry x="20" y="45" width="260" height="55" as="geometry" />
-        </mxCell>
-        <mxCell id="node_resend" value="✉️ Resend REST Email API&#xa;(claims@aurallon.com)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#f472b6;fontColor=#f8fafc;fontSize=12;" vertex="1" parent="box_persistence">
-          <mxGeometry x="20" y="115" width="260" height="55" as="geometry" />
-        </mxCell>
-        <mxCell id="node_inbox" value="📥 Recipient Inbox&#xa;(aurallonbiz@gmail.com)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#f472b6;fontColor=#f8fafc;fontSize=11;" vertex="1" parent="box_persistence">
-          <mxGeometry x="20" y="180" width="260" height="45" as="geometry" />
-        </mxCell>
-
-        <!-- CONNECTORS -->
-        <mxCell id="edge1" edge="1" parent="1" source="node_caller" target="node_retell_stt" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#60a5fa;strokeWidth=2;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="edge2" edge="1" parent="1" source="node_retell_agent" target="node_ws_gateway" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#a78bfa;strokeWidth=2;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="edge3" edge="1" parent="1" source="node_ws_gateway" target="node_cm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#34d399;strokeWidth=2;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="edge4" edge="1" parent="1" source="node_cm" target="node_gemini" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#fbbf24;strokeWidth=2;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="edge5" edge="1" parent="1" source="node_cm" target="node_sheets" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#f472b6;strokeWidth=2;dashed=1;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="edge6" edge="1" parent="1" source="node_cm" target="node_resend" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#f472b6;strokeWidth=2;dashed=1;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="edge7" edge="1" parent="1" source="node_resend" target="node_inbox" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#f472b6;strokeWidth=2;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-      </root>
-    </mxGraphModel>
-  </diagram>
-</mxfile>
-"""
-    drawio_path = os.path.join(BASE_DIR, 'Architecture.drawio')
-    xml_path = os.path.join(BASE_DIR, 'Architecture.xml')
-
-    with open(drawio_path, 'w', encoding='utf-8') as f:
-        f.write(xml_content)
-
-    with open(xml_path, 'w', encoding='utf-8') as f:
-        f.write(xml_content)
-
-    print(f"✅ Generated {drawio_path} and {xml_path}")
+def draw_card(c, x, y, width, height, title, subtitle, color, fill_color=colors.HexColor('#ffffff')):
+    c.setStrokeColor(color)
+    c.setFillColor(fill_color)
+    c.setLineWidth(1.5)
+    c.roundRect(x, y, width, height, 6, fill=True, stroke=True)
+    
+    # Title Bar
+    c.setFillColor(color)
+    c.rect(x, y + height - 22, width, 22, fill=True, stroke=False)
+    c.setFillColor(colors.HexColor('#ffffff'))
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(x + 8, y + height - 15, title)
+    
+    if subtitle:
+        c.setFillColor(COLOR_TEXT_MUTED)
+        c.setFont("Helvetica", 8)
+        c.drawString(x + 8, y + 10, subtitle)
 
 # -----------------------------------------------------------------------------
-# 2. VECTOR SVG GENERATOR (Architecture.svg)
+# PAGE 1: SYSTEM CONTEXT DIAGRAM (C1)
 # -----------------------------------------------------------------------------
-def generate_svg():
-    svg = """<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1280" width="1920" height="1280" style="background-color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-  <!-- STYLES -->
-  <style>
-    .title { font-size: 26px; font-weight: 800; fill: #f8fafc; text-anchor: middle; letter-spacing: 1px; }
-    .subtitle { font-size: 14px; font-weight: 500; fill: #94a3b8; text-anchor: middle; }
-    .section-title { font-size: 16px; font-weight: 700; fill: #38bdf8; letter-spacing: 0.5px; }
-    .card-bg { fill: #1e293b; stroke-width: 1.5; rx: 12; ry: 12; }
-    .box-bg { fill: #0f172a; stroke-width: 1.5; rx: 8; ry: 8; }
-    .node-title { font-size: 13px; font-weight: 700; fill: #f8fafc; }
-    .node-desc { font-size: 11px; fill: #94a3b8; }
-    .edge { fill: none; stroke-width: 2; stroke-dasharray: none; }
-    .edge-async { fill: none; stroke-width: 2; stroke-dasharray: 6,4; }
-  </style>
-
-  <!-- BACKGROUND -->
-  <rect width="1920" height="1280" fill="#0f172a" />
-  <circle cx="200" cy="150" r="300" fill="#3b82f6" opacity="0.03" />
-  <circle cx="1700" cy="1000" r="400" fill="#8b5cf6" opacity="0.03" />
-
-  <!-- HEADER -->
-  <text x="960" y="45" class="title">MERIDIAN MOTOR INSURANCE — FNOL VOICE AGENT ARCHITECTURE</text>
-  <text x="960" y="75" class="subtitle">Production Solutions Architecture, Sequence Request Flow &amp; Finite State Machine Topology</text>
-
-  <!-- ========================================================================= -->
-  <!-- 1. HIGH-LEVEL SYSTEM ARCHITECTURE (TOP HALF) -->
-  <!-- ========================================================================= -->
-  <text x="50" y="125" class="section-title">1. HIGH LEVEL SYSTEM ARCHITECTURE</text>
-
-  <!-- Client Layer -->
-  <rect x="50" y="145" width="260" height="240" class="card-bg" stroke="#3b82f6" />
-  <text x="70" y="175" font-size="14" font-weight="700" fill="#60a5fa">CLIENT LAYER</text>
-  <rect x="70" y="195" width="220" height="70" class="box-bg" stroke="#3b82f6" />
-  <text x="85" y="225" class="node-title">📞 Telephony Caller</text>
-  <text x="85" y="245" class="node-desc">Inbound PSTN / WebRTC Call</text>
-  <rect x="70" y="285" width="220" height="70" class="box-bg" stroke="#3b82f6" />
-  <text x="85" y="315" class="node-title">💻 Browser Demo UI</text>
-  <text x="85" y="335" class="node-desc">Hosted Voice Agent Simulator</text>
-
-  <!-- Voice Platform -->
-  <rect x="360" y="145" width="280" height="240" class="card-bg" stroke="#8b5cf6" />
-  <text x="380" y="175" font-size="14" font-weight="700" fill="#c4b5fd">VOICE PLATFORM (RETELL AI)</text>
-  <rect x="380" y="195" width="240" height="70" class="box-bg" stroke="#8b5cf6" />
-  <text x="395" y="225" class="node-title">🎙️ Retell Telephony &amp; STT</text>
-  <text x="395" y="245" class="node-desc">Real-time Audio &amp; Barge-in</text>
-  <rect x="380" y="285" width="240" height="70" class="box-bg" stroke="#8b5cf6" />
-  <text x="395" y="315" class="node-title">🤖 Custom LLM Agent</text>
-  <text x="395" y="335" class="node-desc">agent_e907d38b5b5dcdf4cf...</text>
-
-  <!-- Backend Orchestration -->
-  <rect x="690" y="145" width="400" height="240" class="card-bg" stroke="#10b981" />
-  <text x="710" y="175" font-size="14" font-weight="700" fill="#6ee7b7">BACKEND &amp; ORCHESTRATION (RAILWAY CLOUD)</text>
-  <rect x="710" y="195" width="360" height="55" class="box-bg" stroke="#10b981" />
-  <text x="725" y="220" class="node-title">🔌 WebSocket Gateway (wss://...)</text>
-  <text x="725" y="238" class="node-desc">Express HTTP Port 3000 / ws server</text>
-  <rect x="710" y="260" width="360" height="55" class="box-bg" stroke="#10b981" />
-  <text x="725" y="285" class="node-title">🧠 ConversationManager Orchestrator</text>
-  <text x="725" y="303" class="node-desc">Turn Orchestration &amp; Deterministic Rules</text>
-  <rect x="710" y="325" width="360" height="45" class="box-bg" stroke="#10b981" />
-  <text x="725" y="348" class="node-title">🔄 ConversationState Machine</text>
-
-  <!-- AI & Extraction Layer -->
-  <rect x="1140" y="145" width="310" height="240" class="card-bg" stroke="#f59e0b" />
-  <text x="1160" y="175" font-size="14" font-weight="700" fill="#fcd34d">AI &amp; EXTRACTION LAYER</text>
-  <rect x="1160" y="210" width="270" height="120" class="box-bg" stroke="#f59e0b" />
-  <text x="1175" y="250" font-size="15" font-weight="800" fill="#fbbf24">✨ Gemini 2.5 Flash Lite</text>
-  <text x="1175" y="275" class="node-desc">Primary Native SSE Engine (&lt;700ms)</text>
-  <text x="1175" y="295" class="node-desc">Structured Extraction &amp; Empathetic Voice</text>
-
-  <!-- Persistence & Notifications -->
-  <rect x="1500" y="145" width="370" height="240" class="card-bg" stroke="#ec4899" />
-  <text x="1520" y="175" font-size="14" font-weight="700" fill="#fbcfe8">PERSISTENCE &amp; NOTIFICATIONS (ASYNC)</text>
-  <rect x="1520" y="195" width="330" height="55" class="box-bg" stroke="#ec4899" />
-  <text x="1535" y="220" class="node-title">📊 Google Sheets API (Claim Database)</text>
-  <text x="1535" y="238" class="node-desc">Sheet ID: 1bRu1nK9IL8a7DCSXSQ-jX...</text>
-  <rect x="1520" y="260" width="330" height="55" class="box-bg" stroke="#ec4899" />
-  <text x="1535" y="285" class="node-title">✉️ Resend REST Email API (v3)</text>
-  <text x="1535" y="303" class="node-desc">Sender: claims@aurallon.com</text>
-  <rect x="1520" y="325" width="330" height="45" class="box-bg" stroke="#ec4899" />
-  <text x="1535" y="348" class="node-title">📥 Recipient: aurallonbiz@gmail.com</text>
-
-  <!-- CONNECTORS (TOP HALF) -->
-  <line x1="290" y1="230" x2="380" y2="230" class="edge" stroke="#60a5fa" />
-  <line x1="620" y1="320" x2="710" y2="222" class="edge" stroke="#a78bfa" />
-  <line x1="1070" y1="287" x2="1160" y2="270" class="edge" stroke="#34d399" />
-  <line x1="1070" y1="287" x2="1520" y2="222" class="edge-async" stroke="#ec4899" />
-  <line x1="1070" y1="287" x2="1520" y2="287" class="edge-async" stroke="#ec4899" />
-
-  <!-- ========================================================================= -->
-  <!-- 2. SEQUENCE REQUEST FLOW & FINITE STATE MACHINE (BOTTOM HALF) -->
-  <!-- ========================================================================= -->
-  
-  <!-- SEQUENCE DIAGRAM (LEFT BOTTOM) -->
-  <text x="50" y="435" class="section-title">3. REQUEST FLOW &amp; NON-BLOCKING ASYNC PERSISTENCE</text>
-  <rect x="50" y="455" width="980" height="780" class="card-bg" stroke="#3b82f6" />
-  
-  <!-- Lifelines -->
-  <text x="120" y="485" class="node-title" fill="#60a5fa">Caller</text>
-  <line x1="135" y1="500" x2="135" y2="1200" stroke="#334155" stroke-dasharray="4,4" />
-
-  <text x="290" y="485" class="node-title" fill="#c4b5fd">Retell AI</text>
-  <line x1="315" y1="500" x2="315" y2="1200" stroke="#334155" stroke-dasharray="4,4" />
-
-  <text x="470" y="485" class="node-title" fill="#6ee7b7">Railway Server</text>
-  <line x1="510" y1="500" x2="510" y2="1200" stroke="#334155" stroke-dasharray="4,4" />
-
-  <text x="680" y="485" class="node-title" fill="#fcd34d">Gemini 2.5</text>
-  <line x1="710" y1="500" x2="710" y2="1200" stroke="#334155" stroke-dasharray="4,4" />
-
-  <text x="860" y="485" class="node-title" fill="#fbcfe8">Sheets &amp; Resend</text>
-  <line x1="910" y1="500" x2="910" y2="1200" stroke="#334155" stroke-dasharray="4,4" />
-
-  <!-- Sequence Messages -->
-  <line x1="135" y1="530" x2="315" y2="530" class="edge" stroke="#60a5fa" />
-  <text x="145" y="525" class="node-desc" fill="#93c5fd">1. Initiates Phone / Web Call</text>
-
-  <line x1="315" y1="560" x2="510" y2="560" class="edge" stroke="#a78bfa" />
-  <text x="325" y="555" class="node-desc" fill="#c4b5fd">2. WS Connect (wss://fnol-voice-agent...)</text>
-
-  <line x1="315" y1="590" x2="510" y2="590" class="edge" stroke="#a78bfa" />
-  <text x="325" y="585" class="node-desc" fill="#c4b5fd">3. call_details { call_id: "..." }</text>
-
-  <line x1="510" y1="630" x2="315" y2="630" class="edge" stroke="#34d399" />
-  <text x="335" y="625" class="node-desc" fill="#6ee7b7">4. Greeting ("Before we begin, are you safe?")</text>
-
-  <line x1="135" y1="670" x2="315" y2="670" class="edge" stroke="#60a5fa" />
-  <text x="145" y="665" class="node-desc" fill="#93c5fd">5. "Yes safe. Policy MMI-10234 Arjun Rao."</text>
-
-  <line x1="315" y1="700" x2="510" y2="700" class="edge" stroke="#a78bfa" />
-  <text x="325" y="695" class="node-desc" fill="#c4b5fd">6. response_required { response_id: 1 }</text>
-
-  <line x1="510" y1="740" x2="710" y2="740" class="edge" stroke="#34d399" />
-  <text x="520" y="735" class="node-desc" fill="#6ee7b7">7. extract(userMessage, state) [SSE Stream]</text>
-
-  <line x1="710" y1="780" x2="510" y2="780" class="edge" stroke="#fbbf24" />
-  <text x="525" y="775" class="node-desc" fill="#fcd34d">8. Extracted Slots + Surface Spoken Response</text>
-
-  <rect x="440" y="805" width="220" height="35" fill="#0f172a" stroke="#34d399" rx="4" />
-  <text x="450" y="827" font-size="11" font-weight="700" fill="#34d399">9. verifyPolicy() -> VERIFIED</text>
-
-  <line x1="510" y1="865" x2="315" y2="865" class="edge" stroke="#34d399" />
-  <text x="325" y="860" class="node-desc" fill="#6ee7b7">10. response { content: "When did it happen?" }</text>
-
-  <!-- Async Logging Box -->
-  <rect x="420" y="910" width="520" height="240" fill="#1e1b4b" stroke="#818cf8" stroke-dasharray="6,4" rx="8" />
-  <text x="440" y="935" font-size="12" font-weight="700" fill="#a5b4fc">NON-BLOCKING ASYNC PERSISTENCE &amp; EMAIL DISPATCH</text>
-  
-  <line x1="510" y1="970" x2="910" y2="970" class="edge-async" stroke="#f472b6" />
-  <text x="530" y="963" class="node-desc" fill="#fbcfe8">11. claimLogger.log() -> Append Row to Google Sheet</text>
-
-  <line x1="910" y1="1000" x2="510" y2="1000" class="edge-async" stroke="#f472b6" />
-  <text x="530" y="993" class="node-desc" fill="#fbcfe8">12. Google Sheets API 200 OK</text>
-
-  <line x1="510" y1="1050" x2="910" y2="1050" class="edge-async" stroke="#f472b6" />
-  <text x="530" y="1043" class="node-desc" fill="#fbcfe8">13. sendClaimConfirmation() -> claims@aurallon.com</text>
-
-  <line x1="910" y1="1080" x2="510" y2="1080" class="edge-async" stroke="#f472b6" />
-  <text x="530" y="1073" class="node-desc" fill="#fbcfe8">14. Resend 200 OK (Message ID: de32e35f...)</text>
-
-  <!-- CLAIM STATE MACHINE (RIGHT BOTTOM) -->
-  <text x="1070" y="435" class="section-title">4. CLAIM FINITE STATE MACHINE (FSM)</text>
-  <rect x="1070" y="455" width="800" height="780" class="card-bg" stroke="#8b5cf6" />
-
-  <!-- FSM States -->
-  <rect x="1330" y="485" width="280" height="50" class="box-bg" stroke="#a78bfa" />
-  <text x="1470" y="515" class="node-title" text-anchor="middle">safety_check (Initial Greeting)</text>
-
-  <rect x="1120" y="585" width="280" height="50" class="box-bg" stroke="#ef4444" />
-  <text x="1260" y="615" class="node-title" text-anchor="middle" fill="#fca5a5">escalation (Urgent Alert)</text>
-
-  <rect x="1540" y="585" width="280" height="50" class="box-bg" stroke="#34d399" />
-  <text x="1680" y="615" class="node-title" text-anchor="middle">verification (Policy Lookup)</text>
-
-  <rect x="1120" y="685" width="280" height="50" class="box-bg" stroke="#f59e0b" />
-  <text x="1260" y="715" class="node-title" text-anchor="middle" fill="#fcd34d">callback_offer (2 Retries Failed)</text>
-
-  <rect x="1540" y="685" width="280" height="50" class="box-bg" stroke="#34d399" />
-  <text x="1680" y="715" class="node-title" text-anchor="middle">collecting_details (FNOL Fields)</text>
-
-  <rect x="1120" y="785" width="280" height="50" class="box-bg" stroke="#60a5fa" />
-  <text x="1260" y="815" class="node-title" text-anchor="middle" fill="#93c5fd">clarifying (Invalid Reg / Ambiguity)</text>
-
-  <rect x="1540" y="785" width="280" height="50" class="box-bg" stroke="#34d399" />
-  <text x="1680" y="815" class="node-title" text-anchor="middle">recommending_services (Towing/Garage)</text>
-
-  <rect x="1330" y="900" width="280" height="60" fill="#10b981" stroke="#34d399" rx="8" />
-  <text x="1470" y="935" font-size="15" font-weight="800" fill="#ffffff" text-anchor="middle">completed (Claim Logged &amp; Sent)</text>
-
-  <!-- FSM Transitions -->
-  <line x1="1470" y1="535" x2="1260" y2="585" class="edge" stroke="#ef4444" />
-  <text x="1310" y="555" class="node-desc" fill="#fca5a5">Injury / Severe crash</text>
-
-  <line x1="1470" y1="535" x2="1680" y2="585" class="edge" stroke="#34d399" />
-  <text x="1590" y="555" class="node-desc" fill="#6ee7b7">Safe / Fine</text>
-
-  <line x1="1680" y1="635" x2="1260" y2="685" class="edge" stroke="#f59e0b" />
-  <text x="1430" y="655" class="node-desc" fill="#fcd34d">Attempts &gt;= 2</text>
-
-  <line x1="1680" y1="635" x2="1680" y2="685" class="edge" stroke="#34d399" />
-  <text x="1690" y="660" class="node-desc" fill="#6ee7b7">Verified Match</text>
-
-  <line x1="1680" y1="735" x2="1260" y2="785" class="edge" stroke="#60a5fa" />
-  <text x="1430" y="755" class="node-desc" fill="#93c5fd">Malformed Reg</text>
-
-  <line x1="1260" y1="785" x2="1680" y2="735" class="edge" stroke="#34d399" />
-  <text x="1430" y="775" class="node-desc" fill="#6ee7b7">Clarification Provided</text>
-
-  <line x1="1680" y1="735" x2="1680" y2="785" class="edge" stroke="#34d399" />
-  <text x="1690" y="760" class="node-desc" fill="#6ee7b7">All Fields Collected</text>
-
-  <line x1="1680" y1="835" x2="1470" y2="900" class="edge" stroke="#34d399" />
-  <line x1="1260" y1="635" x2="1470" y2="900" class="edge" stroke="#ef4444" />
-  <line x1="1260" y1="735" x2="1470" y2="900" class="edge" stroke="#f59e0b" />
-
-</svg>
-"""
-    svg_path = os.path.join(BASE_DIR, 'Architecture.svg')
-    with open(svg_path, 'w', encoding='utf-8') as f:
-        f.write(svg)
-
-    print(f"✅ Generated {svg_path}")
+def render_page1(c):
+    draw_header_footer(c, 1, "System Context Diagram (C4 Level 1)", "High-level entry points, core boundary, and external integration points (<10 sec comprehension)")
+    
+    # 1. Customer
+    draw_card(c, 50, 260, 140, 100, "Caller / Customer", "PSTN Phone / Browser UI", COLOR_GREY)
+    
+    # 2. Retell AI
+    draw_card(c, 230, 260, 140, 100, "Retell AI Platform", "Voice Gateway & STT/TTS", COLOR_BLUE)
+    
+    # 3. FNOL Voice Agent (System Boundary)
+    draw_card(c, 410, 210, 160, 200, "FNOL Voice Agent", "Railway Node.js Engine", COLOR_GREEN, colors.HexColor('#f0fdf4'))
+    
+    # 4. External Services (Stacked)
+    draw_card(c, 610, 350, 140, 70, "Gemini 2.5 Flash Lite", "Primary Extraction SSE", COLOR_ORANGE)
+    draw_card(c, 610, 250, 140, 70, "Google Sheets API", "Structured Claims DB", COLOR_PURPLE)
+    draw_card(c, 610, 150, 140, 70, "Resend REST API", "Transactional Emails", COLOR_PURPLE)
+    
+    # Connectors & Arrows
+    c.setStrokeColor(COLOR_TEXT_MAIN)
+    c.setLineWidth(1.5)
+    
+    # Caller -> Retell
+    c.line(190, 310, 230, 310)
+    c.drawString(195, 315, "Voice")
+    
+    # Retell -> FNOL Backend
+    c.line(370, 310, 410, 310)
+    c.drawString(375, 315, "WSS")
+    
+    # Backend -> Gemini
+    c.line(570, 350, 610, 385)
+    c.drawString(572, 372, "HTTPS SSE")
+    
+    # Backend -> Sheets
+    c.line(570, 310, 610, 285)
+    c.drawString(572, 302, "Async Log")
+    
+    # Backend -> Resend
+    c.line(570, 270, 610, 185)
+    c.drawString(572, 220, "Async Mail")
 
 # -----------------------------------------------------------------------------
-# 3. HIGH RES VECTOR PDF & PNG GENERATOR (VIA SVGLIB & PYMUPDF)
+# PAGE 2: CONTAINER DIAGRAM (C2)
 # -----------------------------------------------------------------------------
-def generate_pdf_and_png():
+def render_page2(c):
+    draw_header_footer(c, 2, "Container Diagram (C4 Level 2)", "Subsystem containers inside the FNOL Voice Agent Railway deployment boundary")
+    
+    # External Clients
+    draw_card(c, 40, 270, 120, 90, "Retell AI Telephony", "WSS Client Gateway", COLOR_BLUE)
+    
+    # Railway Container Boundary
+    c.setStrokeColor(COLOR_GREEN)
+    c.setFillColor(colors.HexColor('#f0fdf4'))
+    c.setLineWidth(1.5)
+    c.roundRect(190, 110, 430, 390, 10, fill=True, stroke=True)
+    c.setFillColor(COLOR_GREEN)
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(205, 482, "RAILWAY CLOUD CONTAINER (Node.js ESM Runtime)")
+    
+    # Inner Containers
+    draw_card(c, 210, 390, 180, 75, "Express HTTP / WS", "server.ts (Port 3000)", COLOR_GREEN)
+    draw_card(c, 420, 390, 180, 75, "ConversationManager", "ConversationManager.ts", COLOR_GREEN)
+    
+    draw_card(c, 210, 290, 180, 75, "State Engine", "ConversationState.ts", COLOR_GREEN)
+    draw_card(c, 420, 290, 180, 75, "LLM Extraction Service", "extractClaimData.ts", COLOR_GREEN)
+    
+    draw_card(c, 210, 190, 180, 75, "Claim Logger Service", "claimLogger.ts", COLOR_GREEN)
+    draw_card(c, 420, 190, 180, 75, "Notification Service", "notificationService.ts", COLOR_GREEN)
+    
+    draw_card(c, 210, 125, 390, 50, "Environment & Config", "policies.json, requiredFields.ts, constants.ts", COLOR_GREEN)
+
+    # External Integrations
+    draw_card(c, 650, 390, 110, 75, "Gemini 2.5 API", "REST / SSE", COLOR_ORANGE)
+    draw_card(c, 650, 290, 110, 75, "Google Sheets", "v4 REST API", COLOR_PURPLE)
+    draw_card(c, 650, 190, 110, 75, "Resend Email", "REST SDK", COLOR_PURPLE)
+
+    # Arrows
+    c.setStrokeColor(COLOR_TEXT_MAIN)
+    c.setLineWidth(1)
+    c.line(160, 315, 210, 425)
+    c.line(390, 427, 420, 427)
+    c.line(510, 390, 510, 365)
+    c.line(600, 327, 650, 427)
+    c.line(390, 227, 650, 327)
+    c.line(600, 227, 650, 227)
+
+# -----------------------------------------------------------------------------
+# PAGE 3: COMPONENT DIAGRAM (C3)
+# -----------------------------------------------------------------------------
+def render_page3(c):
+    draw_header_footer(c, 3, "Component Diagram (C4 Level 3)", "Modular services composing the ConversationManager domain orchestration engine")
+    
+    # Core Orchestrator Box
+    draw_card(c, 300, 430, 200, 65, "ConversationManager", "Core Orchestration & Routing", COLOR_GREEN, colors.HexColor('#dcfce7'))
+    
+    # Components Grid
+    draw_card(c, 50, 310, 150, 75, "VerifyPolicyService", "verifyPolicy.ts", COLOR_GREEN)
+    draw_card(c, 230, 310, 150, 75, "ExtractClaimData", "extractClaimData.ts", COLOR_GREEN)
+    draw_card(c, 410, 310, 150, 75, "NormalizeClaimData", "normalizeClaimData.ts", COLOR_GREEN)
+    draw_card(c, 590, 310, 150, 75, "RecommendServices", "recommendServices.ts", COLOR_GREEN)
+    
+    draw_card(c, 50, 180, 150, 75, "GenerateSummary", "generateSummary.ts", COLOR_GREEN)
+    draw_card(c, 230, 180, 150, 75, "ClaimLoggerService", "claimLogger.ts", COLOR_GREEN)
+    draw_card(c, 410, 180, 150, 75, "NotificationService", "notificationService.ts", COLOR_GREEN)
+    draw_card(c, 590, 180, 150, 75, "EmpathyEngine", "EmpathyEngine.ts", COLOR_GREEN)
+
+    # Dependencies Line
+    c.setStrokeColor(COLOR_BORDER)
+    c.setLineWidth(1)
+    for px in [125, 305, 485, 665]:
+        c.line(400, 430, px, 385)
+        c.line(px, 310, px, 255)
+
+# -----------------------------------------------------------------------------
+# PAGE 4: SEQUENCE DIAGRAM
+# -----------------------------------------------------------------------------
+def render_page4(c):
+    draw_header_footer(c, 4, "UML Request Sequence Diagram", "Synchronous voice interaction flow & non-blocking asynchronous persistence dispatch")
+    
+    # Lifelines
+    lifelines = [
+        ("Caller", 80, COLOR_GREY),
+        ("Retell AI", 200, COLOR_BLUE),
+        ("Railway Server", 340, COLOR_GREEN),
+        ("ConversationManager", 480, COLOR_GREEN),
+        ("Gemini 2.5", 620, COLOR_ORANGE),
+        ("Sheets & Resend", 730, COLOR_PURPLE)
+    ]
+    
+    for name, lx, color in lifelines:
+        c.setFillColor(color)
+        c.rect(lx - 45, 490, 90, 25, fill=True, stroke=False)
+        c.setFillColor(colors.HexColor('#ffffff'))
+        c.setFont("Helvetica-Bold", 8)
+        c.drawCentredString(lx, 500, name)
+        
+        c.setStrokeColor(COLOR_BORDER)
+        c.setLineWidth(0.5)
+        c.line(lx, 490, lx, 80)
+
+    # Sequence Messages
+    msgs = [
+        (80, 200, 460, "1. Dial / Initiate Call", False),
+        (200, 340, 435, "2. WS Connect & call_details", False),
+        (340, 200, 410, "3. Greeting (\"Are you safe?\")", False),
+        (80, 200, 380, "4. \"Yes safe. Policy MMI-10234 Arjun Rao.\"", False),
+        (200, 340, 355, "5. response_required", False),
+        (340, 480, 330, "6. handleUserMessage()", False),
+        (480, 620, 305, "7. extract(userMessage, state)", False),
+        (620, 480, 280, "8. Extracted Slots + Natural Response", False),
+        (480, 340, 255, "9. Verified Policy & Response Text", False),
+        (340, 200, 230, "10. response { content, content_complete }", False),
+        
+        # Async Block
+        (480, 730, 175, "11. Async log() -> Append Google Sheet Row", True),
+        (480, 730, 135, "12. Async sendMail() -> claims@aurallon.com", True)
+    ]
+
+    for x1, x2, y, text, is_async in msgs:
+        if is_async:
+            c.setStrokeColor(COLOR_PURPLE)
+            c.setFillColor(COLOR_PURPLE)
+            c.setLineWidth(1.5)
+        else:
+            c.setStrokeColor(COLOR_TEXT_MAIN)
+            c.setFillColor(COLOR_TEXT_MAIN)
+            c.setLineWidth(1)
+            
+        c.line(x1, y, x2, y)
+        c.setFont("Helvetica-Bold" if is_async else "Helvetica", 8)
+        c.drawString((x1 + x2) / 2 - 60, y + 4, text)
+
+# -----------------------------------------------------------------------------
+# PAGE 5: FINITE STATE MACHINE (FSM)
+# -----------------------------------------------------------------------------
+def render_page5(c):
+    draw_header_footer(c, 5, "Claim Finite State Machine (FSM)", "Deterministic state transitions, retry limits, escalation paths, and completion gates")
+    
+    # State Nodes
+    draw_card(c, 310, 440, 170, 50, "safety_check", "Initial Greeting & Safety", COLOR_BLUE)
+    draw_card(c, 70, 340, 170, 50, "escalation", "Urgent Incident Alert", COLOR_RED, colors.HexColor('#fef2f2'))
+    draw_card(c, 550, 340, 170, 50, "verification", "Policy & Name Lookup", COLOR_GREEN)
+    
+    draw_card(c, 70, 240, 170, 50, "callback_offer", "2 Verification Failures", COLOR_ORANGE)
+    draw_card(c, 550, 240, 170, 50, "collecting_details", "FNOL Fields Collection", COLOR_GREEN)
+    
+    draw_card(c, 70, 140, 170, 50, "clarifying", "Invalid Reg / Ambiguity", COLOR_BLUE)
+    draw_card(c, 550, 140, 170, 50, "recommending_services", "Towing / Garage Offer", COLOR_GREEN)
+    
+    draw_card(c, 310, 70, 170, 50, "completed", "Claim Logged & Dispatched", COLOR_GREEN, colors.HexColor('#dcfce7'))
+
+    # Transitions
+    c.setLineWidth(1.5)
+    
+    # safety -> escalation
+    c.setStrokeColor(COLOR_RED)
+    c.line(310, 465, 240, 365)
+    c.setFillColor(COLOR_RED); c.setFont("Helvetica-Bold", 8); c.drawString(220, 420, "Injury / Severe")
+
+    # safety -> verification
+    c.setStrokeColor(COLOR_GREEN)
+    c.line(480, 465, 550, 365)
+    c.setFillColor(COLOR_GREEN); c.setFont("Helvetica-Bold", 8); c.drawString(510, 420, "Safe / Fine")
+
+    # verification -> callback_offer
+    c.setStrokeColor(COLOR_ORANGE)
+    c.line(550, 365, 240, 265)
+    c.setFillColor(COLOR_ORANGE); c.setFont("Helvetica-Bold", 8); c.drawString(370, 320, "Attempts >= 2")
+
+    # verification -> collecting_details
+    c.setStrokeColor(COLOR_GREEN)
+    c.line(635, 340, 635, 290)
+    c.setFillColor(COLOR_GREEN); c.setFont("Helvetica-Bold", 8); c.drawString(642, 315, "Verified Match")
+
+    # collecting -> clarifying
+    c.setStrokeColor(COLOR_BLUE)
+    c.line(550, 265, 240, 165)
+    c.setFillColor(COLOR_BLUE); c.setFont("Helvetica-Bold", 8); c.drawString(370, 220, "Malformed Input")
+
+    # collecting -> recommending
+    c.setStrokeColor(COLOR_GREEN)
+    c.line(635, 240, 635, 190)
+    c.setFillColor(COLOR_GREEN); c.setFont("Helvetica-Bold", 8); c.drawString(642, 215, "All Fields Done")
+
+    # End paths -> completed
+    c.setStrokeColor(COLOR_GREEN)
+    c.line(635, 140, 480, 95)
+    c.line(155, 340, 310, 95)
+    c.line(155, 240, 310, 95)
+
+# -----------------------------------------------------------------------------
+# PAGE 6: DEPLOYMENT DIAGRAM
+# -----------------------------------------------------------------------------
+def render_page6(c):
+    draw_header_footer(c, 6, "Deployment Topology & Trust Boundaries", "Infrastructure nodes, container boundaries, environment credentials, and network ports")
+    
+    # Boundary 1: Client
+    draw_card(c, 40, 300, 140, 160, "Client Environment", "Inbound Call / Web Browser", COLOR_GREY)
+    
+    # Boundary 2: Retell Cloud
+    draw_card(c, 210, 300, 150, 160, "Retell Cloud", "agent_e907d38b...", COLOR_BLUE)
+    
+    # Boundary 3: Railway Cloud Platform
+    c.setStrokeColor(COLOR_GREEN)
+    c.setFillColor(colors.HexColor('#f0fdf4'))
+    c.setLineWidth(1.5)
+    c.roundRect(390, 120, 210, 340, 8, fill=True, stroke=True)
+    c.setFillColor(COLOR_GREEN)
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(405, 442, "RAILWAY CLOUD PLATFORM")
+    
+    draw_card(c, 405, 270, 180, 150, "App Container", "Node.js ESM / Express / WS\nPort 3000", COLOR_GREEN)
+    draw_card(c, 405, 140, 180, 110, "Env Credentials", "GEMINI_API_KEY\nRESEND_API_KEY\nGOOGLE_CREDENTIALS", COLOR_GREEN)
+
+    # Boundary 4: External SaaS APIs
+    draw_card(c, 630, 370, 130, 90, "Google Gemini", "generativelanguage.googleapis.com", COLOR_ORANGE)
+    draw_card(c, 630, 250, 130, 90, "Google Sheets", "sheets.googleapis.com", COLOR_PURPLE)
+    draw_card(c, 630, 130, 130, 90, "Resend Platform", "api.resend.com (aurallon.com)", COLOR_PURPLE)
+
+    # Connectors
+    c.setStrokeColor(COLOR_TEXT_MAIN)
+    c.setLineWidth(1)
+    c.line(180, 380, 210, 380)
+    c.line(360, 380, 405, 380)
+    c.line(585, 410, 630, 410)
+    c.line(585, 300, 630, 300)
+    c.line(585, 180, 630, 180)
+
+# -----------------------------------------------------------------------------
+# PAGE 7: DATA FLOW DIAGRAM
+# -----------------------------------------------------------------------------
+def render_page7(c):
+    draw_header_footer(c, 7, "Data Flow & Transformation Pipeline", "Step-by-step data schema transformations from raw audio transcript to persistent records")
+    
+    steps = [
+        ("1. Spoken Audio", "Caller Voice Input", COLOR_GREY),
+        ("2. Raw Transcript", "Retell STT Engine", COLOR_BLUE),
+        ("3. JSON Extraction", "Gemini 2.5 Flash Lite", COLOR_ORANGE),
+        ("4. Normalized Claim Patch", "normalizeClaimData.ts", COLOR_GREEN),
+        ("5. ConversationState", "State Machine Merge", COLOR_GREEN),
+        ("6. Call Summary & Severity", "generateSummary.ts", COLOR_GREEN),
+        ("7. Google Sheets Row", "Structured Claim Record", COLOR_PURPLE),
+        ("8. Email Confirmation", "Resend REST SDK", COLOR_PURPLE),
+        ("9. Claim Completed", "Customer Delivery", COLOR_GREEN)
+    ]
+    
+    # 3x3 Grid Layout
+    grid_coords = [
+        (50, 380), (310, 380), (570, 380),
+        (50, 240), (310, 240), (570, 240),
+        (50, 100), (310, 100), (570, 100)
+    ]
+    
+    for idx, (title, desc, color) in enumerate(steps):
+        gx, gy = grid_coords[idx]
+        draw_card(c, gx, gy, 170, 80, title, desc, color)
+        
+        # Connectors
+        if idx in [0, 1, 3, 4, 6, 7]:
+            c.setStrokeColor(COLOR_TEXT_MAIN)
+            c.setLineWidth(1.5)
+            c.line(gx + 170, gy + 40, gx + 260, gy + 40)
+        elif idx in [2, 5]:
+            c.setStrokeColor(COLOR_TEXT_MAIN)
+            c.setLineWidth(1.5)
+            c.line(gx + 85, gy, gx + 85, gy - 60)
+
+# -----------------------------------------------------------------------------
+# MAIN GENERATOR PIPELINE
+# -----------------------------------------------------------------------------
+def build_all_artifacts():
     pdf_path = os.path.join(BASE_DIR, 'Architecture.pdf')
     png_path = os.path.join(BASE_DIR, 'Architecture.png')
-
-    # Convert SVG -> PDF via svglib & reportlab
-    drawing = svg2rlg(os.path.join(BASE_DIR, 'Architecture.svg'))
-    renderPDF.drawToFile(drawing, pdf_path)
-    print(f"✅ Rendered vector PDF {pdf_path}")
+    svg_path = os.path.join(BASE_DIR, 'Architecture.svg')
+    
+    c = canvas.Canvas(pdf_path, pagesize=landscape(letter))
+    
+    # Render all 7 pages into PDF
+    pages = [render_page1, render_page2, render_page3, render_page4, render_page5, render_page6, render_page7]
+    for idx, page_fn in enumerate(pages):
+        page_fn(c)
+        c.showPage()
+    
+    c.save()
+    print(f"✅ Generated 7-page PDF: {pdf_path}")
 
     # Render PDF -> High-Res PNG via PyMuPDF (fitz) at 200 DPI
     doc = fitz.open(pdf_path)
-    page = doc[0]
+    page = doc[0] # Render Page 1 (or combined view)
     pix = page.get_pixmap(dpi=200)
     pix.save(png_path)
-    print(f"✅ Rendered high-res PNG {png_path}")
+    print(f"✅ Rendered high-res PNG (Page 1 preview): {png_path}")
 
 if __name__ == '__main__':
-    generate_drawio_xml()
-    generate_svg()
-    generate_pdf_and_png()
+    build_all_artifacts()
