@@ -92,3 +92,20 @@ export class LocalJsonClaimLogger implements ClaimLoggerService {
 export function createLocalJsonClaimLogger(filePath?: string): ClaimLoggerService {
   return new LocalJsonClaimLogger(filePath);
 }
+
+export class NotificationClaimLogger implements ClaimLoggerService {
+  constructor(
+    private readonly innerLogger: ClaimLoggerService,
+    private readonly notificationService: import('./notificationService.js').NotificationService,
+  ) {}
+
+  async log(record: ClaimLogRecord): Promise<void> {
+    await this.innerLogger.log(record);
+    try {
+      await this.notificationService.sendClaimConfirmation(record);
+    } catch (error) {
+      console.error(`[NotificationClaimLogger] Graceful recovery from notification error for claim ${record.claimNumber}:`, error);
+    }
+  }
+}
+

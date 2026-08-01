@@ -9,8 +9,10 @@ import {
 import {
   DEFAULT_CLAIMS_FILE_PATH,
   createLocalJsonClaimLogger,
+  NotificationClaimLogger,
   type ClaimLoggerService,
 } from './services/claimLogger.js';
+import { createNotificationService } from './services/notificationService.js';
 import { createExtractClaimDataService } from './services/extractClaimData.js';
 import { createGenerateSummaryService } from './services/generateSummary.js';
 import { createGeminiService } from './llm/gemini.js';
@@ -104,7 +106,10 @@ export function createRuntimeDependencies(): ConversationManagerDependencies {
   const localLogger = createLocalJsonClaimLogger(DEFAULT_CLAIMS_FILE_PATH);
   const outboxLogger = createLocalJsonClaimLogger(DEFAULT_CLAIMS_FILE_PATH.replace('claims.json', 'outbox.json'));
   const sheetsLogger = new GoogleSheetsClaimLogger('1bRu1nK9IL8a7DCSXSQ-jXHczpfcPNJ3PJoWw-zjzcJw');
-  const claimLogger = new MultiClaimLogger([localLogger, sheetsLogger], outboxLogger);
+  const multiLogger = new MultiClaimLogger([localLogger, sheetsLogger], outboxLogger);
+
+  const notificationService = createNotificationService();
+  const claimLogger = new NotificationClaimLogger(multiLogger, notificationService);
 
   return {
     verifyPolicy: createVerifyPolicyService(),
