@@ -5,16 +5,15 @@
     .title { font-size: 26px; font-weight: 800; fill: #f8fafc; text-anchor: middle; letter-spacing: 1px; }
     .subtitle { font-size: 14px; font-weight: 500; fill: #94a3b8; text-anchor: middle; }
     .section-title { font-size: 16px; font-weight: 700; fill: #38bdf8; letter-spacing: 0.5px; }
-    .card-bg { fill: #1e293b; stroke-width: 1.5; rx: 12; ry: 12; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+    .card-bg { fill: #1e293b; stroke-width: 1.5; rx: 12; ry: 12; }
     .box-bg { fill: #0f172a; stroke-width: 1.5; rx: 8; ry: 8; }
     .node-title { font-size: 13px; font-weight: 700; fill: #f8fafc; }
     .node-desc { font-size: 11px; fill: #94a3b8; }
     .edge { fill: none; stroke-width: 2; stroke-dasharray: none; }
     .edge-async { fill: none; stroke-width: 2; stroke-dasharray: 6,4; }
-    .badge { font-size: 10px; font-weight: 700; fill: #ffffff; }
   </style>
 
-  <!-- BACKGROUND DECORATION -->
+  <!-- BACKGROUND -->
   <rect width="1920" height="1280" fill="#0f172a" />
   <circle cx="200" cy="150" r="300" fill="#3b82f6" opacity="0.03" />
   <circle cx="1700" cy="1000" r="400" fill="#8b5cf6" opacity="0.03" />
@@ -112,7 +111,6 @@
   <line x1="910" y1="500" x2="910" y2="1200" stroke="#334155" stroke-dasharray="4,4" />
 
   <!-- Sequence Messages -->
-  <!-- 1. Call Init -->
   <line x1="135" y1="530" x2="315" y2="530" class="edge" stroke="#60a5fa" />
   <text x="145" y="525" class="node-desc" fill="#93c5fd">1. Initiates Phone / Web Call</text>
 
@@ -125,7 +123,6 @@
   <line x1="510" y1="630" x2="315" y2="630" class="edge" stroke="#34d399" />
   <text x="335" y="625" class="node-desc" fill="#6ee7b7">4. Greeting ("Before we begin, are you safe?")</text>
 
-  <!-- 2. User Utterance -->
   <line x1="135" y1="670" x2="315" y2="670" class="edge" stroke="#60a5fa" />
   <text x="145" y="665" class="node-desc" fill="#93c5fd">5. "Yes safe. Policy MMI-10234 Arjun Rao."</text>
 

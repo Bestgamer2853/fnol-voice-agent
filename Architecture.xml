@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mxfile host="Electron" modified="2026-08-01T13:00:00.000Z" agent="Antigravity Architecture Generator" version="21.6.8" type="device">
+<mxfile host="Electron" modified="2026-08-01T13:30:00.000Z" agent="Antigravity Architecture Generator" version="21.6.8" type="device">
   <diagram id="fnol-voice-agent-arch" name="Meridian FNOL Voice Agent Architecture">
-    <mxGraphModel dx="1422" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" background="#0f172a" math="0" shadow="0">
+    <mxGraphModel dx="1422" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1400" background="#0f172a" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -12,7 +12,7 @@
         </mxCell>
 
         <!-- SUBTITLE -->
-        <mxCell id="subtitle" value="Production Solutions Architecture &amp; Hybrid FSM/LLM Data Flow Pipeline" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#94a3b8;" vertex="1" parent="1">
+        <mxCell id="subtitle" value="Production Solutions Architecture, Sequence Request Flow &amp; Finite State Machine" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#94a3b8;" vertex="1" parent="1">
           <mxGeometry x="560" y="55" width="800" height="25" as="geometry" />
         </mxCell>
 
@@ -57,7 +57,7 @@
           <mxGeometry x="960" y="100" width="260" height="240" as="geometry" />
         </mxCell>
         <mxCell id="node_gemini" value="✨ Gemini 2.5 Flash Lite&#xa;(Native SSE Stream Engine)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#fbbf24;fontColor=#f8fafc;fontSize=12;fontStyle=1;" vertex="1" parent="box_ai">
-          <mxGeometry x="20" y="80" width="220" height="90" as="geometry" />
+          <mxGeometry x="20" y="75" width="220" height="100" as="geometry" />
         </mxCell>
 
         <!-- CONTAINER: PERSISTENCE & NOTIFICATIONS -->

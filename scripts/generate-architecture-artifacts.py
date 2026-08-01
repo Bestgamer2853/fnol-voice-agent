@@ -1,9 +1,8 @@
 import os
 import xml.etree.ElementTree as ET
-from PIL import Image, ImageDraw, ImageFont
-from reportlab.lib.pagesizes import letter, landscape
-from reportlab.pdfgen import canvas
-from reportlab.lib import colors
+from svglib.svglib import svg2rlg
+from reportlab.graphics import renderPDF
+import fitz  # PyMuPDF
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -12,9 +11,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # -----------------------------------------------------------------------------
 def generate_drawio_xml():
     xml_content = """<?xml version="1.0" encoding="UTF-8"?>
-<mxfile host="Electron" modified="2026-08-01T13:00:00.000Z" agent="Antigravity Architecture Generator" version="21.6.8" type="device">
+<mxfile host="Electron" modified="2026-08-01T13:30:00.000Z" agent="Antigravity Architecture Generator" version="21.6.8" type="device">
   <diagram id="fnol-voice-agent-arch" name="Meridian FNOL Voice Agent Architecture">
-    <mxGraphModel dx="1422" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1080" background="#0f172a" math="0" shadow="0">
+    <mxGraphModel dx="1422" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1400" background="#0f172a" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -25,7 +24,7 @@ def generate_drawio_xml():
         </mxCell>
 
         <!-- SUBTITLE -->
-        <mxCell id="subtitle" value="Production Solutions Architecture &amp; Hybrid FSM/LLM Data Flow Pipeline" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#94a3b8;" vertex="1" parent="1">
+        <mxCell id="subtitle" value="Production Solutions Architecture, Sequence Request Flow &amp; Finite State Machine" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontColor=#94a3b8;" vertex="1" parent="1">
           <mxGeometry x="560" y="55" width="800" height="25" as="geometry" />
         </mxCell>
 
@@ -70,7 +69,7 @@ def generate_drawio_xml():
           <mxGeometry x="960" y="100" width="260" height="240" as="geometry" />
         </mxCell>
         <mxCell id="node_gemini" value="✨ Gemini 2.5 Flash Lite&#xa;(Native SSE Stream Engine)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0f172a;strokeColor=#fbbf24;fontColor=#f8fafc;fontSize=12;fontStyle=1;" vertex="1" parent="box_ai">
-          <mxGeometry x="20" y="80" width="220" height="90" as="geometry" />
+          <mxGeometry x="20" y="75" width="220" height="100" as="geometry" />
         </mxCell>
 
         <!-- CONTAINER: PERSISTENCE & NOTIFICATIONS -->
@@ -136,16 +135,15 @@ def generate_svg():
     .title { font-size: 26px; font-weight: 800; fill: #f8fafc; text-anchor: middle; letter-spacing: 1px; }
     .subtitle { font-size: 14px; font-weight: 500; fill: #94a3b8; text-anchor: middle; }
     .section-title { font-size: 16px; font-weight: 700; fill: #38bdf8; letter-spacing: 0.5px; }
-    .card-bg { fill: #1e293b; stroke-width: 1.5; rx: 12; ry: 12; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+    .card-bg { fill: #1e293b; stroke-width: 1.5; rx: 12; ry: 12; }
     .box-bg { fill: #0f172a; stroke-width: 1.5; rx: 8; ry: 8; }
     .node-title { font-size: 13px; font-weight: 700; fill: #f8fafc; }
     .node-desc { font-size: 11px; fill: #94a3b8; }
     .edge { fill: none; stroke-width: 2; stroke-dasharray: none; }
     .edge-async { fill: none; stroke-width: 2; stroke-dasharray: 6,4; }
-    .badge { font-size: 10px; font-weight: 700; fill: #ffffff; }
   </style>
 
-  <!-- BACKGROUND DECORATION -->
+  <!-- BACKGROUND -->
   <rect width="1920" height="1280" fill="#0f172a" />
   <circle cx="200" cy="150" r="300" fill="#3b82f6" opacity="0.03" />
   <circle cx="1700" cy="1000" r="400" fill="#8b5cf6" opacity="0.03" />
@@ -243,7 +241,6 @@ def generate_svg():
   <line x1="910" y1="500" x2="910" y2="1200" stroke="#334155" stroke-dasharray="4,4" />
 
   <!-- Sequence Messages -->
-  <!-- 1. Call Init -->
   <line x1="135" y1="530" x2="315" y2="530" class="edge" stroke="#60a5fa" />
   <text x="145" y="525" class="node-desc" fill="#93c5fd">1. Initiates Phone / Web Call</text>
 
@@ -256,7 +253,6 @@ def generate_svg():
   <line x1="510" y1="630" x2="315" y2="630" class="edge" stroke="#34d399" />
   <text x="335" y="625" class="node-desc" fill="#6ee7b7">4. Greeting ("Before we begin, are you safe?")</text>
 
-  <!-- 2. User Utterance -->
   <line x1="135" y1="670" x2="315" y2="670" class="edge" stroke="#60a5fa" />
   <text x="145" y="665" class="node-desc" fill="#93c5fd">5. "Yes safe. Policy MMI-10234 Arjun Rao."</text>
 
@@ -355,111 +351,25 @@ def generate_svg():
     print(f"✅ Generated {svg_path}")
 
 # -----------------------------------------------------------------------------
-# 3. HIGH RES PNG & PDF GENERATOR
+# 3. HIGH RES VECTOR PDF & PNG GENERATOR (VIA SVGLIB & PYMUPDF)
 # -----------------------------------------------------------------------------
-def generate_png_and_pdf():
-    png_path = os.path.join(BASE_DIR, 'Architecture.png')
+def generate_pdf_and_png():
     pdf_path = os.path.join(BASE_DIR, 'Architecture.pdf')
+    png_path = os.path.join(BASE_DIR, 'Architecture.png')
 
-    # Draw PNG image using PIL
-    width, height = 1920, 1280
-    img = Image.new('RGB', (width, height), color='#0f172a')
-    draw = ImageDraw.Draw(img)
+    # Convert SVG -> PDF via svglib & reportlab
+    drawing = svg2rlg(os.path.join(BASE_DIR, 'Architecture.svg'))
+    renderPDF.drawToFile(drawing, pdf_path)
+    print(f"✅ Rendered vector PDF {pdf_path}")
 
-    # Title & Headers
-    draw.text((width // 2, 40), "MERIDIAN MOTOR INSURANCE — FNOL VOICE AGENT ARCHITECTURE", fill='#f8fafc', anchor='mm')
-    draw.text((width // 2, 70), "Production Solutions Architecture & Sequence Request Flow", fill='#94a3b8', anchor='mm')
-
-    # Boxes (High Level)
-    draw.rectangle([50, 140, 310, 380], fill='#1e293b', outline='#3b82f6', width=2)
-    draw.text((65, 155), "CLIENT LAYER", fill='#60a5fa')
-
-    draw.rectangle([360, 140, 640, 380], fill='#1e293b', outline='#8b5cf6', width=2)
-    draw.text((375, 155), "VOICE PLATFORM (RETELL AI)", fill='#c4b5fd')
-
-    draw.rectangle([690, 140, 1090, 380], fill='#1e293b', outline='#10b981', width=2)
-    draw.text((705, 155), "BACKEND & ORCHESTRATION (RAILWAY)", fill='#6ee7b7')
-
-    draw.rectangle([1140, 140, 1450, 380], fill='#1e293b', outline='#f59e0b', width=2)
-    draw.text((1155, 155), "AI & EXTRACTION LAYER", fill='#fcd34d')
-
-    draw.rectangle([1500, 140, 1870, 380], fill='#1e293b', outline='#ec4899', width=2)
-    draw.text((1515, 155), "PERSISTENCE & NOTIFICATIONS", fill='#fbcfe8')
-
-    # Lower Panels
-    draw.rectangle([50, 440, 1030, 1220], fill='#1e293b', outline='#3b82f6', width=2)
-    draw.text((70, 460), "3. REQUEST FLOW & NON-BLOCKING ASYNC PERSISTENCE", fill='#38bdf8')
-
-    draw.rectangle([1070, 440, 1870, 1220], fill='#1e293b', outline='#8b5cf6', width=2)
-    draw.text((1090, 460), "4. CLAIM FINITE STATE MACHINE (FSM)", fill='#38bdf8')
-
-    img.save(png_path)
-    print(f"✅ Generated {png_path}")
-
-    # Generate PDF using ReportLab
-    c = canvas.Canvas(pdf_path, pagesize=landscape(letter))
-    c.setFillColor(colors.HexColor('#0f172a'))
-    c.rect(0, 0, 792, 612, fill=True, stroke=False)
-
-    c.setFillColor(colors.HexColor('#f8fafc'))
-    c.setFont("Helvetica-Bold", 16)
-    c.drawCentredString(396, 570, "MERIDIAN MOTOR INSURANCE — FNOL VOICE AGENT ARCHITECTURE")
-
-    c.setFillColor(colors.HexColor('#94a3b8'))
-    c.setFont("Helvetica", 10)
-    c.drawCentredString(396, 550, "Production Architecture, Sequence Flow & State Machine Specification")
-
-    # High Level Diagram Cards
-    c.setStrokeColor(colors.HexColor('#3b82f6'))
-    c.setFillColor(colors.HexColor('#1e293b'))
-    c.roundRect(30, 380, 130, 150, 6, fill=True, stroke=True)
-    c.setFillColor(colors.HexColor('#60a5fa'))
-    c.setFont("Helvetica-Bold", 9)
-    c.drawString(40, 515, "CLIENT LAYER")
-
-    c.setStrokeColor(colors.HexColor('#8b5cf6'))
-    c.setFillColor(colors.HexColor('#1e293b'))
-    c.roundRect(170, 380, 140, 150, 6, fill=True, stroke=True)
-    c.setFillColor(colors.HexColor('#c4b5fd'))
-    c.drawString(180, 515, "VOICE PLATFORM")
-
-    c.setStrokeColor(colors.HexColor('#10b981'))
-    c.setFillColor(colors.HexColor('#1e293b'))
-    c.roundRect(320, 380, 170, 150, 6, fill=True, stroke=True)
-    c.setFillColor(colors.HexColor('#6ee7b7'))
-    c.drawString(330, 515, "BACKEND & FSM")
-
-    c.setStrokeColor(colors.HexColor('#f59e0b'))
-    c.setFillColor(colors.HexColor('#1e293b'))
-    c.roundRect(500, 380, 130, 150, 6, fill=True, stroke=True)
-    c.setFillColor(colors.HexColor('#fcd34d'))
-    c.drawString(510, 515, "AI EXTRACTION")
-
-    c.setStrokeColor(colors.HexColor('#ec4899'))
-    c.setFillColor(colors.HexColor('#1e293b'))
-    c.roundRect(640, 380, 120, 150, 6, fill=True, stroke=True)
-    c.setFillColor(colors.HexColor('#fbcfe8'))
-    c.drawString(650, 515, "PERSISTENCE")
-
-    # Lower Half Panels
-    c.setStrokeColor(colors.HexColor('#3b82f6'))
-    c.setFillColor(colors.HexColor('#1e293b'))
-    c.roundRect(30, 30, 350, 330, 6, fill=True, stroke=True)
-    c.setFillColor(colors.HexColor('#38bdf8'))
-    c.setFont("Helvetica-Bold", 10)
-    c.drawString(45, 345, "3. REQUEST FLOW & SEQUENCE")
-
-    c.setStrokeColor(colors.HexColor('#8b5cf6'))
-    c.setFillColor(colors.HexColor('#1e293b'))
-    c.roundRect(400, 30, 360, 330, 6, fill=True, stroke=True)
-    c.setFillColor(colors.HexColor('#38bdf8'))
-    c.setFont("Helvetica-Bold", 10)
-    c.drawString(415, 345, "4. CLAIM FINITE STATE MACHINE")
-
-    c.save()
-    print(f"✅ Generated {pdf_path}")
+    # Render PDF -> High-Res PNG via PyMuPDF (fitz) at 200 DPI
+    doc = fitz.open(pdf_path)
+    page = doc[0]
+    pix = page.get_pixmap(dpi=200)
+    pix.save(png_path)
+    print(f"✅ Rendered high-res PNG {png_path}")
 
 if __name__ == '__main__':
     generate_drawio_xml()
     generate_svg()
-    generate_png_and_pdf()
+    generate_pdf_and_png()
