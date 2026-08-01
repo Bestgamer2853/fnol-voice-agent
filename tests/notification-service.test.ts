@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { createNotificationService, NodemailerNotificationService } from '../src/services/notificationService.js';
+import { createNotificationService, ResendNotificationService } from '../src/services/notificationService.js';
 import { NotificationClaimLogger, type ClaimLogRecord } from '../src/services/claimLogger.js';
 
 describe('Notification Service (P0)', () => {

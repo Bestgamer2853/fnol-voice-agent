@@ -48,6 +48,9 @@ Read the documents in `docs/` before changing this system, especially `handoff.m
 | `GROQ_API_KEY` | `src/runtime.ts`, `src/llm/groq.ts` | Enables optional fallback. |
 | `GROQ_MODEL`, `GROQ_ENDPOINT_BASE_URL` | `src/llm/groq.ts` | Optional fallback settings. |
 | `GOOGLE_CREDENTIALS_JSON` | `src/storage/googleSheets.ts` | Service-account JSON; otherwise local `google-credentials.json` is used. |
+| `RESEND_API_KEY` | `src/services/notificationService.ts` | Production transactional email API key. |
+| `RESEND_FROM_EMAIL` | `src/services/notificationService.ts` | Resend verified sender email address. |
+| `NOTIFICATION_EMAIL_TO` | `src/services/notificationService.ts` | Recipient email address for claim confirmations. |
 
 `.env.example` also declares `WEBSOCKET_PORT`, `ENVIRONMENT`, `LLM_PROVIDER`, and OpenRouter variables, but current runtime does not consume them.
 

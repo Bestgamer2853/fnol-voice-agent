@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import type { ClaimLogRecord } from './claimLogger.js';
 
 export interface NotificationResult {
@@ -10,6 +10,7 @@ export interface NotificationResult {
 
 export interface RawSendMailInfo {
   mailOptions?: Record<string, any>;
+  resendResponse?: any;
   rawMime?: string;
   messageId?: string;
   accepted?: any;
@@ -32,36 +33,24 @@ export interface NotificationService {
 }
 
 export interface NotificationServiceConfig {
-  smtpHost?: string | undefined;
-  smtpPort?: number | undefined;
-  smtpUser?: string | undefined;
-  smtpPass?: string | undefined;
-  smtpSecure?: boolean | undefined;
+  apiKey?: string | undefined;
   emailFrom?: string | undefined;
   defaultEmailTo?: string | undefined;
 }
 
 export function getConfigFromEnv(): NotificationServiceConfig {
-  const smtpHost = process.env.SMTP_HOST?.trim() || process.env.SMTP_SERVER?.trim();
-  const smtpUser = process.env.SMTP_USER?.trim() || process.env.SMTP_USERNAME?.trim() || process.env.EMAIL_USER?.trim();
-  const rawPass = process.env.SMTP_PASS?.trim() || process.env.SMTP_PASSWORD?.trim() || process.env.EMAIL_PASS?.trim();
-  const smtpPass = rawPass ? rawPass.replace(/\s+/g, '') : undefined;
-  const smtpPortStr = process.env.SMTP_PORT || process.env.EMAIL_PORT;
-  const smtpPort = smtpPortStr ? parseInt(smtpPortStr, 10) : 587;
-  const smtpSecure = process.env.SMTP_SECURE === 'true' || smtpPort === 465;
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const emailFrom = process.env.RESEND_FROM_EMAIL?.trim() || process.env.NOTIFICATION_EMAIL_FROM?.trim() || 'onboarding@resend.dev';
+  const defaultEmailTo = process.env.NOTIFICATION_EMAIL_TO?.trim() || 'delivered@resend.dev';
 
   return {
-    smtpHost,
-    smtpPort,
-    smtpUser,
-    smtpPass,
-    smtpSecure,
-    emailFrom: process.env.NOTIFICATION_EMAIL_FROM?.trim() || process.env.EMAIL_FROM?.trim() || smtpUser || 'claims@meridianinsurance.com',
-    defaultEmailTo: process.env.NOTIFICATION_EMAIL_TO?.trim() || process.env.EMAIL_TO?.trim() || smtpUser || 'customer@example.com',
+    apiKey,
+    emailFrom,
+    defaultEmailTo,
   };
 }
 
-export class NodemailerNotificationService implements NotificationService {
+export class ResendNotificationService implements NotificationService {
   private config: NotificationServiceConfig;
 
   constructor(config?: NotificationServiceConfig) {
@@ -76,13 +65,11 @@ export class NodemailerNotificationService implements NotificationService {
     const incidentSummary = record.summary || record.claim.incidentDescription || 'No description provided';
     const timestamp = record.timestamp || new Date().toISOString();
 
-    // Priority for destination address:
-    // 1. NOTIFICATION_EMAIL_TO env var (if configured and not default mock)
-    // 2. SMTP_USER env var (if NOTIFICATION_EMAIL_TO is omitted/default)
-    // 3. customer@example.com fallback
-    const targetRecipient = (activeConfig.defaultEmailTo && activeConfig.defaultEmailTo !== 'customer@example.com')
-      ? activeConfig.defaultEmailTo
-      : (activeConfig.smtpUser || 'customer@example.com');
+    const targetRecipient = activeConfig.defaultEmailTo || 'delivered@resend.dev';
+    const senderEmail = activeConfig.emailFrom || 'onboarding@resend.dev';
+    const formattedFrom = senderEmail.includes('<')
+      ? senderEmail
+      : `"Meridian Motor Insurance" <${senderEmail}>`;
 
     const subject = `[Meridian Insurance] Claim Confirmation - ${claimNumber}`;
 
@@ -145,158 +132,116 @@ Meridian Motor Insurance Claims Team
 </html>
     `.trim();
 
-    try {
-      const headers = {
+    const mailOptions = {
+      from: formattedFrom,
+      to: [targetRecipient],
+      subject,
+      text: textContent,
+      html: htmlContent,
+      headers: {
         'X-Application-Name': 'Meridian Motor Insurance FNOL Voice Agent',
         'X-Claim-Reference': claimNumber,
-      };
+      },
+    };
 
-      const mailOptions: nodemailer.SendMailOptions = {
-        from: activeConfig.smtpUser
-          ? `"Meridian Motor Insurance" <${activeConfig.smtpUser}>`
-          : (activeConfig.emailFrom || 'claims@meridianinsurance.com'),
-        to: targetRecipient,
-        subject,
-        text: textContent,
-        html: htmlContent,
-        attachments: [],
-        headers,
-      };
+    console.log('==================================================');
+    console.log('[NotificationService] RESEND EMAIL PAYLOAD (Pre-send):');
+    console.log(`- From:    ${mailOptions.from}`);
+    console.log(`- To:      ${JSON.stringify(mailOptions.to)}`);
+    console.log(`- Subject: ${mailOptions.subject}`);
+    console.log('==================================================');
 
-      console.log('==================================================');
-      console.log('[NotificationService] COMPLETE MAILOPTIONS OBJECT (Pre-send):');
-      console.log(`- Subject:     ${mailOptions.subject}`);
-      console.log(`- From:        ${mailOptions.from}`);
-      console.log(`- To:          ${mailOptions.to}`);
-      console.log(`- Text Body:\n${mailOptions.text}`);
-      console.log(`- HTML Body:\n${mailOptions.html}`);
-      console.log(`- Attachments: ${JSON.stringify(mailOptions.attachments)}`);
-      console.log(`- Headers:     ${JSON.stringify(mailOptions.headers)}`);
-      console.log('==================================================');
+    try {
+      if (activeConfig.apiKey) {
+        const resend = new Resend(activeConfig.apiKey);
 
-      let rawMimeMessage = '';
-      try {
-        const streamTransporter = nodemailer.createTransport({ streamTransport: true, buffer: true });
-        const mimeResult = await streamTransporter.sendMail(mailOptions);
-        rawMimeMessage = (mimeResult.message as Buffer).toString('utf-8');
-        console.log('[NotificationService] COMPILED RFC822 RAW MIME MESSAGE:');
-        console.log(rawMimeMessage);
-      } catch (mimeErr) {
-        console.error('[NotificationService] Error compiling RFC822 MIME message:', mimeErr);
-      }
+        const response = await resend.emails.send({
+          from: mailOptions.from,
+          to: mailOptions.to,
+          subject: mailOptions.subject,
+          text: mailOptions.text,
+          html: mailOptions.html,
+          headers: mailOptions.headers,
+        });
 
-      if (activeConfig.smtpHost && activeConfig.smtpUser && activeConfig.smtpPass) {
-        // Real SMTP transport via environment variable credentials
-        const transporter = nodemailer.createTransport({
-          host: activeConfig.smtpHost,
-          port: activeConfig.smtpPort,
-          secure: activeConfig.smtpSecure,
-          auth: {
-            user: activeConfig.smtpUser,
-            pass: activeConfig.smtpPass,
-          },
-          family: 4, // Force IPv4 resolution to prevent ENETUNREACH IPv6 network errors on Railway containers
-        } as nodemailer.TransportOptions);
+        if (response.error) {
+          console.error(`[NotificationService] RESEND API ERROR:`, response.error);
+          globalNotificationState.latestSendMailInfo = {
+            mailOptions,
+            resendResponse: response,
+            error: response.error.message,
+            simulated: false,
+            timestamp: new Date().toISOString(),
+          };
+          return {
+            success: false,
+            error: response.error.message,
+          };
+        }
 
-        console.log(`[NotificationService] Attempting Nodemailer sendMail via SMTP host=${activeConfig.smtpHost}:${activeConfig.smtpPort} from=${mailOptions.from} to=${mailOptions.to}`);
-
-        const info = await transporter.sendMail(mailOptions);
+        const messageId = response.data?.id || `resend-${Date.now()}`;
 
         globalNotificationState.latestSendMailInfo = {
-          mailOptions: {
-            from: mailOptions.from,
-            to: mailOptions.to,
-            subject: mailOptions.subject,
-            text: mailOptions.text,
-            html: mailOptions.html,
-            attachments: mailOptions.attachments,
-            headers: mailOptions.headers as any,
-          },
-          rawMime: rawMimeMessage,
-          messageId: info.messageId,
-          accepted: info.accepted,
-          rejected: info.rejected,
-          envelope: info.envelope,
-          response: info.response,
+          mailOptions,
+          resendResponse: response,
+          messageId,
+          accepted: [targetRecipient],
+          rejected: [],
+          envelope: { from: formattedFrom, to: [targetRecipient] },
+          response: '200 OK (Resend REST API)',
           simulated: false,
           timestamp: new Date().toISOString(),
         };
 
-        console.log(`[NotificationService] RAW NODEMAILER SENDMAIL RESULT:`);
-        console.log(`- messageId: ${info.messageId}`);
-        console.log(`- accepted:  ${JSON.stringify(info.accepted)}`);
-        console.log(`- rejected:  ${JSON.stringify(info.rejected)}`);
-        console.log(`- envelope:  ${JSON.stringify(info.envelope)}`);
-        console.log(`- response:  ${info.response}`);
+        console.log(`[NotificationService] RESEND DISPATCH SUCCESS: id=${messageId}`);
 
-        return { success: true, messageId: info.messageId, simulated: false };
+        return {
+          success: true,
+          messageId,
+          simulated: false,
+        };
       } else {
-        // Simulated / Fallback email dispatch (for dev, testing, or unconfigured SMTP)
-        const jsonTransporter = nodemailer.createTransport({
-          jsonTransport: true,
-        });
-
-        const info = await jsonTransporter.sendMail(mailOptions);
-
+        // Simulated / Fallback mode when RESEND_API_KEY is not configured
+        const simulatedId = `sim-resend-${claimNumber}`;
         globalNotificationState.latestSendMailInfo = {
-          mailOptions: {
-            from: mailOptions.from,
-            to: mailOptions.to,
-            subject: mailOptions.subject,
-            text: mailOptions.text,
-            html: mailOptions.html,
-            attachments: mailOptions.attachments,
-            headers: mailOptions.headers as any,
-          },
-          rawMime: rawMimeMessage,
-          messageId: info.messageId,
+          mailOptions,
+          messageId: simulatedId,
           accepted: [targetRecipient],
           rejected: [],
-          envelope: info.envelope,
-          response: info.response || '250 Simulated OK',
+          envelope: { from: formattedFrom, to: [targetRecipient] },
+          response: '200 OK (Simulated Resend API)',
           simulated: true,
           timestamp: new Date().toISOString(),
         };
 
-        console.log(`[NotificationService] SIMULATED NODEMAILER SENDMAIL RESULT (No SMTP credentials in env):`);
-        console.log(`- messageId: ${info.messageId}`);
-        console.log(`- accepted:  ${JSON.stringify(info.accepted)}`);
-        console.log(`- rejected:  ${JSON.stringify(info.rejected)}`);
-        console.log(`- envelope:  ${JSON.stringify(info.envelope)}`);
-        console.log(`- response:  ${info.response}`);
+        console.log(`[NotificationService] SIMULATED RESEND DISPATCH (No RESEND_API_KEY): id=${simulatedId}`);
 
         return {
           success: true,
-          messageId: info.messageId || `sim-${claimNumber}`,
+          messageId: simulatedId,
           simulated: true,
         };
       }
     } catch (err: unknown) {
       const errorObj = err as any;
+      const errorMsg = errorObj?.message || String(err);
+      console.error(`[NotificationService] RESEND DISPATCH UNHANDLED ERROR:`, errorMsg);
+
       globalNotificationState.latestSendMailInfo = {
-        error: errorObj?.message || String(err),
-        code: errorObj?.code,
-        command: errorObj?.command,
-        response: errorObj?.response,
+        mailOptions,
+        error: errorMsg,
         simulated: false,
         timestamp: new Date().toISOString(),
       };
 
-      console.error(`[NotificationService] RAW NODEMAILER SENDMAIL ERROR:`);
-      console.error(`- message:      ${errorObj?.message || String(err)}`);
-      if (errorObj?.code) console.error(`- code:         ${errorObj.code}`);
-      if (errorObj?.command) console.error(`- command:      ${errorObj.command}`);
-      if (errorObj?.response) console.error(`- response:     ${errorObj.response}`);
-      if (errorObj?.responseCode) console.error(`- responseCode: ${errorObj.responseCode}`);
-
       return {
         success: false,
-        error: errorObj?.message || String(err),
+        error: errorMsg,
       };
     }
   }
 }
 
 export function createNotificationService(config?: NotificationServiceConfig): NotificationService {
-  return new NodemailerNotificationService(config);
+  return new ResendNotificationService(config);
 }
