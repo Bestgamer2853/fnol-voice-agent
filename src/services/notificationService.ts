@@ -156,10 +156,14 @@ Meridian Motor Insurance Claims Team
           family: 4, // Force IPv4 resolution to prevent ENETUNREACH IPv6 network errors on Railway containers
         } as nodemailer.TransportOptions);
 
-        console.log(`[NotificationService] Attempting Nodemailer sendMail via SMTP host=${activeConfig.smtpHost}:${activeConfig.smtpPort} to=${targetRecipient}`);
+        const formattedFrom = activeConfig.smtpUser
+          ? `"Meridian Motor Insurance" <${activeConfig.smtpUser}>`
+          : (activeConfig.emailFrom || 'claims@meridianinsurance.com');
+
+        console.log(`[NotificationService] Attempting Nodemailer sendMail via SMTP host=${activeConfig.smtpHost}:${activeConfig.smtpPort} from=${formattedFrom} to=${targetRecipient}`);
 
         const info = await transporter.sendMail({
-          from: activeConfig.emailFrom || activeConfig.smtpUser,
+          from: formattedFrom,
           to: targetRecipient,
           subject,
           text: textContent,
