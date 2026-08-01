@@ -736,14 +736,19 @@ export class DefaultConversationManager implements ConversationManager {
       currentConversationStep: 'completed',
       lastUserMessage: message,
     });
-    await this.dependencies.claimLogger.log({
-      claimNumber: claimReferenceNumber,
-      summary: persistedSummary,
-      timestamp: timestamp(),
-      claim: claimWithSummary,
-      verifiedPolicy: state.verifiedPolicy,
-      conversationHistory,
-      escalationRequired: nextState.escalationRequired,
+    // Trigger persistence & notification asynchronously in background so WebSocket response returns immediately to Retell without network latency hang
+    Promise.resolve(
+      this.dependencies.claimLogger.log({
+        claimNumber: claimReferenceNumber,
+        summary: persistedSummary,
+        timestamp: timestamp(),
+        claim: claimWithSummary,
+        verifiedPolicy: state.verifiedPolicy,
+        conversationHistory,
+        escalationRequired: nextState.escalationRequired,
+      })
+    ).catch((err: unknown) => {
+      console.error(`[ConversationManager] Background claim logging error for ${claimReferenceNumber}:`, err);
     });
 
     return this.withAssistantAction(nextState, {

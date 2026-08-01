@@ -348,11 +348,28 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
 RULES:
 1. Follow FSM_INSTRUCTION.
 2. Be natural & empathetic. Do not ask user for ISO/HH:MM formats.
-3. Output valid JSON.`;
+3. Output valid JSON.
+4. IMPORTANT: Always extract ANY FNOL fields mentioned by the caller in extractedData, even if provided out-of-order or not explicitly asked.`;
     
     let schemaObj: any = {
       responseToUser: "Spoken response",
-      extractedData: {}
+      extractedData: {
+        policyNumber: "string|null",
+        callerName: "string|null",
+        dateOfIncident: "YYYY-MM-DD|null",
+        timeOfIncident: "HH:MM|null",
+        locationOfIncident: "string|null",
+        incidentDescription: "string|null",
+        insuredVehicle: { make: "string|null", model: "string|null", registration: "string|null" },
+        injuriesReported: "boolean|null",
+        injuryDetails: "string|null",
+        policeReportFiled: "boolean|null",
+        policeReportReference: "string|null",
+        photosAvailable: "boolean|null",
+        vehicleDrivable: "boolean|null",
+        otherParties: "string|null",
+        recommendedServices: ["string"]
+      }
     };
     
     let fsmInstruction = "Respond naturally and acknowledge their input.";
@@ -360,29 +377,10 @@ RULES:
         fsmInstruction = `Ask clarification: ${input.state.pendingClarifications[0]?.prompt || ''}`;
     } else if (input.state.missingFields && input.state.missingFields.length > 0) {
         const nextField = input.state.missingFields[0] || 'details';
-        fsmInstruction = `Steer conversation to collect ${nextField.replace(/([A-Z])/g, ' $1').toLowerCase()}.`;
-        
-        if (!input.state.verifiedPolicy) {
-            schemaObj.extractedData.policyNumber = "string|null";
-            schemaObj.extractedData.callerName = "string|null";
-        }
-
-        for (const field of input.state.missingFields.slice(0, 3)) {
-            if (field === 'dateOfIncident') {
-                 schemaObj.extractedData[field] = "YYYY-MM-DD|null";
-            } else if (field === 'timeOfIncident') {
-                 schemaObj.extractedData[field] = "HH:MM|null";
-            } else {
-                 schemaObj.extractedData[field] = "string|boolean|null";
-            }
-        }
-        if (input.state.missingFields.includes('insuredVehicle')) {
-             schemaObj.extractedData.insuredVehicle = { make: "str", model: "str", registration: "str" };
-        }
+        fsmInstruction = `Steer conversation to collect ${nextField.replace(/([A-Z])/g, ' $1').toLowerCase()}. But extract ALL fields mentioned in user message.`;
     } else if (input.state.currentConversationStep === 'recommending_services') {
         const recommendedServices = input.state.currentClaim.recommendedServices?.join(' and ') || 'towing';
         fsmInstruction = `Recommend ${recommendedServices} and ask if needed.`;
-        schemaObj.extractedData.recommendedServices = ["string"];
     } else if (input.state.currentConversationStep === 'completed') {
         fsmInstruction = "Summarize claim verbally; adjuster contacts within 24h.";
     }
@@ -418,12 +416,26 @@ RULES:
         }
     }
 
+    // Merge deterministic fallback extraction to ensure 100% out-of-order accuracy
+    const fallbackPatch = extractFallbackClaimPatch(input.userMessage);
+    const llmSlots = sanitizeExtractedClaimPatch(parsedResponse.extractedData || {});
+    const mergedSlots = {
+      ...fallbackPatch,
+      ...llmSlots,
+      ...(llmSlots.insuredVehicle || fallbackPatch.insuredVehicle ? {
+        insuredVehicle: {
+          ...fallbackPatch.insuredVehicle,
+          ...llmSlots.insuredVehicle,
+        }
+      } : {})
+    };
+
     const finalResult: ExtractClaimDataResult = {
       responseToUser: parsedResponse.responseToUser || "I'm sorry, could you please repeat that?",
       finishReason: result.finishReason || '',
       conversationAnalysis: '',
       debugMetrics: {
-        rawExtractedSlots: parsedResponse.extractedData || {},
+        rawExtractedSlots: mergedSlots,
         geminiPrompt: '[REDACTED]',
         geminiResponse: '[REDACTED]',
         usageMetadata: result.usageMetadata,
