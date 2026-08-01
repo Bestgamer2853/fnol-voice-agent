@@ -8,7 +8,7 @@ import express, { type Request, type Response } from 'express';
 
 import type { ConversationState } from './conversation/ConversationState.js';
 import { createRuntimeConversationManager } from './runtime.js';
-import { globalNotificationState } from './services/notificationService.js';
+import { createNotificationService, globalNotificationState } from './services/notificationService.js';
 
 interface ChatRequestBody {
   sessionId?: unknown;
@@ -284,6 +284,41 @@ app.get('/view-logs', (_req: Request, res: Response) => {
 
 app.get('/api/latest-email-status', (_req: Request, res: Response) => {
   res.json(globalNotificationState.latestSendMailInfo || { message: 'No email sent yet' });
+});
+
+app.post('/api/trigger-sendmail', async (_req: Request, res: Response) => {
+  try {
+    const service = createNotificationService();
+    const sampleRecord: any = {
+      claimNumber: `CLM-LIVE-${Date.now()}`,
+      summary: 'Test rear-end collision on Main St.',
+      timestamp: new Date().toISOString(),
+      claim: {
+        policyNumber: 'MMI-10234',
+        callerName: 'Arjun Rao',
+        dateOfIncident: '2026-07-31',
+        timeOfIncident: '15:00',
+        locationOfIncident: 'Main Street',
+        incidentDescription: 'Rear-ended Toyota Corolla',
+      },
+      verifiedPolicy: {
+        policyNumber: 'MMI-10234',
+        policyholderName: 'Arjun Rao',
+        coverageType: 'Comprehensive',
+        towingIncluded: true,
+      },
+      conversationHistory: [],
+      escalationRequired: false,
+    };
+    const result = await service.sendClaimConfirmation(sampleRecord);
+    res.json({
+      success: result.success,
+      result,
+      sendMailInfo: globalNotificationState.latestSendMailInfo,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || String(err) });
+  }
 });
 
 // Per-session processing lock to prevent duplicate LLM calls
