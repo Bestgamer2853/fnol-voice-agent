@@ -14,6 +14,7 @@
     "demo:conversation-manager": "tsx src/demo/conversationManagerDemo.ts",
     "demo:gemini-conversation": "tsx src/demo/geminiConversationDemo.ts",
     "demo:extract-claim-data": "tsx src/demo/extractClaimDataDemo.ts",
+    "retell:create-agent": "tsx scripts/create-retell-agent.ts",
     "test": "node --import tsx --test tests/*.test.ts"
   },
   "keywords": [],
