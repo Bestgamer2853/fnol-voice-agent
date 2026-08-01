@@ -121,7 +121,8 @@ Meridian Motor Insurance Claims Team
             user: this.config.smtpUser,
             pass: this.config.smtpPass,
           },
-        });
+          family: 4, // Force IPv4 resolution to prevent ENETUNREACH IPv6 network errors on Railway containers
+        } as nodemailer.TransportOptions);
 
         // Determine destination: NOTIFICATION_EMAIL_TO, or SMTP_USER if default
         const targetRecipient = (this.config.defaultEmailTo && this.config.defaultEmailTo !== 'customer@example.com')
