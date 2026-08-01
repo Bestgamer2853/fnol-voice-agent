@@ -286,7 +286,7 @@ app.get('/api/latest-email-status', (_req: Request, res: Response) => {
   res.json(globalNotificationState.latestSendMailInfo || { message: 'No email sent yet' });
 });
 
-app.post('/api/trigger-sendmail', async (_req: Request, res: Response) => {
+app.all('/api/trigger-sendmail', async (_req: Request, res: Response) => {
   try {
     const service = createNotificationService();
     const sampleRecord: any = {
