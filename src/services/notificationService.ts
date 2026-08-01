@@ -42,7 +42,8 @@ export interface NotificationServiceConfig {
 export function getConfigFromEnv(): NotificationServiceConfig {
   const smtpHost = process.env.SMTP_HOST?.trim() || process.env.SMTP_SERVER?.trim();
   const smtpUser = process.env.SMTP_USER?.trim() || process.env.SMTP_USERNAME?.trim() || process.env.EMAIL_USER?.trim();
-  const smtpPass = process.env.SMTP_PASS?.trim() || process.env.SMTP_PASSWORD?.trim() || process.env.EMAIL_PASS?.trim();
+  const rawPass = process.env.SMTP_PASS?.trim() || process.env.SMTP_PASSWORD?.trim() || process.env.EMAIL_PASS?.trim();
+  const smtpPass = rawPass ? rawPass.replace(/\s+/g, '') : undefined;
   const smtpPortStr = process.env.SMTP_PORT || process.env.EMAIL_PORT;
   const smtpPort = smtpPortStr ? parseInt(smtpPortStr, 10) : 587;
   const smtpSecure = process.env.SMTP_SECURE === 'true' || smtpPort === 465;
