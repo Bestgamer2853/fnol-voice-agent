@@ -16,7 +16,7 @@ COLOR_TEXT_MUTED = colors.HexColor('#64748b')   # Slate 500
 COLOR_BORDER = colors.HexColor('#cbd5e1')       # Slate 300
 COLOR_CONTAINER_BG = colors.HexColor('#f8fafc') # Slate 50
 
-# The 5 Canonical Role Colors
+# 5 Canonical Role Colors
 COLOR_GREY = colors.HexColor('#475569')      # 1. User / Client (Slate 600)
 COLOR_BLUE = colors.HexColor('#2563eb')      # 2. Telephony Platform (Blue 600)
 COLOR_GREEN = colors.HexColor('#059669')     # 3. Core Backend Container (Emerald 600)
@@ -25,42 +25,41 @@ COLOR_PURPLE = colors.HexColor('#7c3aed')    # 5. External Services (Violet 600)
 COLOR_RED = colors.HexColor('#dc2626')       # Safety Alert / Emergency (Red 600)
 
 # =============================================================================
-# PRECISION GRAPHICS ENGINE (TIGHT HEADER & CONSISTENT MARGINS)
+# PRECISION GRAPHICS ENGINE (CLEAN HEADER & THICKER ARROWS)
 # =============================================================================
-def draw_header_footer(c, page_num, title, subtitle):
-    # Compact 36px Header Bar (Gives +45px vertical room for content)
+def draw_header_footer(c, title, subtitle):
+    # Sleek Header Bar
     c.setFillColor(COLOR_HEADER_BG)
     c.rect(0, 564, 792, 48, fill=True, stroke=False)
     
     # Title Left
     c.setFillColor(colors.HexColor('#ffffff'))
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(25, 592, "MERIDIAN MOTOR INSURANCE — FNOL VOICE AGENT ARCHITECTURE")
+    c.drawString(25, 592, "MERIDIAN MOTOR INSURANCE — FNOL VOICE AGENT")
     
-    # Page Tag Right
+    # Clean Page Title Right (e.g. "1. SYSTEM CONTEXT")
     c.setFillColor(colors.HexColor('#38bdf8')) # Sky 400
-    c.setFont("Helvetica-Bold", 9)
-    c.drawRightString(767, 592, f"DIAGRAM {page_num} OF 4: {title.upper()}")
+    c.setFont("Helvetica-Bold", 10)
+    c.drawRightString(767, 592, title.upper())
     
-    # Subtitle Left (Inside dark bar for clean zero-margin look)
+    # Subtitle Left
     c.setFillColor(colors.HexColor('#94a3b8')) # Slate 400
     c.setFont("Helvetica", 8.5)
     c.drawString(25, 574, subtitle)
     
-    # Footer Divider Line
+    # Clean Footer Line
     c.setStrokeColor(COLOR_BORDER)
     c.setLineWidth(0.5)
-    c.line(25, 25, 767, 25)
+    c.line(25, 24, 767, 24)
     
-    # Footer Left & Right
+    # Footer Left
     c.setFillColor(COLOR_TEXT_MUTED)
-    c.setFont("Helvetica", 8)
-    c.drawString(25, 14, "Version: v2.1.0 (Polished Architect Edition)  |  System: Meridian FNOL Engine  |  Scope: Staff Review")
-    c.drawRightString(767, 14, f"Page {page_num} of 4")
+    c.setFont("Helvetica-Bold", 8)
+    c.drawString(25, 12, "Meridian Motor Insurance — FNOL Voice Agent Architecture")
 
     # Legend at Bottom Right
     legend_x = 495
-    legend_y = 14
+    legend_y = 12
     items = [
         ("User", COLOR_GREY),
         ("Platform", COLOR_BLUE),
@@ -79,13 +78,13 @@ def draw_header_footer(c, page_num, title, subtitle):
 def draw_card(c, x, y, width, height, title, subtitle, color, fill_color=colors.HexColor('#ffffff'), text_lines=None, dashed_border=False):
     c.setStrokeColor(color)
     c.setFillColor(fill_color)
-    c.setLineWidth(1.2)
+    c.setLineWidth(1.4)
     if dashed_border:
         c.setDash(4, 3)
     c.roundRect(x, y, width, height, 4, fill=True, stroke=True)
     c.setDash()
     
-    # Header bar inside card (20px tall)
+    # Header bar inside card
     c.setFillColor(color)
     c.roundRect(x, y + height - 20, width, 20, 4, fill=True, stroke=False)
     c.rect(x, y + height - 20, width, 4, fill=True, stroke=False)
@@ -101,19 +100,19 @@ def draw_card(c, x, y, width, height, title, subtitle, color, fill_color=colors.
         c.setFont("Helvetica-Bold", 8)
         c.drawString(x + 8, y + height - 33, subtitle)
     
-    # Bullet lines
+    # Bullet lines (Pruned essentials)
     if text_lines:
         c.setFillColor(COLOR_TEXT_MAIN)
         c.setFont("Helvetica", 8)
         ly = y + height - 47
         for line in text_lines:
             c.drawString(x + 8, ly, line)
-            ly -= 11.5
+            ly -= 12
 
 def draw_container_box(c, x, y, width, height, title, subtitle, color):
     c.setStrokeColor(color)
     c.setFillColor(COLOR_CONTAINER_BG)
-    c.setLineWidth(1.2)
+    c.setLineWidth(1.4)
     c.setDash(4, 4)
     c.roundRect(x, y, width, height, 6, fill=True, stroke=True)
     c.setDash()
@@ -126,10 +125,10 @@ def draw_container_box(c, x, y, width, height, title, subtitle, color):
         c.setFont("Helvetica-Oblique", 8)
         c.drawString(x + 10, y + height - 28, subtitle)
 
-def draw_arrow(c, x1, y1, x2, y2, label="", dashed=False, color=COLOR_TEXT_MUTED):
+def draw_arrow(c, x1, y1, x2, y2, label="", dashed=False, color=COLOR_TEXT_MUTED, line_width=1.6):
     c.setStrokeColor(color)
     c.setFillColor(color)
-    c.setLineWidth(1.2)
+    c.setLineWidth(line_width)
     if dashed:
         c.setDash(4, 3)
     else:
@@ -139,7 +138,7 @@ def draw_arrow(c, x1, y1, x2, y2, label="", dashed=False, color=COLOR_TEXT_MUTED
     
     # Arrowhead calculation
     angle = math.atan2(y2 - y1, x2 - x1)
-    arrow_size = 6
+    arrow_size = 7
     p1x = x2 - arrow_size * math.cos(angle - math.pi/6)
     p1y = y2 - arrow_size * math.sin(angle - math.pi/6)
     p2x = x2 - arrow_size * math.cos(angle + math.pi/6)
@@ -157,8 +156,8 @@ def draw_arrow(c, x1, y1, x2, y2, label="", dashed=False, color=COLOR_TEXT_MUTED
         c.setFont("Helvetica-Bold", 7.5)
         mid_x = (x1 + x2) / 2
         mid_y = (y1 + y2) / 2
-        ox = -math.sin(angle) * 6
-        oy = math.cos(angle) * 6
+        ox = -math.sin(angle) * 7
+        oy = math.cos(angle) * 7
         c.drawCentredString(mid_x + ox, mid_y + oy - 2.5, label)
 
 # =============================================================================
@@ -166,94 +165,90 @@ def draw_arrow(c, x1, y1, x2, y2, label="", dashed=False, color=COLOR_TEXT_MUTED
 # =============================================================================
 def render_diagram1(c):
     draw_header_footer(
-        c, 1, 
-        "System Context & Container Topology (C4 Level 1 & 2)", 
+        c, "1. System Context", 
         "High-level boundary, telephony gateway, backend container architecture, and external SaaS integrations"
     )
     
-    # Vertical bounds: y=45 to y=550 (Height: 505px)
     # 1. External Clients
     draw_container_box(c, 25, 45, 145, 505, "1. CLIENTS & CALLERS", "Inbound Access", COLOR_GREY)
-    draw_card(c, 35, 370, 125, 95, "PSTN Caller", "Phone Call", COLOR_GREY, text_lines=["• Inbound Audio", "• Caller ID & Voice", "• Human Spoken Input"])
-    draw_card(c, 35, 210, 125, 95, "Browser Demo UI", "Web Client", COLOR_GREY, text_lines=["• WebRTC / WS Client", "• Debug Dashboard", "• Live Event Stream"])
+    draw_card(c, 35, 370, 125, 95, "PSTN Caller", "Phone Call", COLOR_GREY, text_lines=["• Inbound Audio Stream", "• Telephony Caller ID"])
+    draw_card(c, 35, 210, 125, 95, "Browser Demo UI", "Web Client", COLOR_GREY, text_lines=["• WebRTC / WS Client", "• Live Event Streaming"])
 
     # 2. Voice Platform
     draw_container_box(c, 185, 45, 155, 505, "2. VOICE PLATFORM", "Retell AI Telephony", COLOR_BLUE)
-    draw_card(c, 195, 290, 135, 150, "Retell AI Engine", "Custom LLM Agent", COLOR_BLUE, text_lines=["• STT / TTS Audio Pipeline", "• Barge-In Detection", "• Agent: agent_e907d3...", "• WebSocket Transport", "• Latency Buffering"])
+    draw_card(c, 195, 290, 135, 150, "Retell AI Engine", "Custom LLM Agent", COLOR_BLUE, text_lines=["• STT / TTS Audio Pipeline", "• Barge-In Interruption", "• Agent: agent_e907d3...", "• WebSocket Transport"])
 
     # 3. Core Railway Cloud Container Boundary
-    draw_container_box(c, 355, 45, 260, 505, "3. BACKEND CONTAINER (RAILWAY CLOUD)", "Node.js ESM Runtime | Port 3000", COLOR_GREEN)
+    draw_container_box(c, 355, 45, 260, 505, "3. BACKEND CONTAINER", "Railway Cloud | Port 3000", COLOR_GREEN)
     
-    draw_card(c, 375, 440, 220, 75, "Express & WS Server", "server.ts", COLOR_GREEN, text_lines=["• HTTP / WS Server (Port 3000)", "• Session State Map", "• Retell WSS Protocol"])
-    draw_card(c, 375, 345, 220, 80, "ConversationManager", "Core Orchestration", COLOR_GREEN, colors.HexColor('#dcfce7'), text_lines=["• FSM State Machine Engine", "• Policy & Field Tracking", "• Emergency Guardrails"])
-    draw_card(c, 375, 250, 220, 80, "LLM Extraction Service", "extractClaimData.ts", COLOR_GREEN, text_lines=["• Native SSE Stream Parser", "• Fallback Regex Matcher", "• Slot Extraction Logic"])
-    draw_card(c, 375, 155, 220, 80, "Claim Logger & Outbox", "claimLogger.ts", COLOR_GREEN, text_lines=["• Multi-Logger Orchestrator", "• Local JSON Outbox Backup", "• Google Sheets Client"])
-    draw_card(c, 375, 65, 220, 75, "Notification Service", "notificationService.ts", COLOR_GREEN, text_lines=["• Resend REST Email SDK", "• HTML Email Renderer"])
+    draw_card(c, 375, 440, 220, 75, "Express & WS Server", "server.ts", COLOR_GREEN, text_lines=["• HTTP / WS Server (Port 3000)", "• Session State Mapping"])
+    draw_card(c, 375, 345, 220, 80, "ConversationManager", "Core Orchestrator", COLOR_GREEN, colors.HexColor('#dcfce7'), text_lines=["• FSM State Machine Engine", "• Policy & Field Guardrails"])
+    draw_card(c, 375, 250, 220, 80, "LLM Extraction Service", "extractClaimData.ts", COLOR_GREEN, text_lines=["• Native SSE Stream Parser", "• Out-of-Order Slot Capture"])
+    draw_card(c, 375, 155, 220, 80, "Claim Logger & Outbox", "claimLogger.ts", COLOR_GREEN, text_lines=["• Multi-Logger Orchestrator", "• Local JSON Outbox Backup"])
+    draw_card(c, 375, 65, 220, 75, "Notification Service", "notificationService.ts", COLOR_GREEN, text_lines=["• Resend REST Email SDK", "• HTML Email Formatting"])
 
     # 4. External Services
     draw_container_box(c, 630, 45, 140, 505, "4. SAAS APIS", "External Integrations", COLOR_PURPLE)
-    draw_card(c, 640, 410, 120, 95, "Gemini 2.5 Flash Lite", "Primary AI Engine", COLOR_ORANGE, text_lines=["• Native SSE REST API", "• <700ms TTFT Latency", "• Structured JSON Schema"])
-    draw_card(c, 640, 250, 120, 95, "Google Sheets API", "Structured DB", COLOR_PURPLE, text_lines=["• Sheet v4 REST API", "• Auto Header Format", "• Service Account Auth"])
-    draw_card(c, 640, 90, 120, 95, "Resend Email API", "Transactional Mail", COLOR_PURPLE, text_lines=["• REST API (v3)", "• Verified Domain Sender", "• Priority Badging"])
+    draw_card(c, 640, 410, 120, 95, "Gemini 2.5 Flash", "Primary AI Engine", COLOR_ORANGE, text_lines=["• Native SSE REST API", "• <700ms TTFT Latency"])
+    draw_card(c, 640, 250, 120, 95, "Google Sheets API", "Structured DB", COLOR_PURPLE, text_lines=["• Sheet v4 REST API", "• Auto Header Formatting"])
+    draw_card(c, 640, 90, 120, 95, "Resend Email API", "Transactional Mail", COLOR_PURPLE, text_lines=["• REST API (v3)", "• Verified Domain Sender"])
 
-    # Connectors
-    draw_arrow(c, 160, 417, 195, 380, "Voice")
-    draw_arrow(c, 160, 257, 195, 340, "WSS")
+    # Connectors with thicker 1.6 lines
+    draw_arrow(c, 160, 417, 195, 380, "Voice", line_width=1.6)
+    draw_arrow(c, 160, 257, 195, 340, "WSS", line_width=1.6)
     
-    draw_arrow(c, 330, 365, 375, 477, "WSS Connect")
-    draw_arrow(c, 485, 440, 485, 425)
-    draw_arrow(c, 485, 345, 485, 330)
-    draw_arrow(c, 485, 250, 485, 235)
-    draw_arrow(c, 485, 155, 485, 140)
+    draw_arrow(c, 330, 365, 375, 477, "WSS Connect", line_width=1.6)
+    draw_arrow(c, 485, 440, 485, 425, line_width=1.6)
+    draw_arrow(c, 485, 345, 485, 330, line_width=1.6)
+    draw_arrow(c, 485, 250, 485, 235, line_width=1.6)
+    draw_arrow(c, 485, 155, 485, 140, line_width=1.6)
 
-    draw_arrow(c, 595, 290, 640, 457, "HTTPS SSE", False, COLOR_ORANGE)
-    draw_arrow(c, 595, 195, 640, 297, "Async Log", True, COLOR_PURPLE)
-    draw_arrow(c, 595, 102, 640, 137, "Async Mail", True, COLOR_PURPLE)
+    draw_arrow(c, 595, 290, 640, 457, "HTTPS SSE", False, COLOR_ORANGE, line_width=1.6)
+    draw_arrow(c, 595, 195, 640, 297, "Async Log", True, COLOR_PURPLE, line_width=1.6)
+    draw_arrow(c, 595, 102, 640, 137, "Async Mail", True, COLOR_PURPLE, line_width=1.6)
 
 # =============================================================================
 # DIAGRAM 2: C4 COMPONENT ARCHITECTURE (CONVERSATION MANAGER)
 # =============================================================================
 def render_diagram2(c):
     draw_header_footer(
-        c, 2, 
-        "Domain Component Architecture (C4 Level 3)", 
+        c, "2. Component Architecture", 
         "Decoupled service components executing turn validation, policy lookup, extraction, and recommendations"
     )
     
-    # Central Orchestrator Top
-    draw_card(c, 276, 435, 240, 85, "ConversationManager", "src/conversation/ConversationManager.ts", COLOR_GREEN, colors.HexColor('#dcfce7'), text_lines=["• Turn Orchestrator & Action Dispatcher", "• FSM State Machine Engine & Invariants", "• Session History & Slot Tracking"])
+    # Central Orchestrator Top (Increased vertical whitespace)
+    draw_card(c, 276, 440, 240, 80, "ConversationManager", "src/conversation/ConversationManager.ts", COLOR_GREEN, colors.HexColor('#dcfce7'), text_lines=["• Turn Orchestrator & Action Dispatcher", "• FSM State Machine Engine", "• Session History & Slot Tracking"])
 
     # 4 Core Processing Components (Top Row)
-    draw_card(c, 25, 260, 170, 125, "VerifyPolicyService", "src/services/verifyPolicy.ts", COLOR_GREEN, text_lines=["• Validates Policy # & Name", "• Reads policies.json DB", "• Enforces 2-Retry Limit", "• Offers Callback on Fail", "• Precondition for Completion"])
+    draw_card(c, 25, 265, 170, 120, "VerifyPolicyService", "verifyPolicy.ts", COLOR_GREEN, text_lines=["• Validates Policy # & Name", "• Reads policies.json DB", "• Enforces 2-Retry Limit", "• Offers Callback on Fail"])
     
-    draw_card(c, 215, 260, 170, 125, "ExtractClaimDataService", "src/services/extractClaimData.ts", COLOR_GREEN, text_lines=["• Prompts Gemini 2.5 SSE", "• Fallback Regex Matcher", "• JSON Slot Sanitizer", "• Calculates Token Metrics", "• Out-of-Order Field Capture"])
+    draw_card(c, 215, 265, 170, 120, "ExtractClaimDataService", "extractClaimData.ts", COLOR_GREEN, text_lines=["• Prompts Gemini 2.5 SSE", "• Fallback Regex Matcher", "• JSON Slot Sanitizer", "• Token Usage Tracking"])
 
-    draw_card(c, 405, 260, 170, 125, "NormalizeClaimData", "src/services/normalizeClaimData.ts", COLOR_GREEN, text_lines=["• Spoken Phonetic Cleaner", "• Normalizes License Plates", "• Converts Relative Dates", "• Standardizes Vehicle Details", "• Sanitize Text & Booleans"])
+    draw_card(c, 405, 265, 170, 120, "NormalizeClaimData", "normalizeClaimData.ts", COLOR_GREEN, text_lines=["• Spoken Phonetic Cleaner", "• License Plate Normalizer", "• Relative Date Parser", "• Vehicle Details Cleaner"])
 
-    draw_card(c, 595, 260, 170, 125, "RecommendServices", "src/services/recommendServices.ts", COLOR_GREEN, text_lines=["• Checks Entitlements", "• Recommends Towing", "• Recommends Garages", "• Out-of-Pocket Rules", "• Service Confirmation Gate"])
+    draw_card(c, 595, 265, 170, 120, "RecommendServices", "recommendServices.ts", COLOR_GREEN, text_lines=["• Checks Entitlements", "• Towing Recommendations", "• Garage Recommendations", "• Out-of-Pocket Rules"])
 
     # 4 Output & Persistence Components (Bottom Row)
-    draw_card(c, 25, 75, 170, 125, "GenerateSummaryService", "src/services/generateSummary.ts", COLOR_GREEN, text_lines=["• Synthesizes Claim Summary", "• Classifies Severity Level", "• Summarizes Incidents", "• Formats Log Output", "• LLM Summary Generator"])
+    draw_card(c, 25, 75, 170, 120, "GenerateSummaryService", "generateSummary.ts", COLOR_GREEN, text_lines=["• Synthesizes Claim Summary", "• Classifies Severity Level", "• Summarizes Incidents", "• Formats Output Payload"])
 
-    draw_card(c, 215, 75, 170, 125, "ClaimLoggerService", "src/storage/googleSheets.ts", COLOR_GREEN, text_lines=["• Appends Rows to Sheet", "• Auto-Formats Headers", "• Handles Google Auth", "• Writes Local JSON Outbox", "• MultiClaimLogger Fallback"])
+    draw_card(c, 215, 75, 170, 120, "ClaimLoggerService", "googleSheets.ts", COLOR_GREEN, text_lines=["• Appends Rows to Sheet", "• Auto-Formats Headers", "• Handles Google Auth", "• Writes Local JSON Outbox"])
 
-    draw_card(c, 405, 75, 170, 125, "NotificationService", "src/services/notificationService.ts", COLOR_GREEN, text_lines=["• Sends Resend Emails", "• Formats HTML/Text Mail", "• Priority Urgent Badges", "• Handles Sandbox Fallback", "• Recipient Email Dispatch"])
+    draw_card(c, 405, 75, 170, 120, "NotificationService", "notificationService.ts", COLOR_GREEN, text_lines=["• Sends Resend Emails", "• HTML Email Formatting", "• Priority Urgent Badges", "• Sandbox Mode Fallback"])
 
-    draw_card(c, 595, 75, 170, 125, "EmpathyEngine", "src/config/EmpathyEngine.ts", COLOR_GREEN, text_lines=["• Distress Phrase Detector", "• Warm Spoken Openers", "• Calming Response Rules", "• Compliance Tone Check", "• Human Tone Guardrails"])
+    draw_card(c, 595, 75, 170, 120, "EmpathyEngine", "EmpathyEngine.ts", COLOR_GREEN, text_lines=["• Distress Phrase Detector", "• Warm Spoken Openers", "• Calming Response Rules", "• Compliance Tone Check"])
 
     # Connectors from Orchestrator down to components
     top_targets = [110, 300, 490, 680]
     for tx in top_targets:
-        draw_arrow(c, 396, 435, tx, 385, "Invokes")
-        draw_arrow(c, tx, 260, tx, 200, "Flows to")
+        draw_arrow(c, 396, 440, tx, 385, "Invokes", line_width=1.6)
+        draw_arrow(c, tx, 265, tx, 195, "Flows to", line_width=1.6)
 
 # =============================================================================
 # DIAGRAM 3: UML SEQUENCE FLOW & ASYNC PERSISTENCE
 # =============================================================================
 def render_diagram3(c):
     draw_header_footer(
-        c, 3, 
-        "End-to-End Sequence & Non-Blocking Async Persistence", 
+        c, "3. Runtime Sequence", 
         "Low-latency real-time voice turns paired with asynchronous background logging & notification"
     )
     
@@ -280,7 +275,7 @@ def render_diagram3(c):
         c.setDash()
 
     def seq_msg(x1, x2, y, text, async_call=False):
-        draw_arrow(c, x1, y, x2, y, text, async_call, COLOR_PURPLE if async_call else COLOR_TEXT_MAIN)
+        draw_arrow(c, x1, y, x2, y, text, async_call, COLOR_PURPLE if async_call else COLOR_TEXT_MAIN, line_width=1.7)
 
     y = 465
     seq_msg(75, 195, y, "1. Inbound Phone Call"); y -= 33
@@ -294,61 +289,66 @@ def render_diagram3(c):
     seq_msg(475, 335, y, "9. Verified Policy & Response Text"); y -= 33
     seq_msg(335, 195, y, "10. response { content } (Audio Plays)"); y -= 45
     
-    # Async Block highlight
+    # Highly Obvious Darker Purple Async Container Box
     c.setStrokeColor(COLOR_PURPLE)
-    c.setFillColor(colors.HexColor('#f3e8ff'))
-    c.setLineWidth(1.2)
+    c.setFillColor(colors.HexColor('#ede9fe')) # High contrast light violet
+    c.setLineWidth(1.6)
     c.setDash(4, 3)
     c.roundRect(415, y - 60, 360, 85, 4, fill=True, stroke=True)
     c.setDash()
     
     c.setFillColor(COLOR_PURPLE)
-    c.setFont("Helvetica-Bold", 8.5)
-    c.drawString(425, y + 12, "NON-BLOCKING ASYNC PERSISTENCE (Post-Response)")
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(425, y + 12, "BACKGROUND TASKS (NON-BLOCKING ASYNC I/O)")
     
-    seq_msg(475, 735, y - 10, "11. Promise.resolve -> claimLogger.log()", True); y -= 33
-    seq_msg(475, 735, y - 10, "12. Promise.resolve -> sendClaimConfirmation()", True)
+    seq_msg(475, 735, y - 10, "11. Promise.resolve -> Google Sheets API", True); y -= 33
+    seq_msg(475, 735, y - 10, "12. Promise.resolve -> Resend Email API", True)
 
 # =============================================================================
 # DIAGRAM 4: FINITE STATE MACHINE (FSM) & COMPLIANCE ENGINE
 # =============================================================================
 def render_diagram4(c):
     draw_header_footer(
-        c, 4, 
-        "Claim Finite State Machine (FSM) & Compliance Engine", 
+        c, "4. Finite State Machine", 
         "100% deterministic safety guardrails, policy verification limits, field collection, and completion gates"
     )
     
     cw, ch = 155, 62
     
-    # State Nodes Layout with 45px more vertical space
+    # State Nodes Layout with distinct path colors
     draw_card(c, 318, 445, cw, ch, "safety_check", "Initial Greeting", COLOR_BLUE, text_lines=["• Asks if everyone is safe", "• Scans for severe crash"])
-    draw_card(c, 80, 325, cw, ch, "escalation", "Emergency Alert", COLOR_RED, colors.HexColor('#fef2f2'), text_lines=["• High Severity Flagged", "• Advises 911 / Emergency"])
-    draw_card(c, 555, 325, cw, ch, "verification", "Policy Lookup", COLOR_GREEN, text_lines=["• Policy # + Name Check", "• DB Lookup in policies.json"])
     
-    draw_card(c, 80, 205, cw, ch, "callback_offer", "Verification Failed", COLOR_ORANGE, text_lines=["• 2 Retries Exceeded", "• Schedules Human Callback"])
-    draw_card(c, 555, 205, cw, ch, "collecting_details", "FNOL Collection", COLOR_GREEN, text_lines=["• Required Fields Gate", "• Conditional Injury Details"])
+    # Emergency Path (Red)
+    draw_card(c, 80, 325, cw, ch, "escalation", "Emergency Alert", COLOR_RED, colors.HexColor('#fef2f2'), text_lines=["• High Severity Flagged", "• Advises 911 / Emergency"])
+    
+    # Happy Path (Green)
+    draw_card(c, 555, 325, cw, ch, "verification", "Policy Lookup", COLOR_GREEN, colors.HexColor('#f0fdf4'), text_lines=["• Policy # + Name Check", "• DB Lookup in policies.json"])
+    
+    # Failure / Retry Path (Orange / Blue)
+    draw_card(c, 80, 205, cw, ch, "callback_offer", "Verification Failed", COLOR_ORANGE, colors.HexColor('#fffbeb'), text_lines=["• 2 Retries Exceeded", "• Schedules Human Callback"])
+    draw_card(c, 555, 205, cw, ch, "collecting_details", "FNOL Collection", COLOR_GREEN, colors.HexColor('#f0fdf4'), text_lines=["• Required Fields Gate", "• Conditional Injury Details"])
     
     draw_card(c, 80, 85, cw, ch, "clarifying", "Invalid Input", COLOR_BLUE, text_lines=["• Malformed Reg Plate", "• Prompts for Repetition"])
-    draw_card(c, 555, 85, cw, ch, "recommending_services", "Service Entitlements", COLOR_GREEN, text_lines=["• Towing & Garage Offer", "• Policy Limit Checks"])
+    draw_card(c, 555, 85, cw, ch, "recommending_services", "Service Entitlements", COLOR_GREEN, colors.HexColor('#f0fdf4'), text_lines=["• Towing & Garage Offer", "• Policy Limit Checks"])
     
+    # Final Happy Completion Node (Bright Emerald Green)
     draw_card(c, 318, 40, cw, ch, "completed", "Claim Persisted", COLOR_GREEN, colors.HexColor('#dcfce7'), text_lines=["• Sheet & Email Dispatched", "• Final Spoken Summary"])
 
-    # State Transitions with clear labels
-    draw_arrow(c, 318, 476, 235, 387, "Injuries / Severe", color=COLOR_RED)
-    draw_arrow(c, 473, 476, 555, 387, "Safe / No Injuries", color=COLOR_GREEN)
+    # Thicker colored transition arrows (1.7px line width)
+    draw_arrow(c, 318, 476, 235, 387, "Injuries / Severe", color=COLOR_RED, line_width=1.7)
+    draw_arrow(c, 473, 476, 555, 387, "Safe / No Injuries", color=COLOR_GREEN, line_width=1.7)
     
-    draw_arrow(c, 555, 356, 235, 267, "Attempts >= 2", color=COLOR_ORANGE)
-    draw_arrow(c, 632, 325, 632, 267, "Verified Policy", color=COLOR_GREEN)
+    draw_arrow(c, 555, 356, 235, 267, "Attempts >= 2", color=COLOR_ORANGE, line_width=1.7)
+    draw_arrow(c, 632, 325, 632, 267, "Verified Policy", color=COLOR_GREEN, line_width=1.7)
     
-    draw_arrow(c, 555, 236, 235, 147, "Malformed Reg", color=COLOR_BLUE)
-    draw_arrow(c, 632, 205, 632, 147, "Fields Complete", color=COLOR_GREEN)
+    draw_arrow(c, 555, 236, 235, 147, "Malformed Reg", color=COLOR_BLUE, line_width=1.7)
+    draw_arrow(c, 632, 205, 632, 147, "Fields Complete", color=COLOR_GREEN, line_width=1.7)
     
-    draw_arrow(c, 235, 116, 555, 236, "Reg Clarified", color=COLOR_GREEN)
+    draw_arrow(c, 235, 116, 555, 236, "Reg Clarified", color=COLOR_GREEN, line_width=1.7)
     
-    draw_arrow(c, 157, 325, 318, 71, "Close Call", color=COLOR_RED)
-    draw_arrow(c, 157, 205, 318, 71, "Close Call", color=COLOR_ORANGE)
-    draw_arrow(c, 632, 85, 473, 71, "Complete Claim", color=COLOR_GREEN)
+    draw_arrow(c, 157, 325, 318, 71, "Close Call", color=COLOR_RED, line_width=1.7)
+    draw_arrow(c, 157, 205, 318, 71, "Close Call", color=COLOR_ORANGE, line_width=1.7)
+    draw_arrow(c, 632, 85, 473, 71, "Complete Claim", color=COLOR_GREEN, line_width=1.7)
 
 # =============================================================================
 # MAIN BUILD PIPELINE
@@ -359,13 +359,12 @@ def build_all_artifacts():
     
     c = canvas.Canvas(pdf_path, pagesize=landscape(letter))
     
-    # 4 Streamlined Diagrams
     for page_fn in [render_diagram1, render_diagram2, render_diagram3, render_diagram4]:
         page_fn(c)
         c.showPage()
         
     c.save()
-    print(f"✅ Generated 4-Page Streamlined PDF: {pdf_path}")
+    print(f"✅ Generated 4-Page PDF: {pdf_path}")
 
     # High-Res PNG (Page 1 preview) at 300 DPI
     doc = fitz.open(pdf_path)
