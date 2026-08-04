@@ -455,6 +455,15 @@ function buildInitialState(): ConversationState {
   };
 }
 
+/**
+ * DefaultConversationManager acts as the central Finite State Machine (FSM) orchestrator.
+ * It coordinates between the Retell websocket events, the Gemini LLM for extraction, and 
+ * the deterministic business rules for policy verification and escalation.
+ * 
+ * Key Architecture Note: This class enforces a strict separation between 
+ * surface-level language generation (handled by the LLM) and business state 
+ * transitions (handled here deterministically).
+ */
 export class DefaultConversationManager implements ConversationManager {
   constructor(private readonly dependencies: ConversationManagerDependencies) {}
 
@@ -462,6 +471,22 @@ export class DefaultConversationManager implements ConversationManager {
     return buildInitialState();
   }
 
+  /**
+   * Processes a single turn of conversation from the user.
+   * 
+   * Flow:
+   * 1. Check for early exits (if call is already complete/escalated).
+   * 2. Send the message to the LLM (ExtractClaimDataService) to extract structured JSON data.
+   * 3. Merge the newly extracted fields into the ongoing `ConversationState`.
+   * 4. Run deterministic checks (e.g. "did the user report an injury?").
+   * 5. Verify the policy if sufficient data is collected.
+   * 6. Recommend services or finalize the claim if all required fields are present.
+   * 
+   * @param state The immutable current state of the conversation.
+   * @param message The transcribed text from the user.
+   * @param onContentChunk Optional callback for streaming response tokens back to the user.
+   * @param abortSignal Allows terminating in-flight LLM calls if the user interrupts.
+   */
   async handleUserMessage(
     state: ConversationState,
     message: string,
@@ -561,7 +586,9 @@ export class DefaultConversationManager implements ConversationManager {
         console.log(`[METRICS] ExtractedFields: ${JSON.stringify(normalizedPatch)}\n`);
     }
 
-    // Deterministic Escalation logic
+    // --- DETERMINISTIC ESCALATION RULES ---
+    // Instead of relying on the LLM to decide if an emergency is happening,
+    // we use hardcoded Regex and boolean checks to immediately escalate and override the LLM.
     if (updatedClaim.injuriesReported === true || 
         /whiplash|neck|ambulance|hospital/i.test(updatedClaim.injuryDetails || '') || 
         /major|rollover|fire|fatal/i.test(updatedClaim.incidentDescription || '')) {
@@ -592,7 +619,9 @@ export class DefaultConversationManager implements ConversationManager {
         );
     }
 
-    // Deterministic Policy Verification
+    // --- DETERMINISTIC POLICY VERIFICATION ---
+    // If we have both the policy number and caller name, ping the external database mock.
+    // If it fails twice, we branch the state machine into a 'callback_offer'.
     if (!verifiedPolicyObj && updatedClaim.policyNumber && updatedClaim.callerName && !callbackOffered) {
         const verifyResult = await this.dependencies.verifyPolicy.verify({
             policyNumber: updatedClaim.policyNumber,

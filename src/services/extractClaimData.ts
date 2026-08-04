@@ -338,6 +338,12 @@ function getFallbackResult(message: string, state: ConversationState): ExtractCl
   };
 }
 
+/**
+ * GeminiExtractClaimDataService handles the interaction with the underlying LLM.
+ * It is responsible for injecting the dynamic FSM instructions into the prompt,
+ * parsing the JSON output, and merging the LLM's extracted data with the 
+ * deterministic regex fallback data (to prevent hallucination or dropped slots).
+ */
 export class GeminiExtractClaimDataService implements ExtractClaimDataService {
   constructor(private readonly options: ExtractClaimDataServiceOptions) {}
 
@@ -426,7 +432,10 @@ DATA EXTRACTION (extractedData):
         }
     }
 
-    // Merge deterministic fallback extraction to ensure 100% out-of-order accuracy
+    // --- DETERMINISTIC FALLBACK MERGE ---
+    // Merge deterministic fallback extraction to ensure 100% out-of-order accuracy.
+    // If the LLM failed to extract a field (e.g. policy number) but our Regex caught it,
+    // we use the Regex value. This guarantees high precision for patterned fields.
     const fallbackPatch = extractFallbackClaimPatch(input.userMessage);
     const llmSlots = sanitizeExtractedClaimPatch(parsedResponse.extractedData || {});
     const mergedSlots = {

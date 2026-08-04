@@ -62,6 +62,12 @@ class Mutex {
   }
 }
 
+/**
+ * LocalJsonClaimLogger provides durable local persistence for claim records.
+ * It uses a simple Mutex to prevent race conditions when concurrent websocket sessions
+ * attempt to write to the same `claims.json` file.
+ * This satisfies the 'Outbox / Backup' mechanism described in the handbook.
+ */
 export class LocalJsonClaimLogger implements ClaimLoggerService {
   private mutex = new Mutex();
 
@@ -93,6 +99,11 @@ export function createLocalJsonClaimLogger(filePath?: string): ClaimLoggerServic
   return new LocalJsonClaimLogger(filePath);
 }
 
+/**
+ * NotificationClaimLogger is a decorator (Wrapper) around a base ClaimLoggerService.
+ * It ensures that the claim is durably logged FIRST, and then attempts to send an email.
+ * If the email fails, it swallows the error (graceful degradation) so the FSM doesn't crash.
+ */
 export class NotificationClaimLogger implements ClaimLoggerService {
   constructor(
     private readonly innerLogger: ClaimLoggerService,

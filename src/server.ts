@@ -215,6 +215,11 @@ app.post(
 import { WebSocketServer, WebSocket } from 'ws';
 import { AsyncLocalStorage } from 'node:async_hooks';
 
+/**
+ * requestContext provides a thread-local storage mechanism for associating asynchronous operations
+ * with a specific WebSocket request ID. This allows logs from the LLM or Database to automatically
+ * include the correct request ID, making it much easier to trace a single conversation turn in CloudWatch/Datadog.
+ */
 export const requestContext = new AsyncLocalStorage<string>();
 
 const originalConsoleLog = console.log;
@@ -347,6 +352,19 @@ const server = app.listen(port, () => {
 
 const wss = new WebSocketServer({ server });
 
+/**
+ * Retell Custom LLM WebSocket Server Integration
+ * 
+ * This WebSocket server acts as the Custom LLM backend for Retell AI.
+ * Retell streams user audio transcripts here in real-time, and this server
+ * responds with the text that Retell should synthesize into voice.
+ * 
+ * Flow:
+ * 1. connection: Retell connects and passes a call_id in the URL.
+ * 2. update_only: Retell sends partial transcripts (user is still talking).
+ * 3. response_required: Retell detects the user stopped talking and needs a response.
+ * 4. We invoke ConversationManager.handleUserMessage, stream text back, and optionally end the call.
+ */
 wss.on('connection', (ws: WebSocket, req) => {
   logInfo(`Retell connected via WebSocket: ${req.url}`);
   
@@ -655,10 +673,13 @@ wss.on('connection', (ws: WebSocket, req) => {
               const currentLock = prevLock.then(() => {}, () => {}).then(executeTurn);
               currentRec.turnLock = currentLock.then(() => {}, () => {});
               
+              // Wait for the LLM and deterministic pipeline to finish updating state
               await currentLock;
               if (!turnResult) return; // Superseded or aborted
               const { result, parseState } = turnResult;
 
+              // Retell protocol: if end_call is true, the WebSocket disconnects 
+              // and the phone call drops. We trigger this on normal completion and emergencies.
               const isComplete = result.action.type === 'complete' || result.action.type === 'escalate';
               
               logInfo(`Current conversation step after: ${result.state.currentConversationStep}`);
