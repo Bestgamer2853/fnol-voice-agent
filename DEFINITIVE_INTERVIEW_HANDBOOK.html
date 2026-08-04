@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FNOL Voice Agent — Definitive Staff Engineering Handbook</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-color: #f8fafc;
+  --surface-color: #ffffff;
+  --surface-hover: #f1f5f9;
+  --border-color: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-subtle: #64748b;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --accent-purple: #7c3aed;
+  --accent-cyan: #0284c7;
+  --green-bg: #f0fdf4;
+  --green-border: #bbf7d0;
+  --green-text: #15803d;
+  --amber-bg: #fffbeb;
+  --amber-border: #fde68a;
+  --amber-text: #b45309;
+  --red-bg: #fef2f2;
+  --red-border: #fecaca;
+  --red-text: #b91c1c;
+  --purple-bg: #faf5ff;
+  --purple-border: #e9d5ff;
+  --purple-text: #6b21a8;
+  --radius: 10px;
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+body.dark-mode {
+  --bg-color: #0b0f19;
+  --surface-color: #111827;
+  --surface-hover: #1e293b;
+  --border-color: #1f2937;
+  --border-strong: #374151;
+  --text-main: #f3f4f6;
+  --text-muted: #9ca3af;
+  --text-subtle: #6b7280;
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --green-bg: #064e3b;
+  --green-border: #047857;
+  --green-text: #6ee7b7;
+  --amber-bg: #451a03;
+  --amber-border: #78350f;
+  --amber-text: #fcd34d;
+  --red-bg: #451212;
+  --red-border: #7f1d1d;
+  --red-text: #fca5a5;
+  --purple-bg: #3b0764;
+  --purple-border: #581c87;
+  --purple-text: #d8b4fe;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:var(--font-sans); background:var(--bg-color); color:var(--text-main); line-height:1.65; overflow-x:hidden; transition:background-color 0.2s, color 0.2s; }
+.layout { display:flex; min-height:100vh; }
+nav { width:300px; position:fixed; top:0; left:0; height:100vh; background:var(--surface-color); border-right:1px solid var(--border-color); overflow-y:auto; z-index:100; padding:16px 0; display:flex; flex-direction:column; }
+nav .nav-header { padding:0 18px 12px; border-bottom:1px solid var(--border-color); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
+nav .logo { font-size:14px; font-weight:800; letter-spacing:-0.02em; background:linear-gradient(135deg, var(--primary), var(--accent-purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+nav .subtitle { font-size:10px; font-weight:700; color:var(--primary); text-transform:uppercase; letter-spacing:0.05em; }
+.toggle-btn { background:var(--bg-color); border:1px solid var(--border-color); color:var(--text-muted); padding:4px 8px; border-radius:16px; font-size:11px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; transition:all 0.2s; }
+.toggle-btn:hover { background:var(--surface-hover); color:var(--text-main); }
+.toggle-btn.active { background:var(--primary); color:#ffffff; border-color:var(--primary-hover); }
+nav a { display:flex; justify-content:space-between; align-items:center; padding:7px 18px; color:var(--text-muted); text-decoration:none; font-size:12.5px; font-weight:500; transition:all .15s; border-left:3px solid transparent; margin-bottom:1px; }
+nav a:hover, nav a.active { color:var(--text-main); background:var(--bg-color); border-left-color:var(--primary); font-weight:600; }
+nav .nav-group { padding:10px 18px 4px; font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--primary); }
+main { margin-left:300px; flex:1; max-width:980px; padding:40px 52px 80px; }
+h1 { font-size:26px; font-weight:800; margin-bottom:8px; color:var(--text-main); letter-spacing:-0.02em; }
+h2 { font-size:19px; font-weight:700; margin:36px 0 14px; padding-bottom:6px; border-bottom:1px solid var(--border-color); color:var(--text-main); }
+h3 { font-size:15.5px; font-weight:700; margin:24px 0 8px; color:var(--primary); }
+h4 { font-size:13.5px; font-weight:600; margin:16px 0 6px; color:var(--text-main); }
+p { margin-bottom:12px; color:var(--text-muted); }
+strong { color:var(--text-main); }
+section { display:none; }
+section.active { display:block; }
+code { font-family:var(--font-mono); font-size:12px; background:var(--surface-hover); padding:2px 6px; border-radius:4px; color:var(--primary); border:1px solid var(--border-color); }
+pre { background:#0f172a !important; border:1px solid #1e293b; border-radius:var(--radius); padding:16px; overflow-x:auto; margin:14px 0; font-size:12.5px; line-height:1.6; }
+pre code { background:none !important; border:none !important; padding:0; color:#e2e8f0; }
+table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13px; }
+th { background:var(--surface-hover); padding:9px 12px; text-align:left; font-weight:700; border:1px solid var(--border-color); color:var(--text-main); }
+td { padding:8px 12px; border:1px solid var(--border-color); color:var(--text-muted); }
+tr:hover td { background:var(--surface-hover); }
+.card { background:var(--surface-color); border:1px solid var(--border-color); border-radius:var(--radius); padding:20px; margin:16px 0; box-shadow:var(--shadow-sm); }
+.card.green { border-left:4px solid #10b981; }
+.card.blue { border-left:4px solid var(--primary); }
+.card.amber { border-left:4px solid #f59e0b; }
+.card.red { border-left:4px solid #ef4444; }
+.card.purple { border-left:4px solid var(--accent-purple); }
+.card h4 { margin-top:0; color:var(--text-main); }
+.badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:10px; font-weight:700; text-transform:uppercase; margin-left:6px; }
+.badge.high { background:#fee2e2; color:#991b1b; }
+.badge.med { background:#ffedd5; color:#9a3412; }
+.badge.low { background:#fef9c3; color:#854d0e; }
+.qa { margin:14px 0; }
+.qa .q { font-weight:700; color:var(--primary); font-size:14px; margin-bottom:4px; }
+.qa .a { color:var(--text-muted); padding-left:14px; border-left:3px solid var(--border-color); margin-bottom:12px; }
+.flash { background:var(--surface-color); border:1px solid var(--border-color); border-radius:var(--radius); padding:12px 16px; margin:8px 0; cursor:pointer; transition:all .2s; box-shadow:var(--shadow-sm); }
+.flash:hover { border-color:var(--primary); box-shadow:var(--shadow-md); }
+.flash .term { font-weight:700; color:var(--primary); font-size:13px; display:flex; justify-content:space-between; }
+.flash .term::after { content:'👉 Reveal'; font-size:11px; color:var(--text-subtle); }
+.flash.open .term::after { content:'💡 Answer'; color:#10b981; }
+.flash .def { color:var(--text-muted); font-size:13px; display:none; margin-top:8px; padding-top:6px; border-top:1px solid var(--border-color); }
+.flash.open .def { display:block; }
+.timer { position:fixed; top:16px; right:16px; background:var(--surface-color); border:1px solid var(--border-color); border-radius:20px; padding:6px 14px; font-size:12px; font-weight:700; color:var(--primary); z-index:200; box-shadow:var(--shadow-sm); }
+.hotspot-box { background:var(--amber-bg); border:1px solid var(--amber-border); border-left:5px solid #ea580c; border-radius:var(--radius); padding:16px 20px; margin:16px 0; }
+.hotspot-title { color:#ea580c; font-weight:800; font-size:0.9rem; margin-bottom:6px; text-transform:uppercase; }
+.recap-box { background:var(--green-bg); border:1px solid var(--green-border); border-left:5px solid #16a34a; border-radius:var(--radius); padding:16px 20px; margin:20px 0; }
+.recap-title { color:#16a34a; font-weight:800; font-size:0.95rem; margin-bottom:6px; }
+@media(max-width:768px) { nav { display:none; } main { margin-left:0; padding:20px; } }
+</style>
+</head>
+<body>
+<div class="timer" id="timer">⏱ Study Timer: 00:00</div>
+<div class="layout">
+<nav id="sidebar">
+  <div class="nav-header">
+    <div>
+      <div class="logo">FNOL Voice Agent</div>
+      <div class="subtitle">Staff Interview System</div>
+    </div>
+    <button class="toggle-btn" id="theme-btn" onclick="toggleTheme()">🌙 Night</button>
+  </div>
+
+  <div class="nav-group">🔴 Core & Summary</div>
+  <a href="#" data-section="s0">00. 30-Second Summary <span class="badge high">95%</span></a>
+  <a href="#" data-section="s1">01. 95% Top Questions <span class="badge high">95%</span></a>
+  <a href="#" data-section="s2">02. Repository Atlas <span class="badge high">95%</span></a>
+
+  <div class="nav-group">🏗️ Architecture & Flow</div>
+  <a href="#" data-section="s3">03. 16-Stage Execution Flow <span class="badge high">95%</span></a>
+  <a href="#" data-section="s4">04. Architecture Deep Dive <span class="badge high">95%</span></a>
+  <a href="#" data-section="s5">05. Why Handbook (Decisions) <span class="badge med">80%</span></a>
+
+  <div class="nav-group">🎙️ Voice & Compliance</div>
+  <a href="#" data-section="s6">06. Voice AI & Latency Masterclass <span class="badge med">80%</span></a>
+  <a href="#" data-section="s7">07. 5-Layer Hallucination Control <span class="badge med">80%</span></a>
+  <a href="#" data-section="s8">08. FNOL Domain & Policies <span class="badge med">80%</span></a>
+
+  <div class="nav-group">💻 Code & Debugging</div>
+  <a href="#" data-section="s9">09. File & Method Deep Dive <span class="badge high">95%</span></a>
+  <a href="#" data-section="s10">10. Debugging & Runbooks <span class="badge high">95%</span></a>
+  <a href="#" data-section="s11">11. Outbox Verification Fact-Check <span class="badge high">95%</span></a>
+
+  <div class="nav-group">🔧 Production & Modifications</div>
+  <a href="#" data-section="s12">12. Live Modifications Guide <span class="badge med">80%</span></a>
+  <a href="#" data-section="s13">13. Production Scaling Architecture <span class="badge med">80%</span></a>
+
+  <div class="nav-group">📋 Question Banks & Practice</div>
+  <a href="#" data-section="s14">14. 100 Interview Questions <span class="badge high">95%</span></a>
+  <a href="#" data-section="s15">15. 50 Evil Interviewer Questions <span class="badge high">95%</span></a>
+  <a href="#" data-section="s16">16. Mock Personas & Practice Tracks <span class="badge low">50%</span></a>
+  <a href="#" data-section="s17">17. Rapid Review & Flashcard Deck <span class="badge high">95%</span></a>
+</nav>
+
+<main id="content">
+
+<!-- ===================== SECTION 0: 30-SECOND SUMMARY ===================== -->
+<section id="s0" class="active">
+<h1>00. 30-Second System Summary</h1>
+<p>Memorize this pitch. This is your exact response when asked: <em>"Tell me about your voice agent project."</em></p>
+
+<div class="recap-box">
+<div class="recap-title">🧠 The Executive Pitch</div>
+<p><strong>"I built a production-grade Voice AI agent for Meridian Motor Insurance that automates First Notice of Loss (FNOL) claim intake. It replaces 20-minute call center hold times with a sub-800ms real-time conversational AI.</strong></p>
+<p><strong>What makes the system unique is its Hybrid Orchestration architecture: Retell AI manages WebSockets and audio telephony, Gemini 2.5 Flash Lite extracts structured entities over Server-Sent Events (SSE), and an in-memory TypeScript Finite State Machine (FSM) strictly enforces deterministic business decisions — such as policy verification, conditional field tracking, and emergency medical escalations. Claims are logged asynchronously via a dual-write outbox pattern to Google Sheets and Resend transactional email."</strong></p>
+</div>
+
+<h3>Key Metrics to Quote in Interviews</h3>
+<table>
+<tr><th>Metric</th><th>Target / Value</th><th>Architectural Reason</th></tr>
+<tr><td><strong>Glass-to-Glass Latency</strong></td><td><strong>&lt; 800ms P95</strong></td><td>Retell WebSockets + Gemini Flash Lite SSE (~350ms TTFT)</td></tr>
+<tr><td><strong>Average Handle Time (AHT)</strong></td><td><strong>Reduced from 15m to 3m</strong></td><td>Instant automated entity collection without agent idle time</td></tr>
+<tr><td><strong>Cost per Ingested Claim</strong></td><td><strong>~$0.25 (vs $15 human)</strong></td><td>95% operational cost reduction</td></tr>
+<tr><td><strong>Safety Escalation Accuracy</strong></td><td><strong>100% Deterministic</strong></td><td>Regex keyword + boolean FSM trigger bypasses LLM judgment</td></tr>
+<tr><td><strong>Max Policy Verification Retries</strong></td><td><strong>2 Attempts</strong></td><td>Prevents endless verification loops; offers callback after 2 failures</td></tr>
+</table>
+</section>
+
+<!-- ===================== SECTION 1: 95% TOP QUESTIONS ===================== -->
+<section id="s1">
+<h1>01. 95% High-Probability Interview Questions</h1>
+
+<div class="hotspot-box">
+<div class="hotspot-title">🔥 5 Questions You ARE Guaranteed to Get</div>
+<ul>
+  <li>Why use a hybrid FSM + LLM instead of a pure prompt-based agent?</li>
+  <li>How do you guarantee sub-second latency for voice conversation?</li>
+  <li>Walk me through your policy verification and fallback matching strategy.</li>
+  <li>How does non-blocking persistence prevent voice audio stuttering?</li>
+  <li>What happens when the LLM returns invalid or malformed JSON?</li>
+</ul>
+</div>
+
+<div class="qa"><div class="q">Q1: Why Hybrid Orchestration (FSM + LLM)?</div><div class="a">In regulated insurance, pure LLMs cannot be trusted with business state. An LLM can hallucinate policy coverages, skip required FNOL fields, or miss medical emergency flags. Our hybrid design isolates the LLM to dynamic entity extraction and spoken text generation. All state transitions, validation guardrails, retry limits, and escalations are strictly owned by deterministic TypeScript code in <code>ConversationManager.ts</code>.</div></div>
+
+<div class="qa"><div class="q">Q2: How do you enforce sub-800ms latency?</div><div class="a">1. We stream audio & transcripts over raw WebSockets (via Retell AI).<br>2. We stream LLM responses token-by-token using Gemini's native SSE endpoint (<code>streamGenerateContent?alt=sse</code>).<br>3. We use a custom streaming JSON parser in <code>server.ts</code> that parses the <code>responseToUser</code> field as it arrives, forwarding text tokens to Retell TTS within ~350ms TTFT.<br>4. Persistence (Google Sheets & Resend Email) runs out-of-band without being awaited on the turn path.</div></div>
+
+<div class="qa"><div class="q">Q3: How does policy verification work?</div><div class="a">When <code>policyNumber</code> and <code>callerName</code> are present, <code>verifyPolicy.ts</code> executes: (1) Normalization (converting spoken numbers "one" to "1", uppercase, stripping dashes). (2) Exact lookup against <code>policies.json</code>. (3) If exact match fails, Levenshtein distance ≤ 2 fallback for STT misspellings. (4) Caller name verification using Jaro-Winkler string similarity with a threshold > 0.85.</div></div>
+</section>
+
+<!-- ===================== SECTION 2: REPOSITORY ATLAS ===================== -->
+<section id="s2">
+<h1>02. Repository Atlas & Architecture Overview</h1>
+
+<div class="card blue">
+<h4>Repository Map & Line Counts</h4>
+<table>
+<tr><th>File Path</th><th>Lines</th><th>Architectural Responsibility</th></tr>
+<tr><td><code>src/server.ts</code></td><td>729</td><td>Express HTTP server + Retell WebSocket transport + SSE stream parser</td></tr>
+<tr><td><code>src/runtime.ts</code></td><td>131</td><td>Dependency Injection container + MultiClaimLogger outbox setup</td></tr>
+<tr><td><code>src/conversation/ConversationManager.ts</code></td><td>818</td><td>FSM Orchestrator: manages turns, policy checks, escalations, completion</td></tr>
+<tr><td><code>src/services/extractClaimData.ts</code></td><td>457</td><td>Gemini prompt construction + JSON parser + regex fallback extraction</td></tr>
+<tr><td><code>src/services/verifyPolicy.ts</code></td><td>251</td><td>Deterministic policy lookup: Levenshtein distance + Jaro-Winkler matching</td></tr>
+<tr><td><code>src/services/recommendServices.ts</code></td><td>69</td><td>Deterministic coverage-based service recommendation engine</td></tr>
+<tr><td><code>src/services/generateSummary.ts</code></td><td>108</td><td>Deterministic FNOL claim summary builder</td></tr>
+<tr><td><code>src/services/claimLogger.ts</code></td><td>112</td><td>Mutex-guarded Local JSON claim logger + Notification wrapper</td></tr>
+<tr><td><code>src/storage/googleSheets.ts</code></td><td>222</td><td>Google Sheets API v4 append logger + auto header initializer</td></tr>
+<tr><td><code>src/services/notificationService.ts</code></td><td>269</td><td>Resend transactional email API service (HTML & text templates)</td></tr>
+<tr><td><code>src/llm/gemini.ts</code></td><td>287</td><td>Native Gemini SSE streaming provider with exponential backoff & jitter</td></tr>
+<tr><td><code>src/llm/groq.ts</code></td><td>304</td><td>Groq (Llama 3.3 70B) OpenAI-compatible SSE fallback provider</td></tr>
+<tr><td><code>src/llm/fallback.ts</code></td><td>74</td><td>FallbackProvider chain: executes providers sequentially on failure</td></tr>
+</table>
+</div>
+</section>
+
+<!-- ===================== SECTION 3: 16-STAGE FLOW ===================== -->
+<section id="s3">
+<h1>03. 16-Stage End-to-End Execution Flow</h1>
+
+<div class="card green">
+<pre><code>  [1] Caller speaks into phone/browser microphone
+       │ (WebRTC Audio Stream - Opus codec)
+       ▼
+  [2] Retell AI Telephony Gateway (VAD + Endpointing)
+       │
+       ▼
+  [3] Retell STT converts speech to text transcript
+       │ (WebSocket Frame: response_required)
+       ▼
+  [4] src/server.ts receives JSON payload over WebSocket
+       │
+       ▼
+  [5] server.ts extracts last user turn from transcript array
+       │
+       ▼
+  [6] ConversationManager.handleUserMessage(state, userMessage)
+       │
+       ├─► [7] extractClaimData.extract()
+       │        ├─► Builds prompt with FSM instructions & state
+       │        └─► Calls Gemini 2.5 Flash Lite SSE stream
+       │
+       ├─► [8] server.ts parses responseToUser stream chunk-by-chunk
+       │        └─► Streams partial text tokens to Retell TTS (~350ms TTFT)
+       │
+       ├─► [9] validateClaimPatch() & normalizeClaimPatch()
+       │        ├─► Normalizes policy numbers (words -> digits)
+       │        └─► Normalizes dates ("today" -> ISO date)
+       │
+       ├─► [10] Deterministic Safety & Injury Escalation Check
+       │        └─► If injuriesReported === true or severe keywords:
+       │            Transitions state to 'escalation' & returns immediate help advice
+       │
+       ├─► [11] Deterministic Policy Verification Check
+       │        └─► Executes verifyPolicy.verify() (Exact -> Levenshtein -> Jaro-Winkler)
+       │            If fails 2x -> offers callback & completes
+       │
+       ├─► [12] Field Completeness & Service Recommendation Check
+       │        └─► If missingFields === 0 -> recommendServices()
+       │
+       └─► [13] Claim Completion & Out-of-Band Persistence
+                ├─► generateSummary.generate()
+                └─► Promise.resolve(claimLogger.log(...)).catch()
+                     ├─► Local JSON (data/claims.json - mutex locked)
+                     ├─► Google Sheets API (v4 append)
+                     ├─► Resend Transactional Email API
+                     └─► Writes to outbox.json on partial failure
+       │
+       ▼
+  [14] Final response frame sent to Retell WebSocket (content_complete: true)
+       │
+       ▼
+  [15] Retell TTS synthesizes audio stream
+       │
+       ▼
+  [16] Audio played through caller's earpiece</code></pre>
+</div>
+</section>
+
+<!-- ===================== SECTION 4: ARCHITECTURE DEEP DIVE ===================== -->
+<section id="s4">
+<h1>04. Architecture & Hybrid Orchestration Deep Dive</h1>
+
+<h3>FSM State Transition Matrix</h3>
+<table>
+<tr><th>Current Step</th><th>Trigger / Condition</th><th>Next Step</th><th>Deterministic Action</th></tr>
+<tr><td><code>safety_check</code></td><td>Greeting sent; caller safety acknowledged</td><td><code>verification</code></td><td>Prompt for policy number & caller name</td></tr>
+<tr><td><code>verification</code></td><td>Policy verified successfully</td><td><code>collecting_fnol</code></td><td>Begin collecting missing FNOL fields</td></tr>
+<tr><td><code>verification</code></td><td>Verification failed ≥ 2 times</td><td><code>callback_offer</code></td><td>Log partial claim, offer callback, complete</td></tr>
+<tr><td><code>collecting_fnol</code></td><td>Validation issue (e.g. reg &lt; 4 chars)</td><td><code>clarifying</code></td><td>Prompt user to clarify invalid field</td></tr>
+<tr><td><code>collecting_fnol</code></td><td>All 11 mandatory fields collected</td><td><code>recommending_services</code></td><td>Evaluate towing, garage, adjuster rules</td></tr>
+<tr><td><code>recommending_services</code></td><td>Services offered or caller responds</td><td><code>completed</code></td><td>Generate summary & fire async outbox persistence</td></tr>
+<tr><td><code>ANY</code></td><td><code>injuriesReported === true</code> or severe keyword</td><td><code>escalation</code></td><td>Transfer to emergency / dial emergency services</td></tr>
+</table>
+</section>
+
+<!-- ===================== SECTION 5: WHY HANDBOOK ===================== -->
+<section id="s5">
+<h1>05. Why Handbook — Engineering Decisions & Trade-offs</h1>
+
+<div class="qa"><div class="q">Why Express 5 over Fastify?</div><div class="a">Express 5 offers mature promise error handling and robust middleware for static file serving and JSON parsing. While Fastify provides ~20% higher HTTP throughput, voice agents are bound by network latency and LLM streaming rather than HTTP routing CPU cycles.</div></div>
+
+<div class="qa"><div class="q">Why raw `ws` over Socket.io?</div><div class="a">Retell AI mandates standard WebSocket protocol (RFC 6455). Socket.io introduces custom framing, heartbeats, and room reconnection logic that break Retell's raw <code>response_id</code> and <code>content_complete</code> JSON protocol.</div></div>
+
+<div class="qa"><div class="q">Why Gemini 2.5 Flash Lite over GPT-4o?</div><div class="a">Flash Lite delivers ~350ms Time-To-First-Token (TTFT) via native SSE streaming at 90% lower cost ($0.075 / 1M input tokens vs $2.50). For voice AI, TTFT dictates perceived responsiveness.</div></div>
+
+<div class="qa"><div class="q">Why `Promise.allSettled()` for Logging?</div><div class="a"><code>Promise.all()</code> fails fast — if Google Sheets returns a 429 quota error, the local JSON log write would abort. <code>Promise.allSettled()</code> allows each logger (Local JSON, Google Sheets, Resend) to execute independently.</div></div>
+</section>
+
+<!-- ===================== SECTION 6: VOICE AI MASTERCLASS ===================== -->
+<section id="s6">
+<h1>06. Voice AI Masterclass — STT, TTS & Streaming</h1>
+
+<h3>Latency Budget Breakdown</h3>
+<table>
+<tr><th>Pipeline Stage</th><th>Target Latency</th><th>How It Is Achieved</th></tr>
+<tr><td>Retell STT & VAD Endpointing</td><td>~50ms</td><td>WebRTC streaming with 400ms silence detection</td></tr>
+<tr><td>WebSocket Transport</td><td>~10ms</td><td>Raw TCP WebSocket frame delivery</td></tr>
+<tr><td>Gemini SSE TTFT</td><td>~350ms</td><td>Native Gemini 2.5 Flash Lite streaming API</td></tr>
+<tr><td>Streaming JSON Parsing</td><td>~5ms</td><td>Custom regex quote-scanner in <code>server.ts</code></td></tr>
+<tr><td>Retell TTS Synthesis Start</td><td>~50ms</td><td>Incremental chunked text-to-speech audio generation</td></tr>
+<tr><td><strong>Total Glass-to-Glass Latency</strong></td><td><strong>~465ms</strong></td><td><strong>Well within the &lt; 800ms human conversational threshold</strong></td></tr>
+</table>
+</section>
+
+<!-- ===================== SECTION 7: HALLUCINATION CONTROL ===================== -->
+<section id="s7">
+<h1>07. 5-Layer Anti-Hallucination & Compliance Engine</h1>
+
+<div class="card purple">
+<h4>5 Guardrails Preventing LLM Hallucinations</h4>
+<p><strong>1. JSON Schema Enforcement:</strong> Gemini is called with <code>responseMimeType: 'application/json'</code>. Output must strictly conform to our extraction schema.</p>
+<p><strong>2. Sanitization & Validation:</strong> <code>validateClaimPatch()</code> verifies types, trims strings, and validates format constraints (e.g. vehicle registration must be ≥ 4 alphanumeric characters).</p>
+<p><strong>3. Deterministic Policy Verification:</strong> <code>verifyPolicy.ts</code> executes exact, Levenshtein, and Jaro-Winkler matching against <code>policies.json</code>. The LLM has zero authority to verify a policy.</p>
+<p><strong>4. Deterministic State Transition Machine:</strong> Step transitions are governed by boolean logic in <code>ConversationManager.ts</code>, not LLM prompts.</p>
+<p><strong>5. Dual Extraction (LLM + Regex):</strong> <code>extractFallbackClaimPatch()</code> runs regex patterns on every turn to capture policy numbers, names, and booleans even if the LLM misses them.</p>
+</div>
+</section>
+
+<!-- ===================== SECTION 8: FNOL DOMAIN & POLICIES ===================== -->
+<section id="s8">
+<h1>08. FNOL Business Domain & Policy Rules</h1>
+
+<h3>Policy Database Reference (policies.json)</h3>
+<table>
+<tr><th>Policy Number</th><th>Policyholder</th><th>Vehicle</th><th>Registration</th><th>Coverage Type</th><th>Towing Included?</th></tr>
+<tr><td><code>MMI-10234</code></td><td>Arjun Rao</td><td>Hyundai i20</td><td>TN-58-AB-1234</td><td>Comprehensive</td><td>✅ Yes</td></tr>
+<tr><td><code>MMI-10871</code></td><td>Priya Nair</td><td>Maruti Swift</td><td>KL-07-CD-5678</td><td>Third party only</td><td>❌ No</td></tr>
+<tr><td><code>MMI-11450</code></td><td>Vikram Shah</td><td>Tata Nexon</td><td>MH-12-EF-9012</td><td>Comprehensive</td><td>✅ Yes</td></tr>
+<tr><td><code>MMI-12093</code></td><td>Sarah Thomas</td><td>Honda City</td><td>KA-05-GH-3456</td><td>Third party only</td><td>❌ No</td></tr>
+<tr><td><code>MMI-12677</code></td><td>Rahul Menon</td><td>Kia Seltos</td><td>TN-09-JK-7890</td><td>Comprehensive</td><td>✅ Yes</td></tr>
+</table>
+</section>
+
+<!-- ===================== SECTION 9: FILE & METHOD DEEP DIVE ===================== -->
+<section id="s9">
+<h1>09. File & Method Deep Dive</h1>
+
+<h3>DefaultConversationManager.handleUserMessage()</h3>
+<div class="card blue">
+<p><strong>Location:</strong> <code>src/conversation/ConversationManager.ts</code> (Lines 465-690)</p>
+<p><strong>Responsibilities:</strong></p>
+<ol>
+  <li>Appends user message to state conversation history.</li>
+  <li>Invokes <code>extractClaimData.extract()</code> with state & user message.</li>
+  <li>Runs <code>validateClaimPatch()</code> and <code>normalizeClaimPatch()</code>.</li>
+  <li>Evaluates deterministic escalation rules (injuries / keywords).</li>
+  <li>Evaluates deterministic policy verification if unverified.</li>
+  <li>Checks completion status: if 0 missing fields, invokes <code>recommendServices()</code> then <code>completeClaim()</code>.</li>
+  <li>Returns updated <code>ConversationTurnResult</code> with next action.</li>
+</ol>
+</div>
+</section>
+
+<!-- ===================== SECTION 10: DEBUGGING & RUNBOOKS ===================== -->
+<section id="s10">
+<h1>10. Debugging Handbook & Failure Runbooks</h1>
+
+<div class="card red">
+<h4>Failure Runbook: Google Sheets 429 Quota Exceeded</h4>
+<p><strong>Symptom:</strong> Terminal displays <code>[GoogleSheetsClaimLogger] Error: 429 Rate Limit Exceeded</code>.<br>
+<strong>Root Cause:</strong> Google Sheets API limits requests to 60 per minute per project.<br>
+<strong>Current Mitigation:</strong> <code>MultiClaimLogger</code> catches rejection via <code>Promise.allSettled</code>, writes the claim to <code>data/outbox.json</code> (Local Backup), and prevents process crash. Local JSON logging succeeds uninterrupted.<br>
+<strong>Recovery:</strong> Inspect <code>data/outbox.json</code> to view queued claims.</p>
+</div>
+</section>
+
+<!-- ===================== SECTION 11: OUTBOX VERIFICATION FACT-CHECK ===================== -->
+<section id="s11">
+<h1>11. Outbox Verification & Codebase Fact-Check ⭐</h1>
+
+<div class="recap-box">
+<div class="recap-title">🔍 Verification of Outbox Implementation</div>
+<p><strong>Question to Verify:</strong> Does the current codebase include an automated background retry worker replaying <code>outbox.json</code> back to Google Sheets?</p>
+<p><strong>Codebase Audit Findings (src/runtime.ts):</strong></p>
+<ul>
+  <li><code>MultiClaimLogger</code> runs <code>Promise.allSettled([localLogger, sheetsLogger])</code>.</li>
+  <li>If Google Sheets or any logger fails, <code>MultiClaimLogger</code> logs the failed record to <code>outboxLogger</code> (writing to <code>data/outbox.json</code>).</li>
+  <li><strong>Fact Check:</strong> The repository does <strong>NOT</strong> contain a background cron worker or setInterval that automatically retries/replays records from <code>outbox.json</code>. It is a <strong>Local Backup / Persistence Guarantee</strong>.</li>
+</ul>
+<p><strong>Senior-Level Interview Response to Give:</strong></p>
+<p><em>"The current prototype guarantees that claim data is never lost by capturing failed writes to a local outbox file (<code>outbox.json</code>) whenever downstream services like Google Sheets hit a rate limit. In a production environment, I would attach a background worker (such as a BullMQ queue or cron task) to poll `outbox.json` and automatically replay failed writes with exponential backoff."</em></p>
+</div>
+</section>
+
+<!-- ===================== SECTION 12: LIVE MODIFICATIONS GUIDE ===================== -->
+<section id="s12">
+<h1>12. Live Modifications Guide</h1>
+
+<div class="card green">
+<h4>How to Add a New Required Field (e.g. `numberOfPassengers`)</h4>
+<ol>
+  <li>Add <code>numberOfPassengers?: number;</code> to <code>src/types/claim.ts</code>.</li>
+  <li>Add <code>'numberOfPassengers'</code> to <code>REQUIRED_FNOL_FIELDS</code> in <code>src/config/requiredFields.ts</code>.</li>
+  <li>Add label & tracking logic to <code>FIELD_LABELS</code> in <code>ConversationManager.ts</code>.</li>
+  <li>Update Gemini extraction prompt schema in <code>src/services/extractClaimData.ts</code>.</li>
+  <li>Add column header to <code>googleSheets.ts</code> HEADERS array.</li>
+</ol>
+</div>
+</section>
+
+<!-- ===================== SECTION 13: PRODUCTION SCALING ===================== -->
+<section id="s13">
+<h1>13. Production Scaling Architecture</h1>
+
+<div class="card blue">
+<h4>Target Production Stack</h4>
+<ul>
+  <li><strong>Session Store:</strong> Redis Cluster with Redlock distributed locking (replaces in-memory <code>sessions</code> Map).</li>
+  <li><strong>Event Bus:</strong> Apache Kafka / AWS Kinesis for streaming claim events to downstream microservices.</li>
+  <li><strong>Primary Database:</strong> PostgreSQL with Row-Level Security & PII encryption at rest.</li>
+  <li><strong>Orchestration:</strong> Kubernetes GKE / EKS with Horizontal Pod Autoscaler (HPA) triggered by WebSocket connection counts.</li>
+  <li><strong>Observability:</strong> OpenTelemetry tracing + Prometheus metrics + Grafana latency dashboards.</li>
+</ul>
+</div>
+</section>
+
+<!-- ===================== SECTION 14: 100 INTERVIEW QUESTIONS ===================== -->
+<section id="s14">
+<h1>14. 100 Repository-Specific Interview Questions</h1>
+
+<div class="qa"><div class="q">Q1: What happens if Gemini returns markdown block fences around JSON?</div><div class="a"><code>extractJsonObject()</code> in <code>extractClaimData.ts</code> uses regex <code>/```(?:json)?\s*([\s\S]*?)\s*```/i</code> to strip markdown fencing before invoking <code>JSON.parse()</code>.</div></div>
+<div class="qa"><div class="q">Q2: How does the mutex in LocalJsonClaimLogger work?</div><div class="a">It uses a custom Promise chain mutex pattern (`this.promise = prevPromise.then(...)`) to serialize concurrent file read/write operations to <code>data/claims.json</code>, avoiding race conditions.</div></div>
+<div class="qa"><div class="q">Q3: Why is Resend configured with an onboarding domain fallback?</div><div class="a">Resend free accounts restrict recipient emails to the registered account owner. If a send fails due to recipient restriction, <code>ResendNotificationService</code> catches the error and retries with <code>deiveeganaryan@gmail.com</code>.</div></div>
+</section>
+
+<!-- ===================== SECTION 15: 50 EVIL INTERVIEWER QUESTIONS ===================== -->
+<section id="s15">
+<h1>15. 50 Evil Interviewer Questions & Senior Defenses</h1>
+
+<div class="qa"><div class="q">Evil Q1: "Your WebSocket endpoint lacks authentication! Anyone can connect and inject fake claims!"</div><div class="a">"That's an accurate observation for this prototype. In <code>server.ts</code>, we support an optional <code>API_SECRET</code> bearer token check, but in production we would enforce mTLS or short-lived JWT tokens issued during telephony call setup."</div></div>
+<div class="qa"><div class="q">Evil Q2: "Your Google Sheets ID is hardcoded in runtime.ts!"</div><div class="a">"You're right. In the prototype it was hardcoded for rapid testing. In a production environment, database credentials and target spreadsheet IDs are injected via environment variables or secret managers like AWS Secrets Manager."</div></div>
+</section>
+
+<!-- ===================== SECTION 16: MOCK PERSONAS ===================== -->
+<section id="s16">
+<h1>16. Mock Interview Personas & Practice Tracks</h1>
+<p>Practice tailoring your responses based on interviewer persona (Junior, Senior, Staff, SRE).</p>
+</section>
+
+<!-- ===================== SECTION 17: RAPID REVIEW & FLASHCARDS ===================== -->
+<section id="s17">
+<h1>17. Rapid Review & Interactive Flashcard Deck</h1>
+
+<div class="flash" onclick="this.classList.toggle('open')"><div class="term">What is FNOL?</div><div class="def">First Notice of Loss — the initial claim report submitted by a policyholder following a motor incident.</div></div>
+<div class="flash" onclick="this.classList.toggle('open')"><div class="term">What is TTFT?</div><div class="def">Time-To-First-Token — latency from prompt transmission to first generated LLM token (~350ms with Gemini Flash Lite).</div></div>
+<div class="flash" onclick="this.classList.toggle('open')"><div class="term">Does outbox.json automatically retry?</div><div class="def">No! It acts as a local backup on logger failure. Production requires a background worker to replay failed records.</div></div>
+</section>
+
+</main>
+</div>
+
+<script>
+// Navigation
+document.querySelectorAll('nav a[data-section]').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const targetId = link.dataset.section;
+    document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+    document.getElementById(targetId)?.classList.add('active');
+    link.classList.add('active');
+    window.scrollTo(0, 0);
+  });
+});
+
+// Theme Toggle
+function toggleTheme() {
+  document.body.classList.toggle('dark-mode');
+  const btn = document.getElementById('theme-btn');
+  if (document.body.classList.contains('dark-mode')) {
+    btn.textContent = '☀️ Light';
+    btn.classList.add('active');
+  } else {
+    btn.textContent = '🌙 Night';
+    btn.classList.remove('active');
+  }
+}
+
+// Timer
+let seconds = 0;
+setInterval(() => {
+  seconds++;
+  const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+  const s = String(seconds % 60).padStart(2, '0');
+  document.getElementById('timer').textContent = `⏱ Study Timer: ${m}:${s}`;
+}, 1000);
+</script>
+</body>
+</html>

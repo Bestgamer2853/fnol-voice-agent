@@ -1,0 +1,1165 @@
+Starting Automated Conversation Tests...
+
+========================================
+Running Scenario: Happy path
+========================================
+Agent: Hello, thank you for calling Meridian Motor Insurance. I'm sorry to hear you've had an accident. I'll help you report your claim today. Before we begin, are you and everyone else currently safe?
+
+User: Yes, everyone is safe.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "Yes, everyone is safe."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: mulofqso] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: mulofqso] HTTP Status: 200
+[LLM Response Success] Latency: 3817ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 241, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "That's a relief. Could you please tell me your policy number?",
+  "extractedData": {
+    "confidence": 1.0,
+    "policyNumber": null,
+    "callerName": null,
+    "dateOfIncident": null,
+    "insuredVehicle": null
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #1.5
+[METRICS] Latency: 3867ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: policyNumber, callerName, dateOfIncident, timeOfIncident, locationOfIncident, incidentDescription, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "That's a relief. Could you please tell me your policy number?"
+Agent: That's a relief. Could you please tell me your policy number?
+
+User: My name is Arjun Rao and my policy number is MMI-10234.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "My name is Arjun Rao and my policy number is MMI-10234."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: yomiv19x] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: yomiv19x] HTTP Status: 200
+[LLM Response Success] Latency: 5621ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 250, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it, thanks Arjun. What date did the incident happen?",
+  "extractedData": {
+    "confidence": 1.0,
+    "policyNumber": "MMI-10234",
+    "callerName": "Arjun Rao",
+    "dateOfIncident": null,
+    "insuredVehicle": null
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #2.5
+[METRICS] Latency: 5740ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: dateOfIncident, timeOfIncident, locationOfIncident, incidentDescription, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {"policyNumber":"MMI-10234","callerName":"Arjun Rao"}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Got it, thanks Arjun. What date did the incident happen?"
+Agent: Got it, thanks Arjun. What date did the incident happen?
+
+User: It happened yesterday.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "It happened yesterday."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: urw7co3a] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[LLM Retry] Network Error. Retrying in 394ms...
+[Diagnostic] [ReqID: urw7co3a] [LLM Request] Attempt 2. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: urw7co3a] HTTP Status: 200
+[LLM Response Success] Latency: 3618ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 305, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it. What time did the incident happen?",
+  "extractedData": {
+    "confidence": 1.0,
+    "dateOfIncident": "2026-07-30",
+    "timeOfIncident": null,
+    "locationOfIncident": null,
+    "insuredVehicle": {
+      "make": "",
+      "model": "",
+      "registration": ""
+    }
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #3.5
+[METRICS] Latency: 12204ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident, locationOfIncident, incidentDescription, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {"dateOfIncident":"2026-07-30"}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Got it. What time did the incident happen?"
+Agent: Got it. What time did the incident happen?
+
+User: At 3pm.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "At 3pm."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: 8z9ourkz] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[LLM Retry] Network Error. Retrying in 335ms...
+[Diagnostic] [ReqID: 8z9ourkz] [LLM Request] Attempt 2. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: 8z9ourkz] HTTP Status: 503
+[LLM Retry] Status 503. Retrying in 758ms...
+[Diagnostic] [ReqID: 8z9ourkz] [LLM Request] Attempt 3. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: 8z9ourkz] HTTP Status: 503
+[FallbackProvider] Provider 1 exhausted retries. Falling back...
+[ConversationManager] finishReason: undefined
+
+[METRICS] Turn #4.5
+[METRICS] Latency: 11980ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident, locationOfIncident, incidentDescription, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "I'm having a temporary connection issue with my AI service. Please give me a moment."
+Agent: I'm having a temporary connection issue with my AI service. Please give me a moment.
+
+User: On Main Street.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "On Main Street."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: 7avstx3s] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: 7avstx3s] HTTP Status: 200
+[LLM Response Success] Latency: 5746ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 247, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it. What time did the incident happen?",
+  "extractedData": {
+    "confidence": 0.95,
+    "timeOfIncident": null,
+    "locationOfIncident": "Main Street",
+    "incidentDescription": null,
+    "insuredVehicle": null
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #5.5
+[METRICS] Latency: 5817ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident, incidentDescription, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {"locationOfIncident":"Main Street"}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Got it. What time did the incident happen?"
+Agent: Got it. What time did the incident happen?
+
+User: I rear-ended someone.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "I rear-ended someone."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: buof0ul4] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: buof0ul4] HTTP Status: 503
+[LLM Retry] Status 503. Retrying in 434ms...
+[Diagnostic] [ReqID: buof0ul4] [LLM Request] Attempt 2. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: buof0ul4] HTTP Status: 200
+[LLM Response Success] Latency: 4705ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 222, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it. What time did the incident happen?",
+  "extractedData": {
+    "confidence": 0.95,
+    "timeOfIncident": null,
+    "incidentDescription": "Rear-ended someone",
+    "insuredVehicle": null
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #6.5
+[METRICS] Latency: 6554ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {"incidentDescription":"Rear-ended someone"}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Could you please clarify that?"
+Agent: Could you please clarify that?
+
+User: Just the other car.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "Just the other car."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: r4auxk28] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: r4auxk28] HTTP Status: 503
+[LLM Retry] Status 503. Retrying in 480ms...
+[Diagnostic] [ReqID: r4auxk28] [LLM Request] Attempt 2. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: r4auxk28] HTTP Status: 503
+[LLM Retry] Status 503. Retrying in 612ms...
+[Diagnostic] [ReqID: r4auxk28] [LLM Request] Attempt 3. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: r4auxk28] HTTP Status: 503
+[FallbackProvider] Provider 1 exhausted retries. Falling back...
+[ConversationManager] finishReason: undefined
+
+[METRICS] Turn #7.5
+[METRICS] Latency: 6956ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "I'm having a temporary connection issue with my AI service. Please give me a moment."
+Agent: I'm having a temporary connection issue with my AI service. Please give me a moment.
+
+User: No one was hurt.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "No one was hurt."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: rvup73jt] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: rvup73jt] HTTP Status: 200
+[LLM Response Success] Latency: 3858ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 298, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Glad to hear everyone is okay. What time did the incident happen?",
+  "extractedData": {
+    "confidence": 0.95,
+    "timeOfIncident": null,
+    "insuredVehicle": {
+      "make": null,
+      "model": null,
+      "registration": null
+    },
+    "injuriesReported": false
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #8.5
+[METRICS] Latency: 4008ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident, insuredVehicle, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {"injuriesReported":false}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Glad to hear everyone is okay. What time did the incident happen?"
+Agent: Glad to hear everyone is okay. What time did the incident happen?
+
+User: No police report.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "No police report."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: mw7ugshp] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: mw7ugshp] HTTP Status: 200
+[LLM Response Success] Latency: 4021ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 275, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it. What time did the incident happen?",
+  "extractedData": {
+    "confidence": 1.0,
+    "timeOfIncident": null,
+    "insuredVehicle": {
+      "make": null,
+      "model": null,
+      "registration": null
+    },
+    "policeReportFiled": false
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #9.5
+[METRICS] Latency: 4144ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident, insuredVehicle, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {"policeReportFiled":false}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Got it. What time did the incident happen?"
+Agent: Got it. What time did the incident happen?
+
+User: Yes I have photos.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "Yes I have photos."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: 2d4kx99b] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: 2d4kx99b] HTTP Status: 503
+[LLM Retry] Status 503. Retrying in 468ms...
+[Diagnostic] [ReqID: 2d4kx99b] [LLM Request] Attempt 2. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: 2d4kx99b] HTTP Status: 200
+[LLM Response Success] Latency: 4393ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 273, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it. What time did the incident happen?",
+  "extractedData": {
+    "confidence": 0.95,
+    "timeOfIncident": null,
+    "insuredVehicle": {
+      "make": null,
+      "model": null,
+      "registration": null
+    },
+    "photosAvailable": true
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #10.5
+[METRICS] Latency: 6224ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident, insuredVehicle, vehicleDrivable
+[METRICS] ExtractedFields: {"photosAvailable":true}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Could you please clarify that?"
+Agent: Could you please clarify that?
+
+User: Yes my car is drivable.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "Yes my car is drivable."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: jo34w248] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: jo34w248] HTTP Status: 200
+[LLM Response Success] Latency: 3894ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 272, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it. What time did the incident happen?",
+  "extractedData": {
+    "confidence": 1.0,
+    "timeOfIncident": null,
+    "insuredVehicle": {
+      "make": null,
+      "model": null,
+      "registration": null
+    },
+    "vehicleDrivable": true
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #11.5
+[METRICS] Latency: 4046ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident, insuredVehicle
+[METRICS] ExtractedFields: {"vehicleDrivable":true}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Got it. What time did the incident happen?"
+Agent: Got it. What time did the incident happen?
+
+User: The make is Toyota, model is Camry, registration is XYZ 123.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "The make is Toyota, model is Camry, registration is XYZ 123."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: sg2cf816] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: sg2cf816] HTTP Status: 200
+[LLM Response Success] Latency: 3329ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 255, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it. What time did the incident happen?",
+  "extractedData": {
+    "confidence": 1.0,
+    "timeOfIncident": null,
+    "insuredVehicle": {
+      "make": "Toyota",
+      "model": "Camry",
+      "registration": "XYZ 123"
+    }
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #12.5
+[METRICS] Latency: 3392ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident
+[METRICS] ExtractedFields: {"insuredVehicle":{"make":"Toyota","model":"Camry","registration":"XYZ123"}}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Could you please clarify that?"
+Agent: Could you please clarify that?
+
+User: Yes, confirm
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "Yes, confirm"
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: dyfd1dvr] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[LLM Retry] Network Error. Retrying in 401ms...
+[Diagnostic] [ReqID: dyfd1dvr] [LLM Request] Attempt 2. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[LLM Retry] Network Error. Retrying in 708ms...
+[Diagnostic] [ReqID: dyfd1dvr] [LLM Request] Attempt 3. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: dyfd1dvr] HTTP Status: 200
+[LLM Response Success] Latency: 2519ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 144, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it. What time did the incident happen?",
+  "extractedData": {
+    "confidence": 0.0,
+    "timeOfIncident": null
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #13.5
+[METRICS] Latency: 19648ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Got it. What time did the incident happen?"
+Agent: Got it. What time did the incident happen?
+
+[Scenario Happy path Completed. Final Step: safety_check]
+
+========================================
+Running Scenario: Phonetic Policy & Natural Numbers
+========================================
+Agent: Hello, thank you for calling Meridian Motor Insurance. I'm sorry to hear you've had an accident. I'll help you report your claim today. Before we begin, are you and everyone else currently safe?
+
+User: Yeah we are safe.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "Yeah we are safe."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: i48chswj] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: i48chswj] HTTP Status: 200
+[LLM Response Success] Latency: 2563ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 255, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Glad to hear everyone is safe. Could you please tell me your policy number?",
+  "extractedData": {
+    "confidence": 1.0,
+    "policyNumber": null,
+    "callerName": null,
+    "dateOfIncident": null,
+    "insuredVehicle": null
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #1.5
+[METRICS] Latency: 2704ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: policyNumber, callerName, dateOfIncident, timeOfIncident, locationOfIncident, incidentDescription, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Glad to hear everyone is safe. Could you please tell me your policy number?"
+Agent: Glad to hear everyone is safe. Could you please tell me your policy number?
+
+User: I am Priya Nair. My policy is mike mike india one zero eight seven one.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "I am Priya Nair. My policy is mike mike india one zero eight seven one."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: h1z05fuj] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: h1z05fuj] HTTP Status: 200
+[LLM Response Success] Latency: 7598ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 254, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Thanks, Priya. Could you please provide your policy number?",
+  "extractedData": {
+    "confidence": 0.95,
+    "policyNumber": "MMI10871",
+    "callerName": "Priya Nair",
+    "dateOfIncident": null,
+    "insuredVehicle": null
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #2.5
+[METRICS] Latency: 7602ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: dateOfIncident, timeOfIncident, locationOfIncident, incidentDescription, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {"policyNumber":"MMI-10871","callerName":"Priya Nair"}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Thanks, Priya. Could you please provide your policy number?"
+Agent: Thanks, Priya. Could you please provide your policy number?
+
+User: It was today at two thirty in the afternoon.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "It was today at two thirty in the afternoon."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: 40k9ovdx] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: 40k9ovdx] HTTP Status: 200
+[LLM Response Success] Latency: 6907ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 331, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it. Could you please confirm the date of the incident?",
+  "extractedData": {
+    "confidence": 0.95,
+    "dateOfIncident": "2026-07-31",
+    "timeOfIncident": "14:30",
+    "locationOfIncident": null,
+    "insuredVehicle": {
+      "make": null,
+      "model": null,
+      "registration": null
+    }
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #3.5
+[METRICS] Latency: 7075ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: locationOfIncident, incidentDescription, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {"dateOfIncident":"2026-07-31","timeOfIncident":"14:30"}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Got it. Could you please confirm the date of the incident?"
+Agent: Got it. Could you please confirm the date of the incident?
+
+User: I crashed into a pole on First Avenue.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "I crashed into a pole on First Avenue."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: xk6dc2t0] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[LLM Retry] Network Error. Retrying in 477ms...
+[Diagnostic] [ReqID: xk6dc2t0] [LLM Request] Attempt 2. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[LLM Retry] Network Error. Retrying in 620ms...
+[Diagnostic] [ReqID: xk6dc2t0] [LLM Request] Attempt 3. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[FallbackProvider] Provider 1 exhausted retries. Falling back...
+[ConversationManager] finishReason: undefined
+
+[METRICS] Turn #4.5
+[METRICS] Latency: 44091ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: locationOfIncident, incidentDescription, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "I'm having a temporary connection issue with my AI service. Please give me a moment."
+Agent: I'm having a temporary connection issue with my AI service. Please give me a moment.
+
+User: No one else was involved, no injuries, no police, I took a picture.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "No one else was involved, no injuries, no police, I took a picture."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: nxqvpb4n] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: nxqvpb4n] HTTP Status: 200
+[LLM Response Success] Latency: 5776ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 373, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Glad to hear everyone is okay. Where did the incident take place?",
+  "extractedData": {
+    "confidence": 1.0,
+    "locationOfIncident": null,
+    "incidentDescription": "No other parties involved, no injuries, no police involved, photos taken",
+    "insuredVehicle": {
+      "make": null,
+      "model": null,
+      "registration": null
+    }
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #5.5
+[METRICS] Latency: 5954ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: locationOfIncident, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {"incidentDescription":"No other parties involved, no injuries, no police involved, photos taken"}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Glad to hear everyone is okay. Where did the incident take place?"
+Agent: Glad to hear everyone is okay. Where did the incident take place?
+
+User: The car still drives fine.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "The car still drives fine."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: 1jwl28z4] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: 1jwl28z4] HTTP Status: 200
+[LLM Response Success] Latency: 4723ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 288, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Glad to hear that. Where did the incident take place?",
+  "extractedData": {
+    "confidence": 1.0,
+    "locationOfIncident": null,
+    "insuredVehicle": {
+      "make": null,
+      "model": null,
+      "registration": null
+    },
+    "injuriesReported": null
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #6.5
+[METRICS] Latency: 4725ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: locationOfIncident, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Glad to hear that. Where did the incident take place?"
+Agent: Glad to hear that. Where did the incident take place?
+
+User: It is a Honda Civic, plate ABC 999.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "It is a Honda Civic, plate ABC 999."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: iumilher] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: iumilher] HTTP Status: 200
+[LLM Response Success] Latency: 2784ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 288, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it. Where did the incident take place?",
+  "extractedData": {
+    "confidence": 1.0,
+    "locationOfIncident": null,
+    "insuredVehicle": {
+      "make": "Honda",
+      "model": "Civic",
+      "registration": "ABC 999"
+    },
+    "injuriesReported": null
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #7.5
+[METRICS] Latency: 2969ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: locationOfIncident, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {"insuredVehicle":{"make":"Honda","model":"Civic","registration":"ABC999"}}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Got it. Where did the incident take place?"
+Agent: Got it. Where did the incident take place?
+
+User: Looks good.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "Looks good."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: t2q22u8f] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[LLM Retry] Network Error. Retrying in 433ms...
+[Diagnostic] [ReqID: t2q22u8f] [LLM Request] Attempt 2. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: t2q22u8f] HTTP Status: 503
+[LLM Retry] Status 503. Retrying in 736ms...
+[Diagnostic] [ReqID: t2q22u8f] [LLM Request] Attempt 3. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: t2q22u8f] HTTP Status: 503
+[FallbackProvider] Provider 1 exhausted retries. Falling back...
+[ConversationManager] finishReason: undefined
+
+[METRICS] Turn #8.5
+[METRICS] Latency: 929548ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: locationOfIncident, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "I'm having a temporary connection issue with my AI service. Please give me a moment."
+Agent: I'm having a temporary connection issue with my AI service. Please give me a moment.
+
+[Scenario Phonetic Policy & Natural Numbers Completed. Final Step: safety_check]
+
+========================================
+Running Scenario: Emergency / Escalation
+========================================
+Agent: Hello, thank you for calling Meridian Motor Insurance. I'm sorry to hear you've had an accident. I'll help you report your claim today. Before we begin, are you and everyone else currently safe?
+
+User: No, my car is on fire and I need help!
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "No, my car is on fire and I need help!"
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: gwan25qq] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: gwan25qq] HTTP Status: 200
+[LLM Response Success] Latency: 4089ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 402, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Please get to a safe location and call emergency services immediately if you haven't already. When you are safe, could you please provide your policy number?",
+  "extractedData": {
+    "confidence": 1.0,
+    "policyNumber": null,
+    "callerName": null,
+    "dateOfIncident": null,
+    "insuredVehicle": {
+      "make": "",
+      "model": "",
+      "registration": ""
+    }
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #1.5
+[METRICS] Latency: 4284ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: policyNumber, callerName, dateOfIncident, timeOfIncident, locationOfIncident, incidentDescription, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Please get to a safe location and call emergency services immediately if you haven't already. When you are safe, could you please provide your policy number?"
+Agent: Please get to a safe location and call emergency services immediately if you haven't already. When you are safe, could you please provide your policy number?
+
+[Scenario Emergency / Escalation Completed. Final Step: safety_check]
+
+========================================
+Running Scenario: Wrong policy
+========================================
+Agent: Hello, thank you for calling Meridian Motor Insurance. I'm sorry to hear you've had an accident. I'll help you report your claim today. Before we begin, are you and everyone else currently safe?
+
+User: Yes we are safe.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "Yes we are safe."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: h1bonflc] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: h1bonflc] HTTP Status: 200
+[LLM Response Success] Latency: 4248ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 308, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Glad to hear that. Could you please provide your policy number?",
+  "extractedData": {
+    "confidence": 1.0,
+    "policyNumber": null,
+    "callerName": null,
+    "dateOfIncident": null,
+    "insuredVehicle": {
+      "make": "",
+      "model": "",
+      "registration": ""
+    }
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #1.5
+[METRICS] Latency: 4367ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: policyNumber, callerName, dateOfIncident, timeOfIncident, locationOfIncident, incidentDescription, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Glad to hear that. Could you please provide your policy number?"
+Agent: Glad to hear that. Could you please provide your policy number?
+
+User: I am Bob. Policy is BAD-999.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "I am Bob. Policy is BAD-999."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: 8ocrmi5a] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[LLM Retry] Network Error. Retrying in 393ms...
+[Diagnostic] [ReqID: 8ocrmi5a] [LLM Request] Attempt 2. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[LLM Retry] Network Error. Retrying in 767ms...
+[Diagnostic] [ReqID: 8ocrmi5a] [LLM Request] Attempt 3. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[FallbackProvider] Provider 1 exhausted retries. Falling back...
+[ConversationManager] finishReason: undefined
+
+[METRICS] Turn #2.5
+[METRICS] Latency: 25191ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: policyNumber, callerName, dateOfIncident, timeOfIncident, locationOfIncident, incidentDescription, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "I'm having a temporary connection issue with my AI service. Please give me a moment."
+Agent: I'm having a temporary connection issue with my AI service. Please give me a moment.
+
+User: Okay, wait, it is MMI-10234 and I am Arjun Rao.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "Okay, wait, it is MMI-10234 and I am Arjun Rao."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: dj9nela1] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[LLM Retry] Network Error. Retrying in 441ms...
+[Diagnostic] [ReqID: dj9nela1] [LLM Request] Attempt 2. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: dj9nela1] HTTP Status: 503
+[LLM Retry] Status 503. Retrying in 666ms...
+[Diagnostic] [ReqID: dj9nela1] [LLM Request] Attempt 3. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: dj9nela1] HTTP Status: 503
+[FallbackProvider] Provider 1 exhausted retries. Falling back...
+[ConversationManager] finishReason: undefined
+
+[METRICS] Turn #3.5
+[METRICS] Latency: 12051ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: policyNumber, callerName, dateOfIncident, timeOfIncident, locationOfIncident, incidentDescription, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "I'm having a temporary connection issue with my AI service. Please give me a moment."
+Agent: I'm having a temporary connection issue with my AI service. Please give me a moment.
+
+[Scenario Wrong policy Completed. Final Step: safety_check]
+
+========================================
+Running Scenario: Towing recommendation
+========================================
+Agent: Hello, thank you for calling Meridian Motor Insurance. I'm sorry to hear you've had an accident. I'll help you report your claim today. Before we begin, are you and everyone else currently safe?
+
+User: Yes, safe.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "Yes, safe."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: czgynv9h] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[LLM Retry] Network Error. Retrying in 459ms...
+[Diagnostic] [ReqID: czgynv9h] [LLM Request] Attempt 2. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: czgynv9h] HTTP Status: 200
+[LLM Response Success] Latency: 2920ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 308, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Glad to hear that. Could you please tell me your policy number?",
+  "extractedData": {
+    "confidence": 1.0,
+    "policyNumber": null,
+    "callerName": null,
+    "dateOfIncident": null,
+    "insuredVehicle": {
+      "make": "",
+      "model": "",
+      "registration": ""
+    }
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #1.5
+[METRICS] Latency: 11510ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: policyNumber, callerName, dateOfIncident, timeOfIncident, locationOfIncident, incidentDescription, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Glad to hear that. Could you please tell me your policy number?"
+Agent: Glad to hear that. Could you please tell me your policy number?
+
+User: Arjun Rao, MMI-10234.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "Arjun Rao, MMI-10234."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: 4websckp] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[LLM Retry] Network Error. Retrying in 371ms...
+[Diagnostic] [ReqID: 4websckp] [LLM Request] Attempt 2. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: 4websckp] HTTP Status: 503
+[LLM Retry] Status 503. Retrying in 761ms...
+[Diagnostic] [ReqID: 4websckp] [LLM Request] Attempt 3. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[FallbackProvider] Provider 1 exhausted retries. Falling back...
+[ConversationManager] finishReason: undefined
+
+[METRICS] Turn #2.5
+[METRICS] Latency: 18994ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: policyNumber, callerName, dateOfIncident, timeOfIncident, locationOfIncident, incidentDescription, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "I'm having a temporary connection issue with my AI service. Please give me a moment."
+Agent: I'm having a temporary connection issue with my AI service. Please give me a moment.
+
+User: Yesterday at 3pm on Main Street.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "Yesterday at 3pm on Main Street."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: 75cf3knc] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: 75cf3knc] HTTP Status: 200
+[LLM Response Success] Latency: 7356ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 326, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it. Could you please give me your policy number?",
+  "extractedData": {
+    "confidence": 0.95,
+    "policyNumber": "MMI-10234",
+    "callerName": "Arjun Rao",
+    "dateOfIncident": "2026-07-30",
+    "insuredVehicle": {
+      "make": null,
+      "model": null,
+      "registration": null
+    }
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #3.5
+[METRICS] Latency: 7459ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident, locationOfIncident, incidentDescription, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {"policyNumber":"MMI-10234","callerName":"Arjun Rao","dateOfIncident":"2026-07-30"}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Got it. Could you please give me your policy number?"
+Agent: Got it. Could you please give me your policy number?
+
+User: I crashed.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "I crashed."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: lsiktumt] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[LLM Retry] Network Error. Retrying in 310ms...
+[Diagnostic] [ReqID: lsiktumt] [LLM Request] Attempt 2. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[LLM Retry] Network Error. Retrying in 707ms...
+[Diagnostic] [ReqID: lsiktumt] [LLM Request] Attempt 3. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: lsiktumt] HTTP Status: 200
+[LLM Response Success] Latency: 6305ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 239, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it. What time did the crash happen?",
+  "extractedData": {
+    "confidence": 0.9,
+    "timeOfIncident": null,
+    "locationOfIncident": null,
+    "incidentDescription": "Crashed",
+    "insuredVehicle": null
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #4.5
+[METRICS] Latency: 23336ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident, locationOfIncident, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {"incidentDescription":"Crashed"}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Got it. What time did the crash happen?"
+Agent: Got it. What time did the crash happen?
+
+User: No one else. No injuries. No police. No photos.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "No one else. No injuries. No police. No photos."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: w41gw5tt] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: w41gw5tt] HTTP Status: 200
+[LLM Response Success] Latency: 3883ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 179, Ends with }: true
+[Diagnostic] Raw response text: 
+{"responseToUser": "Understood. What time did the crash happen?", "extractedData": {"confidence": 0.9, "timeOfIncident": null, "locationOfIncident": null, "insuredVehicle": null}}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #5.5
+[METRICS] Latency: 3885ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident, locationOfIncident, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Understood. What time did the crash happen?"
+Agent: Understood. What time did the crash happen?
+
+User: My car is not drivable.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "My car is not drivable."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: moc7ts6r] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[LLM Retry] Network Error. Retrying in 331ms...
+[Diagnostic] [ReqID: moc7ts6r] [LLM Request] Attempt 2. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: moc7ts6r] HTTP Status: 200
+[LLM Response Success] Latency: 3872ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 272, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it. What time did the crash happen?",
+  "extractedData": {
+    "confidence": 0.9,
+    "timeOfIncident": null,
+    "locationOfIncident": null,
+    "insuredVehicle": {
+      "make": null,
+      "model": null,
+      "registration": null
+    }
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #6.5
+[METRICS] Latency: 12317ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident, locationOfIncident, insuredVehicle, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Got it. What time did the crash happen?"
+Agent: Got it. What time did the crash happen?
+
+User: Toyota Camry XYZ 123.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "Toyota Camry XYZ 123."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: d81o7vbv] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: d81o7vbv] HTTP Status: 200
+[LLM Response Success] Latency: 3843ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 285, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it. What time did the crash happen?",
+  "extractedData": {
+    "confidence": 0.95,
+    "timeOfIncident": null,
+    "locationOfIncident": null,
+    "insuredVehicle": {
+      "make": "Toyota",
+      "model": "Camry",
+      "registration": "XYZ 123"
+    }
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #7.5
+[METRICS] Latency: 4172ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident, locationOfIncident, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {"insuredVehicle":{"make":"Toyota","model":"Camry","registration":"XYZ123"}}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Could you please clarify that?"
+Agent: Could you please clarify that?
+
+User: Yes, please arrange towing.
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "Yes, please arrange towing."
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: esqwyg8t] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: esqwyg8t] HTTP Status: 200
+[LLM Response Success] Latency: 3707ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 234, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it, we can help arrange towing. What time did the incident happen?",
+  "extractedData": {
+    "confidence": 1.0,
+    "timeOfIncident": null,
+    "locationOfIncident": null,
+    "injuriesReported": null
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #8.5
+[METRICS] Latency: 3840ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident, locationOfIncident, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Got it, we can help arrange towing. What time did the incident happen?"
+Agent: Got it, we can help arrange towing. What time did the incident happen?
+
+User: Yes, confirm
+
+
+[ConversationManager] ENTERING handleUserMessage
+[ConversationManager] State step before: safety_check
+[ConversationManager] User message: "Yes, confirm"
+[FallbackProvider] Attempting Provider 1/1...
+[Diagnostic] [ReqID: p0o21cut] [LLM Request] Attempt 1. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[LLM Retry] Network Error. Retrying in 391ms...
+[Diagnostic] [ReqID: p0o21cut] [LLM Request] Attempt 2. Native URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:streamGenerateContent, Method: POST
+[Diagnostic] [ReqID: p0o21cut] HTTP Status: 200
+[LLM Response Success] Latency: 4703ms, ToolCalls: 0
+[Diagnostic] Before JSON parse. Length: 206, Ends with }: true
+[Diagnostic] Raw response text: 
+{
+  "responseToUser": "Got it. What time did the incident happen?",
+  "extractedData": {
+    "confidence": 0.0,
+    "timeOfIncident": null,
+    "locationOfIncident": null,
+    "injuriesReported": null
+  }
+}
+[ConversationManager] finishReason: STOP
+
+[METRICS] Turn #9.5
+[METRICS] Latency: 13101ms
+[METRICS] PromptTokens: 0, CompletionTokens: 0, TotalTokens: 0
+[METRICS] MissingFields: timeOfIncident, locationOfIncident, injuriesReported, policeReportFiled, photosAvailable, vehicleDrivable
+[METRICS] ExtractedFields: {}
+
+[ConversationManager] EXITING handleUserMessage normally. Action message: "Got it. What time did the incident happen?"
+Agent: Got it. What time did the incident happen?
+
+[Scenario Towing recommendation Completed. Final Step: safety_check]

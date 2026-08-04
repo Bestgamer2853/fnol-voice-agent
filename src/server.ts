@@ -27,6 +27,7 @@ const SESSION_TTL_MS = 60 * 60 * 1000;
 const DEFAULT_PORT = 3000;
 const moduleDirectory = dirname(fileURLToPath(import.meta.url));
 const publicDirectory = join(moduleDirectory, '../public');
+const handbookDirectory = join(moduleDirectory, '../handbook');
 
 const app = express();
 const conversationManager = createRuntimeConversationManager();
@@ -90,6 +91,7 @@ function sendError(response: Response, status: number, error: string): void {
 
 app.use(express.json({ limit: '32kb' }));
 app.use(express.static(publicDirectory));
+app.use('/handbook', express.static(handbookDirectory));
 
 const rateLimits = new Map<string, { count: number, resetAt: number }>();
 
@@ -328,7 +330,7 @@ const port = Number(process.env.PORT ?? DEFAULT_PORT);
 
 const server = app.listen(port, () => {
   const envModel = process.env.GEMINI_MODEL?.trim();
-  const activeModel = envModel || 'gemini-3.5-flash-lite';
+  const activeModel = envModel || 'gemini-2.5-flash-lite';
   logInfo(`\n--------------------------------`);
   logInfo(`Gemini Provider`);
   logInfo(`Model: ${activeModel}`);

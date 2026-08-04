@@ -43,7 +43,7 @@ Read the documents in `docs/` before changing this system, especially `handoff.m
 |---|---|---|
 | `PORT` | `src/server.ts` | HTTP + WebSocket port; default 3000. |
 | `GEMINI_API_KEY` | `src/llm/gemini.ts` | Required primary provider credential. |
-| `GEMINI_MODEL` | `src/llm/gemini.ts` | Default in code is `gemini-3.5-flash-lite`; GA production model for low-latency voice AI. |
+| `GEMINI_MODEL` | `src/llm/gemini.ts` | Default in code is `gemini-2.5-flash-lite`; GA production model for low-latency voice AI. |
 | `GEMINI_ENDPOINT_BASE_URL` | `src/llm/gemini.ts` | Overrides native Gemini models base URL. |
 | `GROQ_API_KEY` | `src/runtime.ts`, `src/llm/groq.ts` | Enables optional fallback. |
 | `GROQ_MODEL`, `GROQ_ENDPOINT_BASE_URL` | `src/llm/groq.ts` | Optional fallback settings. |

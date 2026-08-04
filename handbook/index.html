@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FNOL Voice Agent | Staff Engineering Handbook</title>
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Prism CSS for syntax highlighting -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <button id="menu-btn" class="menu-btn">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+    <div class="logo">FNOL Handbook</div>
+    <button id="night-mode-btn-mobile" class="icon-btn" title="Toggle Night Before Interview Mode">🌙 Night</button>
+  </header>
+
+  <div class="layout">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-group">
+          <div class="logo">FNOL Voice Agent</div>
+          <div class="subtitle">Staff Handbook SPA</div>
+        </div>
+        <div class="theme-toggle-group">
+          <button id="night-mode-btn" class="icon-btn" title="Toggle Night Before Interview Mode">
+            <span>🌙</span>
+            <span class="btn-text">Night</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="search-container">
+        <input type="text" id="search-input" placeholder="Search modules, code, protocols...">
+      </div>
+      
+      <div id="mode-banner" class="mode-banner hidden">
+        ⚡ <strong>NIGHT BEFORE MODE ACTIVE</strong><br>Showing high-yield 15-min essentials only.
+      </div>
+
+      <nav id="nav-container"></nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <div id="content" class="markdown-body">
+        <div class="loading">Loading Handbook...</div>
+      </div>
+      <footer class="doc-footer">
+        Meridian FNOL Voice Agent — Staff Software Architecture & Interview Defense Manual
+      </footer>
+    </main>
+
+  </div>
+
+  <!-- Marked JS for Markdown parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Prism JS for Syntax Highlighting -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  
+  <script src="app.js"></script>
+</body>
+</html>

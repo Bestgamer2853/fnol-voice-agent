@@ -6,7 +6,7 @@ interface GeminiServiceOptions {
   endpointBaseUrl?: string;
 }
 
-const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
+const DEFAULT_MODEL = 'gemini-2.5-flash-lite';
 const DEFAULT_ENDPOINT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 function readEnvironmentValue(name: string): string | undefined {
@@ -37,7 +37,7 @@ export class GeminiService implements LlmProvider {
   constructor(options: GeminiServiceOptions = {}) {
     this.apiKey = options.apiKey ?? readEnvironmentValue('GEMINI_API_KEY');
       
-    // Default to gemini-3.5-flash-lite if not provided
+    // Default to gemini-2.5-flash-lite if not provided
     this.model = options.model ?? readEnvironmentValue('GEMINI_MODEL') ?? DEFAULT_MODEL;
     
     this.endpointBaseUrl =
