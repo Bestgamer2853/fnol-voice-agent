@@ -69,6 +69,11 @@ function readInitialClaimSequence(filePath: string): number {
 
 import { GoogleSheetsClaimLogger } from './storage/googleSheets.js';
 
+/**
+ * MultiClaimLogger coordinates writing to multiple persistence targets in parallel.
+ * If any target (like Google Sheets) fails, it catches the rejection and writes
+ * the payload to a local outbox.json for durable offline storage.
+ */
 class MultiClaimLogger implements ClaimLoggerService {
   constructor(
       private readonly loggers: ClaimLoggerService[],

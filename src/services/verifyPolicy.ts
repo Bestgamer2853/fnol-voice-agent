@@ -200,6 +200,10 @@ function verifyAgainstPolicies(
   );
 
   if (!matchedPolicy) {
+      // --- DETERMINISTIC FUZZY MATCHING ---
+      // If an exact match fails (e.g., ASR heard 'M' instead of 'N'), we calculate
+      // the Levenshtein edit distance. If it's within 2 characters, we accept it.
+      // This is critical for voice applications where TTS/ASR isn't perfectly accurate.
       for (const policy of policies) {
           const expectedPolicy = normalizePolicyNumber(policy.policyNumber);
           if (levenshtein(expectedPolicy, policyNumber) <= 2) {

@@ -120,6 +120,10 @@ export class GeminiService implements LlmProvider {
       const startTime = Date.now();
       console.log(`[Diagnostic] [ReqID: ${reqIdForLogs}] [LLM Request] Attempt ${attempt}. Native URL: ${this.endpointBaseUrl}/${this.model}:streamGenerateContent, Method: POST`);
 
+      // --- SIGNAL CANCELLATION & ABORT LOGIC ---
+      // If the user starts talking while the LLM is generating, Retell sends an `update_only` event.
+      // We pass an AbortSignal down the stack so we can aggressively terminate the HTTP request.
+      // This saves API tokens and prevents processing stale text.
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 6000); // Robust 6000ms timeout to avoid network jitter aborts
       const onParentAbort = () => { controller.abort(); };
@@ -129,6 +133,7 @@ export class GeminiService implements LlmProvider {
       }
 
       try {
+        // Native SSE endpoint using `alt=sse` query parameter.
         const response = await fetch(url, {
           method: 'POST',
           headers: {

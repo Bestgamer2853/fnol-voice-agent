@@ -29,6 +29,11 @@ function hasOtherParties(claim: Claim): boolean {
   return typeof claim.otherParties === 'string' && claim.otherParties.trim().length > 0;
 }
 
+/**
+ * Deterministically recommends services based on the structured claim data and the user's policy.
+ * This ensures that we do not hallucinate services that the user's policy does not cover
+ * (e.g., offering free towing when they don't have roadside assistance).
+ */
 export function recommendServices(
   input: RecommendServicesInput,
 ): RecommendServicesResult {

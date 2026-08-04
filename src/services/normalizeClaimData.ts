@@ -22,6 +22,11 @@ const PHONETIC_ALPHABET: Record<string, string> = {
   uniform: 'U', victor: 'V', whiskey: 'W', xray: 'X', yankee: 'Y', zulu: 'Z'
 };
 
+/**
+ * normalizePolicyNumber tackles the notorious challenge of Voice AI translating
+ * alphanumeric strings. ASRs often output "M M I one zero two" instead of "MMI-102".
+ * This deterministic filter cleans it back to standard DB format.
+ */
 function normalizePolicyNumber(raw: string): string {
   let normalized = raw.toLowerCase();
   
