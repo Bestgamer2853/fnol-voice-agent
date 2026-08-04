@@ -212,27 +212,56 @@ tr:hover td { background:var(--surface-hover); }
 
 <!-- ===================== SECTION 2: REPOSITORY ATLAS ===================== -->
 <section id="s2">
-<h1>02. Repository Atlas & Architecture Overview</h1>
+<h1>02. Repository Atlas & Architectural File Matrix</h1>
 
-<div class="card blue">
-<h4>Repository Map & Line Counts</h4>
+<p>To understand the codebase in 10 seconds, the repository is structured into <strong>6 Architectural Layers</strong>. Each layer has distinct responsibilities, execution triggers, and blast radiuses.</p>
+
+<h3>🌐 Layer 1: Transport & Network Gateway</h3>
 <table>
-<tr><th>File Path</th><th>Lines</th><th>Architectural Responsibility</th></tr>
-<tr><td><code>src/server.ts</code></td><td>729</td><td>Express HTTP server + Retell WebSocket transport + SSE stream parser</td></tr>
-<tr><td><code>src/runtime.ts</code></td><td>131</td><td>Dependency Injection container + MultiClaimLogger outbox setup</td></tr>
-<tr><td><code>src/conversation/ConversationManager.ts</code></td><td>818</td><td>FSM Orchestrator: manages turns, policy checks, escalations, completion</td></tr>
-<tr><td><code>src/services/extractClaimData.ts</code></td><td>457</td><td>Gemini prompt construction + JSON parser + regex fallback extraction</td></tr>
-<tr><td><code>src/services/verifyPolicy.ts</code></td><td>251</td><td>Deterministic policy lookup: Levenshtein distance + Jaro-Winkler matching</td></tr>
-<tr><td><code>src/services/recommendServices.ts</code></td><td>69</td><td>Deterministic coverage-based service recommendation engine</td></tr>
-<tr><td><code>src/services/generateSummary.ts</code></td><td>108</td><td>Deterministic FNOL claim summary builder</td></tr>
-<tr><td><code>src/services/claimLogger.ts</code></td><td>112</td><td>Mutex-guarded Local JSON claim logger + Notification wrapper</td></tr>
-<tr><td><code>src/storage/googleSheets.ts</code></td><td>222</td><td>Google Sheets API v4 append logger + auto header initializer</td></tr>
-<tr><td><code>src/services/notificationService.ts</code></td><td>269</td><td>Resend transactional email API service (HTML & text templates)</td></tr>
-<tr><td><code>src/llm/gemini.ts</code></td><td>287</td><td>Native Gemini SSE streaming provider with exponential backoff & jitter</td></tr>
-<tr><td><code>src/llm/groq.ts</code></td><td>304</td><td>Groq (Llama 3.3 70B) OpenAI-compatible SSE fallback provider</td></tr>
-<tr><td><code>src/llm/fallback.ts</code></td><td>74</td><td>FallbackProvider chain: executes providers sequentially on failure</td></tr>
+<tr><th>File Path</th><th>Role & Responsibility</th><th>Execution Trigger</th><th>Blast Radius if Broken</th></tr>
+<tr><td><code>src/server.ts</code></td><td>Express HTTP REST server + raw <code>ws</code> WebSocket server on Port 3000. Handles Retell audio protocol, SSE stream parsing.</td><td>Server boot (`npm start`) + WS connection</td><td>🚨 Total Outage: WebSockets & REST fail.</td></tr>
 </table>
-</div>
+
+<h3>⚙️ Layer 2: Composition Root (Dependency Injection)</h3>
+<table>
+<tr><th>File Path</th><th>Role & Responsibility</th><th>Execution Trigger</th><th>Blast Radius if Broken</th></tr>
+<tr><td><code>src/runtime.ts</code></td><td>DI Container: instantiates and wires Gemini, Groq, Sheets, Resend, and Loggers into <code>ConversationManager</code>.</td><td>Once on server boot</td><td>🚨 Total Boot Failure: Services fail to initialize.</td></tr>
+</table>
+
+<h3>🧠 Layer 3: FSM State Machine & Orchestration</h3>
+<table>
+<tr><th>File Path</th><th>Role & Responsibility</th><th>Execution Trigger</th><th>Blast Radius if Broken</th></tr>
+<tr><td><code>src/conversation/ConversationManager.ts</code></td><td>FSM Brain & State Orchestrator: enforces insurance compliance, tracks state, runs escalations & completes claims.</td><td>Every conversational turn</td><td>🚨 System Brain Death: State machine stalls.</td></tr>
+<tr><td><code>src/conversation/ConversationState.ts</code></td><td>TypeScript state contracts for claim tracking & field collection.</td><td>Referenced across state machine</td><td>⚠️ Compile Error: Type definitions break.</td></tr>
+<tr><td><code>src/conversation/actions.ts</code></td><td>Standardized turn action contracts (`respond`, `escalate`, `complete`).</td><td>Returned by FSM per turn</td><td>⚠️ Action Mismatch: WS payload malformed.</td></tr>
+</table>
+
+<h3>🤖 Layer 4: Intelligence & Entity Extraction</h3>
+<table>
+<tr><th>File Path</th><th>Role & Responsibility</th><th>Execution Trigger</th><th>Blast Radius if Broken</th></tr>
+<tr><td><code>src/services/extractClaimData.ts</code></td><td>Dynamic prompt builder + LLM extraction engine + regex fallback parser.</td><td>Called by FSM per turn</td><td>🚨 Extraction Failure: Entity slots lost.</td></tr>
+<tr><td><code>src/llm/gemini.ts</code></td><td>Primary LLM adapter: native Gemini SSE streaming (`gemini-2.5-flash-lite`).</td><td>Called by extraction engine</td><td>⚠️ LLM Retry: Retries 1x then fails over to Groq.</td></tr>
+<tr><td><code>src/llm/groq.ts</code></td><td>Secondary LLM adapter: Groq (Llama 3.3 70B) for zero-downtime failover.</td><td>Called if Gemini fails</td><td>ℹ️ Fallback Message: Graceful degradation.</td></tr>
+<tr><td><code>src/llm/fallback.ts</code></td><td>FallbackProvider chain: executes providers sequentially on failure.</td><td>Wraps Gemini & Groq</td><td>⚠️ Single Point of Failure: No provider fallback.</td></tr>
+</table>
+
+<h3>🛡️ Layer 5: Business Rules & Domain Services</h3>
+<table>
+<tr><th>File Path</th><th>Role & Responsibility</th><th>Execution Trigger</th><th>Blast Radius if Broken</th></tr>
+<tr><td><code>src/services/verifyPolicy.ts</code></td><td>Deterministic policy lookup: exact, Levenshtein distance (≤ 2), and Jaro-Winkler (> 0.85).</td><td>Called when policy data extracted</td><td>🚨 Verification Block: Policy lookup fails.</td></tr>
+<tr><td><code>src/services/recommendServices.ts</code></td><td>Deterministic coverage recommendation rules (towing, roadside, repair garage).</td><td>Called when 11 fields collected</td><td>ℹ️ Recommendation Skip: Claim completes directly.</td></tr>
+<tr><td><code>src/services/generateSummary.ts</code></td><td>Deterministic FNOL claim summary builder string.</td><td>Called on claim completion</td><td>⚠️ Empty Summary: Default text logged.</td></tr>
+<tr><td><code>src/config/requiredFields.ts</code></td><td>Field collection contract: 11 base fields + 3 conditional fields.</td><td>Imported by FSM & extraction</td><td>🚨 Contract Violation: Incomplete claims.</td></tr>
+<tr><td><code>src/config/policies.json</code></td><td>Dummy policy database: 5 pre-configured policy records.</td><td>Read on server boot</td><td>🚨 Verification Outage: Policy DB unreadable.</td></tr>
+</table>
+
+<h3>💾 Layer 6: Persistence & Outbox Logging</h3>
+<table>
+<tr><th>File Path</th><th>Role & Responsibility</th><th>Execution Trigger</th><th>Blast Radius if Broken</th></tr>
+<tr><td><code>src/services/claimLogger.ts</code></td><td>MultiClaimLogger: mutex disk logger + `Promise.allSettled` outbox writer (`data/outbox.json`).</td><td>Async on claim completion</td><td>⚠️ Local Backup: Record written to `outbox.json`.</td></tr>
+<tr><td><code>src/storage/googleSheets.ts</code></td><td>Google Sheets API v4 adapter: appends 22-column claim row. Auto-initializes headers.</td><td>Called in MultiClaimLogger</td><td>ℹ️ Outbox Fallback: 429 error queued to outbox.</td></tr>
+<tr><td><code>src/services/notificationService.ts</code></td><td>Resend API transactional email service: HTML & text confirmation emails.</td><td>Called by NotificationLogger</td><td>ℹ️ Email Skipped: Claim persistence unaffected.</td></tr>
+</table>
 </section>
 
 <!-- ===================== SECTION 3: 16-STAGE FLOW ===================== -->
