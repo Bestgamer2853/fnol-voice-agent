@@ -471,13 +471,29 @@ export class DefaultConversationManager implements ConversationManager {
     console.log(`\n\n[ConversationManager] ENTERING handleUserMessage`);
     console.log(`[ConversationManager] State step before: ${state.currentConversationStep}`);
     console.log(`[ConversationManager] User message: "${message}"`);
-    if (state.currentConversationStep === 'completed') {
+    if (state.currentConversationStep === 'completed' || state.currentConversationStep === 'escalation' || state.currentConversationStep === 'callback_offer') {
+      if (state.currentConversationStep === 'escalation') {
+        return this.withAssistantAction({ ...state, lastUserMessage: message }, { type: 'escalate', message: 'I understand this is an emergency. Please hang up and dial emergency services immediately.', reason: 'Severe incident or injury reported.' }, {});
+      }
+      if (state.currentConversationStep === 'callback_offer') {
+        return this.withAssistantAction({ ...state, lastUserMessage: message }, { type: 'complete', message: 'A claims agent will call you back shortly. Goodbye.', claim: state.currentClaim }, {});
+      }
       if (this.isFinalAck(message)) {
         return this.withAssistantAction(
           { ...state, lastUserMessage: message },
           {
             type: 'complete',
             message: "You're welcome. Thank you for choosing Meridian Motor Insurance. Have a safe day.",
+            claim: state.currentClaim,
+          },
+          {}
+        );
+      } else {
+        return this.withAssistantAction(
+          { ...state, lastUserMessage: message },
+          {
+            type: 'complete',
+            message: "Your claim has been submitted. Have a safe day.",
             claim: state.currentClaim,
           },
           {}
@@ -528,12 +544,12 @@ export class DefaultConversationManager implements ConversationManager {
         const { validatedPatch, pendingClarifications } = validateClaimPatch(rawSlots as Partial<Claim>, state);
         const normalizedPatch = normalizeClaimPatch(validatedPatch);
         
+        updatedClaim = mergeClaim(updatedClaim, normalizedPatch);
+        
         if (pendingClarifications.length > 0) {
             for (const c of pendingClarifications) {
-                newClarifications.push({ field: 'incidentDescription', prompt: c });
+                newClarifications.push({ field: 'insuredVehicle', prompt: c });
             }
-        } else {
-            updatedClaim = mergeClaim(updatedClaim, normalizedPatch);
         }
         
         // Print Metrics Block
@@ -555,7 +571,7 @@ export class DefaultConversationManager implements ConversationManager {
     }
 
     if (isEscalated) {
-        const nextState = { ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, currentConversationStep: 'escalation', escalationRequired: true } as ConversationState;
+        const nextState = this.updateFieldTracking({ ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, currentConversationStep: 'escalation', escalationRequired: true });
         const claimReferenceNumber = updatedClaim.claimReferenceNumber ?? this.dependencies.claimNumberGenerator.generate();
         updatedClaim.claimReferenceNumber = claimReferenceNumber;
         

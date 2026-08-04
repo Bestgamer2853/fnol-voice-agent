@@ -659,7 +659,7 @@ wss.on('connection', (ws: WebSocket, req) => {
               if (!turnResult) return; // Superseded or aborted
               const { result, parseState } = turnResult;
 
-              const isComplete = result.action.type === 'complete';
+              const isComplete = result.action.type === 'complete' || result.action.type === 'escalate';
               
               logInfo(`Current conversation step after: ${result.state.currentConversationStep}`);
               logInfo(`Response action type: ${result.action.type}`);
