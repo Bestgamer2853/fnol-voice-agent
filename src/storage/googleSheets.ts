@@ -45,6 +45,8 @@ const HEADERS = [
   'Severity',
   'Escalation Required',
   'Recommended Services',
+  'Towing Requested',
+  'Rental Vehicle Requested',
   'Conversation Summary'
 ];
 
@@ -219,6 +221,8 @@ export class GoogleSheetsClaimLogger implements ClaimLoggerService {
         record.severity ?? 'N/A',
         record.escalationRequired ? 'Yes' : 'No',
         record.claim.recommendedServices?.join(', ') ?? 'None',
+        record.claim.towingRequested !== undefined ? (record.claim.towingRequested ? 'Yes' : 'No') : 'Unknown',
+        record.claim.rentalRequested !== undefined ? (record.claim.rentalRequested ? 'Yes' : 'No') : 'Unknown',
         record.summary
       ];
 

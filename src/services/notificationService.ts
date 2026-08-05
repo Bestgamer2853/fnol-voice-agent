@@ -63,6 +63,8 @@ export class ResendNotificationService implements NotificationService {
     const policyNumber = record.verifiedPolicy?.policyNumber || record.claim.policyNumber || 'N/A';
     const customerName = record.verifiedPolicy?.policyholderName || record.claim.callerName || 'Valued Customer';
     const incidentSummary = record.summary || record.claim.incidentDescription || 'No description provided';
+    const towingRequestedText = record.claim.towingRequested !== undefined ? (record.claim.towingRequested ? 'Yes' : 'No') : 'N/A';
+    const rentalRequestedText = record.claim.rentalRequested !== undefined ? (record.claim.rentalRequested ? 'Yes' : 'No') : 'N/A';
     const timestamp = record.timestamp || new Date().toISOString();
 
     const targetRecipient = activeConfig.defaultEmailTo || 'aurallonbiz@gmail.com';
@@ -88,6 +90,8 @@ Claim Number:      ${claimNumber}
 Policy Number:     ${policyNumber}
 Customer Name:     ${customerName}
 Incident Summary:  ${incidentSummary}
+Towing Requested:  ${towingRequestedText}
+Rental Requested:  ${rentalRequestedText}
 Timestamp:         ${timestamp}
 ----------------------------------------
 
@@ -125,6 +129,8 @@ Meridian Motor Insurance Claims Team
     <div class="field"><span class="label">Policy Number:</span> ${policyNumber}</div>
     <div class="field"><span class="label">Customer Name:</span> ${customerName}</div>
     <div class="field"><span class="label">Incident Summary:</span> ${incidentSummary}</div>
+    <div class="field"><span class="label">Towing Requested:</span> ${towingRequestedText}</div>
+    <div class="field"><span class="label">Rental Requested:</span> ${rentalRequestedText}</div>
     <div class="field"><span class="label">Date & Time Logged:</span> ${timestamp}</div>
     
     ${record.escalationRequired ? '<p style="color: #dc2626; font-weight: bold;">⚠️ URGENT NOTICE: Your claim has been flagged for priority review by a claims adjuster due to severity/injury reports.</p>' : '<p>Our team is reviewing your claim and will be in touch shortly.</p>'}

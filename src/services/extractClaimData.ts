@@ -195,6 +195,16 @@ function sanitizeExtractedClaimPatch(value: unknown): Partial<Claim> {
     claimPatch.recommendedServices = recommendedServices;
   }
 
+  const towingRequested = readBoolean(record, 'towingRequested');
+  if (towingRequested !== undefined) {
+    (claimPatch as any).towingRequested = towingRequested;
+  }
+
+  const rentalRequested = readBoolean(record, 'rentalRequested');
+  if (rentalRequested !== undefined) {
+    (claimPatch as any).rentalRequested = rentalRequested;
+  }
+
   return claimPatch;
 }
 
@@ -211,7 +221,11 @@ function buildExtractionContext(state: ConversationState, fsmInstruction: string
   const vehicleStr = state.currentClaim.insuredVehicle ? `insuredVehicle:${JSON.stringify(state.currentClaim.insuredVehicle)}` : '';
   const stateContext = [knownFieldsStr, vehicleStr].filter(Boolean).join(', ');
 
-  return `STATE: ${stateContext || 'None'}\nFSM: ${fsmInstruction}\nSCHEMA: ${schemaInstruction}\nHISTORY:\n${historyStr}`;
+  const towingStatus = (state.currentClaim as any).towingRequested !== undefined ? `towingRequested:${(state.currentClaim as any).towingRequested}` : '';
+  const rentalStatus = (state.currentClaim as any).rentalRequested !== undefined ? `rentalRequested:${(state.currentClaim as any).rentalRequested}` : '';
+  const serviceContext = [towingStatus, rentalStatus].filter(Boolean).join(', ');
+
+  return `STATE: ${stateContext || 'None'}${serviceContext ? ', ' + serviceContext : ''}\nFSM: ${fsmInstruction}\nSCHEMA: ${schemaInstruction}\nHISTORY:\n${historyStr}`;
 }
 
 function sentenceCaseName(value: string): string {
@@ -417,7 +431,9 @@ DATA EXTRACTION (extractedData):
         photosAvailable: "boolean|null",
         vehicleDrivable: "boolean|null",
         otherParties: "string|null",
-        recommendedServices: ["string"]
+        recommendedServices: ["string"],
+        towingRequested: "boolean|null",
+        rentalRequested: "boolean|null"
       }
     };
     

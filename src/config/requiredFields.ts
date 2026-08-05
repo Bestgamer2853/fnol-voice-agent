@@ -25,3 +25,8 @@ export const CONDITIONAL_FNOL_FIELDS = [
 export type ConditionalFnolField = (typeof CONDITIONAL_FNOL_FIELDS)[number];
 
 export type TrackableFnolField = RequiredFnolField | ConditionalFnolField;
+
+export const SERVICE_FIELDS = [
+  'towingRequested',
+  'rentalRequested',
+] as const satisfies readonly (keyof Claim)[];

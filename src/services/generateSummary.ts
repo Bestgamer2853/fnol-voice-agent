@@ -60,6 +60,7 @@ function buildDeterministicSummary(input: GenerateSummaryInput): string {
     `Police report filed: ${formatBoolean(claim.policeReportFiled)}${claim.policeReportReference ? ` (${claim.policeReportReference})` : ''}.`,
     `Photos available: ${formatBoolean(claim.photosAvailable)}. Vehicle drivable: ${formatBoolean(claim.vehicleDrivable)}.`,
     `Other parties: ${claim.otherParties ?? 'none reported'}.`,
+    `Towing requested: ${formatBoolean(claim.towingRequested)}. Rental requested: ${formatBoolean(claim.rentalRequested)}.`,
     `Severity: ${state.severity ?? 'low'}. Escalation required: ${formatBoolean(state.escalationRequired)}.`,
     `Recommended services: ${formatServices(claim.recommendedServices)}.`,
   ].join('\n');

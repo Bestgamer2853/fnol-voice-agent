@@ -20,4 +20,6 @@ export interface Claim {
   recommendedServices?: string[];
   callSummary?: string;
   severityClassification?: Severity;
+  towingRequested?: boolean;
+  rentalRequested?: boolean;
 }

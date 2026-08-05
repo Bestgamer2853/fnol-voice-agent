@@ -606,10 +606,31 @@ export class DefaultConversationManager implements ConversationManager {
     console.log(`[ConversationManager] finishReason: ${extractionResult.finishReason}`);
     
     let accumulatedResponse = extractionResult.responseToUser;
-    
-    // Removed anti-repetition logic loop
-    
     finalExtractionResult = extractionResult;
+    
+    if (extractionResult.finishReason === 'FALLBACK_EXHAUSTED') {
+        console.warn(`[ConversationManager] FALLBACK_EXHAUSTED detected. Generating emergency claim logging.`);
+        const claimReferenceNumber = updatedClaim.claimReferenceNumber ?? this.dependencies.claimNumberGenerator.generate();
+        updatedClaim.claimReferenceNumber = claimReferenceNumber;
+        
+        await this.dependencies.claimLogger.log({
+            claimNumber: claimReferenceNumber,
+            summary: `Connection failed: FALLBACK_EXHAUSTED. Saving current progress.`,
+            timestamp: timestamp(),
+            claim: updatedClaim,
+            ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}),
+            conversationHistory: historyWithUser,
+            escalationRequired: false
+        });
+
+        const nextState = this.updateFieldTracking({ ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, currentConversationStep: 'completed' });
+        return this.withAssistantAction(
+            nextState,
+            { type: 'complete', message: accumulatedResponse, claim: updatedClaim },
+            finalExtractionResult.debugMetrics
+        );
+    }
+    
     let newClarifications: PendingClarification[] = [];
     
     if (extractionResult.debugMetrics && extractionResult.debugMetrics.rawExtractedSlots) {
@@ -762,25 +783,28 @@ export class DefaultConversationManager implements ConversationManager {
         if (missing.length === 0) {
             // Once all required fields are collected (calculated via `REQUIRED_FNOL_FIELDS`),
             // we use the policy object to recommend services deterministically.
-            if (!state.servicesRecommended) {
-                const recommendations = await this.dependencies.recommendServices.recommend({ claim: updatedClaim, policy: verifiedPolicyObj });
-                if (recommendations.recommendations.length > 0) {
-                    updatedClaim.recommendedServices = recommendations.recommendations;
-                    const recList = recommendations.recommendations;
-                    const hasTowing = recList.includes('towing') || recList.includes('roadside assistance');
-                    const hasRental = recList.includes('rental car');
-                    
-                    let servicePrompt = '';
-                    if (hasTowing && hasRental) {
-                        servicePrompt = 'Would you like us to arrange towing for your vehicle and a rental car for you?';
-                    } else if (hasTowing) {
-                        servicePrompt = 'Would you like us to arrange towing or roadside assistance for your vehicle?';
-                    } else if (hasRental) {
-                        servicePrompt = 'Would you like us to arrange a rental car for you?';
-                    } else {
-                        servicePrompt = 'Do you need any additional assistance with your claim?';
-                    }
+            const recommendations = await this.dependencies.recommendServices.recommend({ claim: updatedClaim, policy: verifiedPolicyObj });
+            if (recommendations.recommendations.length > 0) {
+                updatedClaim.recommendedServices = recommendations.recommendations;
+                const recList = recommendations.recommendations;
+                const hasTowing = recList.includes('towing') || recList.includes('roadside assistance');
+                const hasRental = recList.includes('rental car');
+                
+                const towingAsked = (updatedClaim as any).towingRequested !== undefined;
+                const rentalAsked = (updatedClaim as any).rentalRequested !== undefined;
+                
+                let servicePrompt = '';
+                let needsToAsk = false;
+                
+                if (hasTowing && !towingAsked) {
+                    servicePrompt = 'Would you like us to arrange towing assistance?';
+                    needsToAsk = true;
+                } else if (hasRental && !rentalAsked) {
+                    servicePrompt = 'Would you require a rental vehicle while your car is being repaired?';
+                    needsToAsk = true;
+                }
 
+                if (needsToAsk) {
                     const rawResponse = accumulatedResponse.trim();
                     const alreadyAsked = /towing|roadside|rental car|rent a car/i.test(rawResponse);
                     const responseMessage = alreadyAsked || !rawResponse
@@ -803,12 +827,9 @@ export class DefaultConversationManager implements ConversationManager {
                         message: responseMessage
                     }, finalExtractionResult.debugMetrics);
                 } else {
-                    // No services to recommend, proceed to complete
                     claimCompleted = true;
                 }
             } else {
-                const currentServices = updatedClaim.recommendedServices ?? state.currentClaim.recommendedServices;
-                updatedClaim.recommendedServices = parseServiceChoices(currentServices, message);
                 claimCompleted = true;
             }
         }

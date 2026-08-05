@@ -80,6 +80,7 @@ export class FallbackProvider implements LlmProvider {
     return {
       assistantResponse: "I'm having a temporary connection issue with my AI service. Please give me a moment.",
       errorMessage: `All fallback providers failed. Last error: ${lastError}`,
+      finishReason: 'FALLBACK_EXHAUSTED',
     };
   }
 }

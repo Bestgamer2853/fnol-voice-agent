@@ -125,7 +125,8 @@ export class GeminiService implements LlmProvider {
       // We pass an AbortSignal down the stack so we can aggressively terminate the HTTP request.
       // This saves API tokens and prevents processing stale text.
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000); // Robust 6000ms timeout to avoid network jitter aborts
+      const timeoutMs = 12000; // Increased to 12000ms for better network resilience
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
       const onParentAbort = () => { controller.abort(); };
       if (input.abortSignal) {
          input.abortSignal.addEventListener('abort', onParentAbort);
