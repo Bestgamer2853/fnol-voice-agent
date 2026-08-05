@@ -783,28 +783,25 @@ export class DefaultConversationManager implements ConversationManager {
         if (missing.length === 0) {
             // Once all required fields are collected (calculated via `REQUIRED_FNOL_FIELDS`),
             // we use the policy object to recommend services deterministically.
-            const recommendations = await this.dependencies.recommendServices.recommend({ claim: updatedClaim, policy: verifiedPolicyObj });
-            if (recommendations.recommendations.length > 0) {
-                updatedClaim.recommendedServices = recommendations.recommendations;
-                const recList = recommendations.recommendations;
-                const hasTowing = recList.includes('towing') || recList.includes('roadside assistance');
-                const hasRental = recList.includes('rental car');
-                
-                const towingAsked = (updatedClaim as any).towingRequested !== undefined;
-                const rentalAsked = (updatedClaim as any).rentalRequested !== undefined;
-                
-                let servicePrompt = '';
-                let needsToAsk = false;
-                
-                if (hasTowing && !towingAsked) {
-                    servicePrompt = 'Would you like us to arrange towing assistance?';
-                    needsToAsk = true;
-                } else if (hasRental && !rentalAsked) {
-                    servicePrompt = 'Would you require a rental vehicle while your car is being repaired?';
-                    needsToAsk = true;
-                }
+            if (!state.servicesRecommended) {
+                const recommendations = await this.dependencies.recommendServices.recommend({ claim: updatedClaim, policy: verifiedPolicyObj });
+                if (recommendations.recommendations.length > 0) {
+                    updatedClaim.recommendedServices = recommendations.recommendations;
+                    const recList = recommendations.recommendations;
+                    const hasTowing = recList.includes('towing') || recList.includes('roadside assistance');
+                    const hasRental = recList.includes('rental car');
+                    
+                    let servicePrompt = '';
+                    if (hasTowing && hasRental) {
+                        servicePrompt = 'Would you like us to arrange towing for your vehicle and a rental car for you?';
+                    } else if (hasTowing) {
+                        servicePrompt = 'Would you like us to arrange towing or roadside assistance for your vehicle?';
+                    } else if (hasRental) {
+                        servicePrompt = 'Would you like us to arrange a rental car for you?';
+                    } else {
+                        servicePrompt = 'Do you need any additional assistance with your claim?';
+                    }
 
-                if (needsToAsk) {
                     const rawResponse = accumulatedResponse.trim();
                     const alreadyAsked = /towing|roadside|rental car|rent a car/i.test(rawResponse);
                     const responseMessage = alreadyAsked || !rawResponse
@@ -830,6 +827,19 @@ export class DefaultConversationManager implements ConversationManager {
                     claimCompleted = true;
                 }
             } else {
+                const currentServices = updatedClaim.recommendedServices ?? state.currentClaim.recommendedServices;
+                const parsed = parseServiceChoices(currentServices, message);
+                updatedClaim.recommendedServices = parsed;
+                if (parsed.includes('towing') || parsed.includes('roadside assistance')) {
+                    updatedClaim.towingRequested = true;
+                } else if (/\b(no towing|don'?t need towing|no tow truck|no tow)\b/i.test(message)) {
+                    updatedClaim.towingRequested = false;
+                }
+                if (parsed.includes('rental car')) {
+                    updatedClaim.rentalRequested = true;
+                } else if (/\b(no rental|don'?t need a rental|no car rental|don'?t need to rent|no rent)\b/i.test(message)) {
+                    updatedClaim.rentalRequested = false;
+                }
                 claimCompleted = true;
             }
         }
