@@ -586,7 +586,14 @@ wss.on('connection', (ws: WebSocket, req) => {
               if (!lastUserTurn) {
                   const fallbackMsg = currentRec.state.lastAssistantMessage ?? "I'm here to help. Could you please go ahead?";
                   if (currentRec.lastSentMessage === fallbackMsg) {
-                      logInfo(`Skipping duplicate fallback: "${fallbackMsg}"`);
+                      logInfo(`Skipping duplicate fallback text for response_id ${responseId}, sending complete frame`);
+                      sendWsJson(ws, {
+                        response_type: 'response',
+                        response_id: responseId,
+                        content: '',
+                        content_complete: true,
+                        end_call: false,
+                      }, 'EmptyFallbackDuplicate');
                       return;
                   }
                   logInfo(`No user turn found, sending fallback: "${fallbackMsg}"`);
@@ -746,7 +753,14 @@ wss.on('connection', (ws: WebSocket, req) => {
               const updatedRec = sessions.get(sessionId);
               if (updatedRec) {
                   if (updatedRec.lastSentMessage === fullSentMessage.trim()) {
-                      logInfo(`Skipping duplicate final response: "${fullSentMessage.trim()}"`);
+                      logInfo(`Skipping duplicate final response text for response_id ${responseId}, sending complete frame`);
+                      sendWsJson(ws, {
+                        response_type: 'response',
+                        response_id: responseId,
+                        content: '',
+                        content_complete: true,
+                        end_call: isComplete,
+                      }, 'DuplicateAckResponse');
                       return;
                   }
                   updatedRec.lastSentMessage = fullSentMessage.trim();
@@ -768,6 +782,13 @@ wss.on('connection', (ws: WebSocket, req) => {
                     logInfo(`Turn ${responseId} aborted.`);
                 } else {
                     logError('Error in processing turn:', err);
+                    sendWsJson(ws, {
+                      response_type: 'response',
+                      response_id: responseId,
+                      content: "I'm having a temporary system issue. Could you please repeat that?",
+                      content_complete: true,
+                      end_call: false,
+                    }, 'ExceptionFallback');
                 }
             } finally {
                 if (activeResponseIds.get(sessionId) === responseId) {

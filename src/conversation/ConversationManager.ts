@@ -623,10 +623,10 @@ export class DefaultConversationManager implements ConversationManager {
             escalationRequired: false
         });
 
-        const nextState = this.updateFieldTracking({ ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, currentConversationStep: 'completed' });
+        const nextState = this.updateFieldTracking({ ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser });
         return this.withAssistantAction(
             nextState,
-            { type: 'complete', message: accumulatedResponse, claim: updatedClaim },
+            { type: 'respond', message: accumulatedResponse },
             finalExtractionResult.debugMetrics
         );
     }

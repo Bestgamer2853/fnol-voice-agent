@@ -89,8 +89,8 @@ describe('PHASE 4 & 5 — Real Gemini Integration & Verification Suite', () => {
     console.log('[Real Gemini Turn 3] Action Type:', res3.action.type, 'Message:', res3.action.message);
     assert.equal(state.currentConversationStep, 'completed');
     assert.equal(logs.length, 1);
-    assert.ok(logs[0].claim.towingRequested);
-    assert.ok(logs[0].claim.rentalRequested);
+    assert.ok(logs[0]?.claim.towingRequested);
+    assert.ok(logs[0]?.claim.rentalRequested);
   });
 
   it('handles caller self-corrections with real Gemini API', async () => {
@@ -118,7 +118,7 @@ describe('PHASE 4 & 5 — Real Gemini Integration & Verification Suite', () => {
     assert.equal(res.action.type, 'escalate');
     assert.equal(res.state.escalationRequired, true);
     assert.equal(logs.length, 1);
-    assert.equal(logs[0].escalationRequired, true);
+    assert.equal(logs[0]?.escalationRequired, true);
   });
 
   it('handles policy verification failure lockout (2 attempts)', async () => {
@@ -189,7 +189,7 @@ describe('PHASE 8 — Failure Injection & Resilience Suite', () => {
     let state = manager.start();
 
     const res = await manager.handleUserMessage(state, 'Hello, I crashed my car.');
-    assert.equal(res.action.type, 'complete');
+    assert.equal(res.action.type, 'respond');
     assert.ok(res.action.message.includes('connection issue'));
   });
 
