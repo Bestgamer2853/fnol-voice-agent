@@ -1,3 +1,23 @@
+/**
+ * @file ConversationManager.ts
+ * @description Central Finite State Machine (FSM) and business orchestrator for the FNOL Voice Agent.
+ *
+ * @responsibilities
+ * - Orchestrates the flow between Voice Transcript -> LLM Extraction -> Business Validation.
+ * - Enforces state progression (e.g., verifying a policy before collecting accident details).
+ * - Implements deterministic overrides for critical insurance logic (e.g., Escalation).
+ *
+ * @architecture_position
+ * Core Domain Layer. It sits between the transport layer (server.ts) and the 
+ * external services layer (ExtractClaimData, VerifyPolicy, Google Sheets logger).
+ *
+ * @interview_talking_points
+ * - "Why separate extraction from conversation flow?"
+ *   -> Because LLMs are probabilistic text generators, but insurance workflows require 
+ *      deterministic compliance checks. By splitting them, we get natural voice interaction
+ *      with rigid backend business guarantees.
+ */
+
 import {
   REQUIRED_FNOL_FIELDS,
   type TrackableFnolField,
@@ -463,6 +483,12 @@ function buildInitialState(): ConversationState {
  * Key Architecture Note: This class enforces a strict separation between 
  * surface-level language generation (handled by the LLM) and business state 
  * transitions (handled here deterministically).
+ * 
+ * @dependencies
+ * - verifyPolicy: Mock database lookup for insurance policies.
+ * - extractClaimData: The LLM wrapper for generating JSON slots from raw voice text.
+ * - recommendServices: Deterministic logic to offer Towing/Adjuster based on the policy.
+ * - claimLogger: Parallel outbox writer for saving the claim.
  */
 export class DefaultConversationManager implements ConversationManager {
   constructor(private readonly dependencies: ConversationManagerDependencies) {}
@@ -566,6 +592,12 @@ export class DefaultConversationManager implements ConversationManager {
         // Remove confidence before validation
         delete rawSlots.confidence;
         
+        // ----------------------------------------
+        // STEP 4: FSM STATE MERGE & VALIDATION
+        // We take the newly extracted slots from the LLM, run regex validations
+        // (e.g. stripping bad characters from license plates), and merge them
+        // into the global session state.
+        // ----------------------------------------
         const { validatedPatch, pendingClarifications } = validateClaimPatch(rawSlots as Partial<Claim>, state);
         const normalizedPatch = normalizeClaimPatch(validatedPatch);
         
@@ -587,8 +619,11 @@ export class DefaultConversationManager implements ConversationManager {
     }
 
     // --- DETERMINISTIC ESCALATION RULES ---
-    // Instead of relying on the LLM to decide if an emergency is happening,
-    // we use hardcoded Regex and boolean checks to immediately escalate and override the LLM.
+    // ⭐ INTERVIEW HOTSPOT: Deterministic Escalation
+    // Interviewer: "Why don't you just ask the LLM to classify if it's an emergency?"
+    // Answer: "Because LLMs can hallucinate or fail to recognize nuanced emergencies. 
+    // By using regex on the output stream deterministically, we guarantee compliance 
+    // and safety overrides immediately, regardless of what the LLM 'thinks'."
     if (updatedClaim.injuriesReported === true || 
         /whiplash|neck|ambulance|hospital/i.test(updatedClaim.injuryDetails || '') || 
         /major|rollover|fire|fatal/i.test(updatedClaim.incidentDescription || '')) {
@@ -620,8 +655,10 @@ export class DefaultConversationManager implements ConversationManager {
     }
 
     // --- DETERMINISTIC POLICY VERIFICATION ---
+    // ⭐ INTERVIEW HOTSPOT: Business Rule Enforcement
     // If we have both the policy number and caller name, ping the external database mock.
-    // If it fails twice, we branch the state machine into a 'callback_offer'.
+    // We do NOT let the LLM verify policies. We do it here in the Node.js backend.
+    // If it fails twice, we branch the state machine into a 'callback_offer' (terminal state).
     if (!verifiedPolicyObj && updatedClaim.policyNumber && updatedClaim.callerName && !callbackOffered) {
         const verifyResult = await this.dependencies.verifyPolicy.verify({
             policyNumber: updatedClaim.policyNumber,
@@ -659,10 +696,14 @@ export class DefaultConversationManager implements ConversationManager {
         );
     }
 
-    // Deterministic Completion Check
+    // ----------------------------------------
+    // DETERMINISTIC COMPLETION & SERVICE RECOMMENDATION
+    // ----------------------------------------
     if (verifiedPolicyObj) {
         const missing = calculateMissingFields(updatedClaim);
         if (missing.length === 0) {
+            // Once all required fields are collected (calculated via `REQUIRED_FNOL_FIELDS`),
+            // we use the policy object to recommend services deterministically.
             if (!state.servicesRecommended) {
                 const recommendations = await this.dependencies.recommendServices.recommend({ claim: updatedClaim, policy: verifiedPolicyObj });
                 if (recommendations.recommendations.length > 0) {
@@ -781,7 +822,12 @@ export class DefaultConversationManager implements ConversationManager {
       currentConversationStep: 'completed',
       lastUserMessage: message,
     });
-    // Trigger persistence & notification asynchronously in background so WebSocket response returns immediately to Retell without network latency hang
+    
+    // ⭐ PRODUCTION NOTE: Async Background Persistence
+    // The call to `claimLogger.log` involves network IO (Google Sheets).
+    // If we `await` it here, the user is left in silence on the phone for 1-2 seconds.
+    // By triggering it as a detached Promise, we instantly return the spoken response
+    // to Retell, cutting TTS latency dramatically, while Sheets saves in the background.
     Promise.resolve(
       this.dependencies.claimLogger.log({
         claimNumber: claimReferenceNumber,

@@ -1,3 +1,35 @@
+/**
+ * @file server.ts
+ * @description Entry point for the FNOL Voice Agent. Hosts the Express HTTP server and Retell AI WebSocket integration.
+ *
+ * @responsibilities
+ * - Accept and manage incoming WebSocket connections from Retell AI.
+ * - Route HTTP traffic (e.g., /chat/start, /chat, static assets).
+ * - Enforce concurrent turn locks per session to prevent race conditions during LLM processing.
+ * - Manage session state lifecycle and cleanup (TTL).
+ * - Maintain request context tracking using AsyncLocalStorage for structured logging.
+ *
+ * @architecture_position
+ * Top of the stack. Acts as the primary transport layer. Delegates business logic
+ * to `ConversationManager` and state persistence to `claimLogger`.
+ *
+ * @dependencies
+ * - Express (HTTP)
+ * - ws (WebSockets)
+ * - ConversationManager (FSM Orchestrator)
+ *
+ * @production_notes
+ * - Uses an in-memory `Map` for sessions. In a distributed multi-node production environment,
+ *   this must be migrated to Redis or Memcached to support stateless horizontal scaling.
+ * - Implements naive IP-based rate limiting. Should be replaced with a robust API gateway (e.g., Kong, AWS API Gateway).
+ *
+ * @interview_talking_points
+ * - "How do you handle race conditions if the user speaks while the LLM is still processing?"
+ *   -> See the `turnLock` Promise chain and `AbortController` injection.
+ * - "How do you track logs across asynchronous operations?"
+ *   -> See `requestContext` (AsyncLocalStorage).
+ */
+
 import 'dotenv/config';
 import crypto from 'node:crypto';
 import { dirname, join } from 'node:path';
@@ -44,6 +76,12 @@ function pruneExpiredSessions(now = Date.now()): void {
     }
   }
 }
+
+// ----------------------------------------
+// SESSION MANAGEMENT
+// These functions manage the lifecycle of an active call.
+// State is held in-memory (Map).
+// ----------------------------------------
 
 function createSession(): { sessionId: string; state: ConversationState } {
   const sessionId = createSessionId();
@@ -96,6 +134,9 @@ app.use('/handbook', express.static(handbookDirectory));
 const rateLimits = new Map<string, { count: number, resetAt: number }>();
 
 function rateLimit(req: Request, res: Response, next: express.NextFunction) {
+  // Production Note: This is an in-memory naive rate limiter.
+  // In production, delegate this to an API Gateway or a Redis-backed store
+  // because in-memory maps reset on pod restarts and do not scale across multiple instances.
   const ip = req.ip || req.socket.remoteAddress || 'unknown';
   const now = Date.now();
   const limit = 50;
@@ -352,6 +393,10 @@ const server = app.listen(port, () => {
 
 const wss = new WebSocketServer({ server });
 
+// ----------------------------------------
+// RETELL WEBSOCKET INTEGRATION
+// ----------------------------------------
+
 /**
  * Retell Custom LLM WebSocket Server Integration
  * 
@@ -519,6 +564,11 @@ wss.on('connection', (ws: WebSocket, req) => {
           return;
         }
 
+        // ⭐ INTERVIEW HOTSPOT: Barge-in and Interruptions
+        // Interviewers frequently ask: "What happens if the user interrupts the bot?"
+        // Answer: Retell sends a new `response_required` event with an incremented `response_id`.
+        // We capture this, fire the `AbortController` on the previous active request to kill the in-flight
+        // LLM HTTP call (saving latency/cost), and immediately begin processing the new turn.
         if (currentRec.abortController) {
             currentRec.abortController.abort();
         }
@@ -555,6 +605,10 @@ wss.on('connection', (ws: WebSocket, req) => {
               const prevLock = currentRec.turnLock || Promise.resolve();
               let turnResult: any;
               
+                // ⭐ INTERVIEW HOTSPOT: Concurrency and Race Conditions
+                // Interviewers ask: "How do you ensure message state is consistent?"
+                // Answer: We use a Promise chain (`prevLock.then().then(executeTurn)`) 
+                // to serialize execution. Only one turn is processed by the FSM at a time per session.
               const executeTurn = async () => {
                 if (activeResponseIds.get(sessionId) !== responseId) {
                     throw new Error('AbortError: Superseded before starting');

@@ -1,3 +1,20 @@
+/**
+ * @file fallback.ts
+ * @description Provides high-availability LLM failover using the Chain of Responsibility pattern.
+ *
+ * @responsibilities
+ * - Wrap multiple `LlmProvider` instances (e.g., Gemini, Groq) in a fallback chain.
+ * - Catch network errors, 503s, or rate limits from the primary provider.
+ * - Seamlessly route the request to the secondary provider without dropping the user's call.
+ *
+ * @architecture_position
+ * Infrastructure Layer. Implements `LlmProvider`.
+ *
+ * @production_notes
+ * - Essential for production Voice AI. LLM APIs frequently spike in latency or return 502/503.
+ *   Dropping a customer phone call due to an LLM timeout is unacceptable.
+ */
+
 import type { LlmProvider, GenerateResponseInput, GenerateResponseResult } from './provider.js';
 
 export class FallbackProvider implements LlmProvider {
@@ -17,12 +34,11 @@ export class FallbackProvider implements LlmProvider {
       try {
         console.log(`[FallbackProvider] Attempting Provider ${i + 1}/${this.providers.length}...`);
         
-        // We cannot just pass the same input because onContentChunk would be called multiple times 
-        // if a provider streams some chunks and THEN fails.
-        // But since our Gemini & Groq services only call onContentChunk on valid JSON stream parsing,
-        // if they abort or fail fast via network errors, onContentChunk won't be called incorrectly.
-        // However, to be perfectly safe, we buffer chunks for the current provider until we know it succeeds.
-        
+        // ⭐ INTERVIEW HOTSPOT: Streaming Fallback Safety
+        // Interviewer: "If provider A fails halfway through streaming, does provider B stream duplicate text?"
+        // Answer: "Our providers (like Gemini) buffer the SSE connection initially and throw *before* invoking 
+        // `onContentChunk` if it's a 503/429. However, for perfect safety, we buffer the chunks locally here 
+        // in `chunkBuffer`. In a true hardened system, we'd wait for a minimum threshold before piping to Retell."
         let chunkBuffer: string[] = [];
         const safeInput: GenerateResponseInput = {
           ...input,

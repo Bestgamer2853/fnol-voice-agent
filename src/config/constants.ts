@@ -1,3 +1,16 @@
+/**
+ * @file constants.ts
+ * @description Centralized configuration and constants for the FNOL business rules.
+ *
+ * @responsibilities
+ * - Define system-wide limits (e.g. `MAX_VERIFICATION_RETRIES`).
+ * - Define heuristic keywords for severity classification.
+ *
+ * @architecture_position
+ * Shared Configuration Layer. Used by the `ConversationManager` to drive
+ * deterministic behavior without hardcoding strings in the business logic.
+ */
+
 export const MAX_VERIFICATION_RETRIES = 2;
 
 export const COMPANY_NAME = 'Meridian Motor Insurance';

@@ -1,3 +1,21 @@
+/**
+ * @file runtime.ts
+ * @description The Dependency Injection (DI) Composition Root for the FNOL Voice Agent.
+ *
+ * @responsibilities
+ * - Wire together all stateless services (LLM, FSM, Storage, Notification).
+ * - Instantiate singletons (like `MultiClaimLogger` and `FallbackProvider`).
+ * - Provide a clean injection boundary for tests (allowing mock implementations).
+ *
+ * @architecture_position
+ * Composition Root. It isolates all instantiation logic away from the runtime code (`server.ts`).
+ *
+ * @interview_talking_points
+ * - "How do you test the ConversationManager if it makes network calls?"
+ *   -> "We don't. We use dependency injection. `server.ts` imports `createRuntimeConversationManager()` 
+ *       which injects the real dependencies, but in tests, we pass mock services into the `DefaultConversationManager` constructor."
+ */
+
 import { readFileSync } from 'node:fs';
 
 import {

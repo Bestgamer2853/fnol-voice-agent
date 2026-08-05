@@ -1,3 +1,22 @@
+/**
+ * @file recommendServices.ts
+ * @description Analyzes the extracted claim details and verifies against the user's policy to recommend relevant services.
+ *
+ * @responsibilities
+ * - Evaluate claim conditions (e.g., is the vehicle drivable?).
+ * - Cross-reference with policy entitlements (e.g., does the user have towing coverage?).
+ * - Return a deterministic list of service recommendations.
+ *
+ * @architecture_position
+ * Domain / Service Layer. It encapsulates business rules surrounding post-incident support.
+ *
+ * @interview_talking_points
+ * - "Why is this not done by the LLM?"
+ *   -> Giving the LLM the policy JSON and asking it to recommend services risks hallucination. 
+ *      If an LLM hallucinates free towing for a customer without coverage, the company incurs a loss.
+ *      By pulling this into a deterministic rule engine, we guarantee strict compliance.
+ */
+
 import type { Claim } from '../types/claim.js';
 import type { Policy } from '../types/policy.js';
 

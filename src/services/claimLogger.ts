@@ -1,3 +1,23 @@
+/**
+ * @file claimLogger.ts
+ * @description Provides the interface and local persistence mechanism for finalized FNOL claims.
+ *
+ * @responsibilities
+ * - Expose a unified `ClaimLoggerService` interface.
+ * - Implement a local JSON-based persistence strategy (`LocalJsonClaimLogger`) using file-locking.
+ * - Implement a Decorator logger (`NotificationClaimLogger`) for sending completion emails.
+ *
+ * @architecture_position
+ * Infrastructure / Persistence Layer. Provides durable storage mechanisms that the 
+ * ConversationManager FSM relies upon upon reaching terminal states.
+ *
+ * @interview_talking_points
+ * - "Why does LocalJsonClaimLogger use a Mutex?"
+ *   -> Because Node.js is single-threaded, but file I/O is asynchronous. If two active WebSocket 
+ *      sessions finalize a claim at the exact same microsecond, they could both read `claims.json`,
+ *      append their claim, and write it back, causing a race condition where one overwrites the other.
+ */
+
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';

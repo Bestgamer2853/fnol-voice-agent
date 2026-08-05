@@ -1,3 +1,23 @@
+/**
+ * @file extractClaimData.ts
+ * @description Interfaces with the LLM (Gemini) to extract structured JSON data from raw user voice transcripts.
+ *
+ * @responsibilities
+ * - Construct the System Prompt based on the current FSM instructions.
+ * - Call the Gemini API using `responseMimeType: 'application/json'`.
+ * - Parse and sanitize the incoming JSON stream.
+ * - Apply deterministic Regex fallbacks to guarantee highly accurate slot filling.
+ *
+ * @architecture_position
+ * Domain / Service Layer. It is stateless and invoked per-turn by the ConversationManager.
+ *
+ * @llm_context
+ * We use Gemini's native JSON mode rather than function calling (tools) because:
+ * 1. JSON mode generally produces lower latency for simple slot-filling in voice apps.
+ * 2. It allows us to stream the JSON chunks, meaning we can begin speaking the `responseToUser`
+ *    before the LLM has finished extracting all the background data fields.
+ */
+
 import type { ConversationState } from '../conversation/ConversationState.js';
 import type { ConversationStep } from '../conversation/types.js';
 import type { Claim } from '../types/claim.js';
@@ -343,6 +363,8 @@ function getFallbackResult(message: string, state: ConversationState): ExtractCl
  * It is responsible for injecting the dynamic FSM instructions into the prompt,
  * parsing the JSON output, and merging the LLM's extracted data with the 
  * deterministic regex fallback data (to prevent hallucination or dropped slots).
+ * 
+ * @lifecycle Singleton / Factory-created per application runtime.
  */
 export class GeminiExtractClaimDataService implements ExtractClaimDataService {
   constructor(private readonly options: ExtractClaimDataServiceOptions) {}
@@ -350,6 +372,11 @@ export class GeminiExtractClaimDataService implements ExtractClaimDataService {
   async extract(input: ExtractClaimDataInput): Promise<ExtractClaimDataResult> {
     const dateStr = new Date().toISOString().split('T')[0];
     
+    // ⭐ INTERVIEW HOTSPOT: Prompt Engineering Strategy
+    // Interviewer: "Why don't you use LangChain or a complex prompt framework?"
+    // Answer: "For sub-second voice latency, prompts must be minimal and highly deterministic.
+    // We enforce boundaries strictly: 'Your sole role is fact intake'.
+    // We also force the LLM to output a specific JSON schema, preventing conversational drift."
     const systemPrompt = `You are the Voice FNOL (First Notice of Loss) Intake Assistant for Meridian Motor Insurance. Date: ${dateStr}.
 
 OPERATIONAL BOUNDARIES:

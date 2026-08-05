@@ -1,3 +1,20 @@
+/**
+ * @file googleSheets.ts
+ * @description External persistence integration with Google Sheets API.
+ *
+ * @responsibilities
+ * - Authenticate with GCP Service Accounts.
+ * - Provision the spreadsheet with headers and formatting if empty.
+ * - Append incoming `ClaimLogRecord` rows.
+ *
+ * @architecture_position
+ * Infrastructure / Persistence Layer. Implements `ClaimLoggerService`.
+ *
+ * @production_notes
+ * - In a massive scale production system, Google Sheets would be replaced with
+ *   a real transactional DB (Postgres) or Data Warehouse (BigQuery) due to strict API quotas.
+ */
+
 import { google } from 'googleapis';
 import type { ClaimLoggerService, ClaimLogRecord } from '../services/claimLogger.js';
 import { join, dirname } from 'node:path';
@@ -89,6 +106,11 @@ export class GoogleSheetsClaimLogger implements ClaimLoggerService {
       const batchRequests: any[] = [];
 
       if (isPopulatedWithoutHeaders) {
+        // ⭐ INTERVIEW HOTSPOT: Non-Destructive Migrations
+        // Interviewer: "What happens if someone deleted the header row manually?"
+        // Answer: "We detect if the first cell doesn't match our schema, and if so,
+        // we use a dimension shift (insertDimension ROWS) to push all data down by one row
+        // before writing the headers, preventing data loss."
         console.log('Existing claim data detected without headers. Shifting data down...');
         batchRequests.push({
           insertDimension: {

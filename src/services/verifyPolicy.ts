@@ -1,3 +1,21 @@
+/**
+ * @file verifyPolicy.ts
+ * @description Validates user-provided policy information against a mock external insurance database.
+ *
+ * @responsibilities
+ * - Load `policies.json` to act as the source of truth.
+ * - Normalize incoming caller names and policy numbers (e.g. converting "mmi 102" to "MMI-102").
+ * - Perform Jaro-Winkler and Levenshtein fuzzy matching to accommodate ASR (Speech-to-Text) misinterpretations.
+ *
+ * @architecture_position
+ * Service Layer. Abstracted behind an interface so it can be easily swapped for an actual
+ * API call (e.g., Salesforce, Guidewire) in a production environment.
+ *
+ * @production_notes
+ * - Currently loads policies synchronously into memory. In production, this would be an async
+ *   network request. `VerifyPolicyService.verify` already returns a `Promise` signature to support this.
+ */
+
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -55,6 +73,15 @@ function normalizePolicyNumber(policyNumber: string): string {
   return normalized.replace(/[^a-z0-9]/gi, '').toUpperCase();
 }
 
+/**
+ * Implements Jaro-Winkler string similarity algorithm.
+ * 
+ * @business_context
+ * Used to verify caller names. "John Doe" vs "Jon Doe" should pass verification.
+ * Insurance policies often have slightly misspelled names, or the Voice AI might transcribe
+ * the spoken name slightly incorrectly. Jaro-Winkler heavily weights prefix matches,
+ * which is ideal for first/last name comparisons.
+ */
 function jaroWinkler(s1: string, s2: string): number {
   if (s1 === s2) return 1.0;
   const len1 = s1.length;
