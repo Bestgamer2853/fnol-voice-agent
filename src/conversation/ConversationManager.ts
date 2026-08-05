@@ -535,7 +535,7 @@ function buildInitialState(): ConversationState {
   const initialClaim: Claim = {};
   const greeting = `Hello, thank you for calling ${COMPANY_NAME}. I'm sorry to hear you've had an accident. I'll help you report your claim today. Before we begin, are you and everyone else currently safe?`;
 
-  return {
+  const initialState: ConversationState = {
     currentClaim: initialClaim,
     conversationHistory: appendMessage([], 'assistant', greeting),
     collectedFields: [],
@@ -552,6 +552,8 @@ function buildInitialState(): ConversationState {
     servicesRecommended: false,
     pendingServiceChoices: [],
   };
+  
+  return initialState;
 }
 
 /**
@@ -601,15 +603,7 @@ export class DefaultConversationManager implements ConversationManager {
     console.log(`\n\n[ConversationManager] ENTERING handleUserMessage`);
     console.log(`[ConversationManager] State step before: ${state.currentConversationStep}`);
     console.log(`[ConversationManager] User message: "${message}"`);
-    if (state.currentConversationStep === 'escalation' || state.currentConversationStep === 'callback_offer') {
-      if (state.currentConversationStep === 'escalation') {
-        return this.withAssistantAction({ ...state, lastUserMessage: message }, { type: 'escalate', message: 'I understand this is an emergency. Please hang up and dial emergency services immediately.', reason: 'Severe incident or injury reported.' }, {});
-      }
-      if (state.currentConversationStep === 'callback_offer') {
-        return this.withAssistantAction({ ...state, lastUserMessage: message }, { type: 'complete', message: 'A claims agent will call you back shortly. Goodbye.', claim: state.currentClaim }, {});
-      }
-    }
-
+    
     // Post-completion handling: if claim is already completed, allow the user
     // to ask follow-up questions via the LLM, but if they give a final ack
     // (e.g., "thanks", "bye"), end the call cleanly.
@@ -626,6 +620,11 @@ export class DefaultConversationManager implements ConversationManager {
         );
       }
       // Non-final-ack: pass through to LLM so user can ask follow-up questions
+    }
+    
+    // Callback offer handling - end call if verification failed
+    if (state.currentConversationStep === 'callback_offer') {
+      return this.withAssistantAction({ ...state, lastUserMessage: message }, { type: 'complete', message: 'A claims agent will call you back shortly. Goodbye.', claim: state.currentClaim }, {});
     }
 
     const historyWithUser = appendMessage(state.conversationHistory, 'user', message);
@@ -765,27 +764,14 @@ export class DefaultConversationManager implements ConversationManager {
     }
 
     if (isEscalated) {
-        const nextState = this.updateFieldTracking({ ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser, currentConversationStep: 'escalation', escalationRequired: true });
-        const claimReferenceNumber = updatedClaim.claimReferenceNumber ?? this.dependencies.claimNumberGenerator.generate();
-        updatedClaim.claimReferenceNumber = claimReferenceNumber;
+        // Flag escalation but continue collecting FNOL data
+        // Only end call after all required data is collected
+        state.escalationRequired = true;
+        state.escalationReason = escalationReason;
+        console.log(`[ConversationManager] Escalation flagged: ${escalationReason}. Continuing data collection.`);
         
-        void Promise.resolve(this.dependencies.claimLogger.log({
-                claimNumber: claimReferenceNumber,
-                summary: `Escalated: ${escalationReason}`,
-                timestamp: timestamp(),
-                claim: updatedClaim,
-                ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}),
-                conversationHistory: historyWithUser,
-                escalationRequired: true,
-        })).catch((err: unknown) => {
-            console.error(`[ConversationManager] Escalation claim logging error for ${claimReferenceNumber}:`, err);
-        });
-
-        return this.withAssistantAction(
-            nextState,
-            { type: 'escalate', message: accumulatedResponse.trim() || 'I understand this is an emergency. Please hang up and dial emergency services immediately.', reason: escalationReason },
-            finalExtractionResult.debugMetrics
-        );
+        // Don't immediately return - continue with normal flow to collect required data
+        // The escalation will be handled during claim completion
     }
 
     // --- DETERMINISTIC POLICY VERIFICATION ---
@@ -1068,9 +1054,19 @@ export class DefaultConversationManager implements ConversationManager {
       console.error(`[ConversationManager] Background claim logging error for ${claimReferenceNumber}:`, err);
     });
 
+    // If escalation is required, add escalation message to response
+    let finalMessage = responseToUser;
+    if (nextState.escalationRequired) {
+      const escalationMsg = nextState.escalationReason 
+        ? ` I've noted that this requires immediate attention due to: ${nextState.escalationReason} A claims specialist will contact you shortly.`
+        : ' I\'ve noted that this requires immediate attention. A claims specialist will contact you shortly.';
+      finalMessage = responseToUser + escalationMsg;
+    }
+
     return this.withAssistantAction(nextState, {
-      type: 'respond',
-      message: responseToUser,
+      type: nextState.escalationRequired ? 'escalate' : 'respond',
+      message: finalMessage,
+      reason: nextState.escalationReason || 'Escalation required',
     }, extractionDebug);
   }
 

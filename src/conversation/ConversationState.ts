@@ -18,6 +18,7 @@ export interface ConversationState {
   missingFields: TrackableFnolField[];
   retryCount: number;
   escalationRequired: boolean;
+  escalationReason?: string;
   severity?: Severity;
   currentConversationStep: ConversationStep;
   contradictions: Contradiction[];
@@ -28,4 +29,6 @@ export interface ConversationState {
   verificationAttempts: number;
   empathyPhrasesUsed: string[];
   servicesRecommended?: boolean;
+  /** Services still awaiting an explicit yes/no from the caller. */
+  pendingServiceChoices?: string[];
 }
