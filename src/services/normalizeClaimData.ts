@@ -27,7 +27,7 @@ const PHONETIC_ALPHABET: Record<string, string> = {
  * alphanumeric strings. ASRs often output "M M I one zero two" instead of "MMI-102".
  * This deterministic filter cleans it back to standard DB format.
  */
-function normalizePolicyNumber(raw: string): string {
+export function normalizePolicyNumber(raw: string): string {
   let normalized = raw.toLowerCase();
   
   for (const [word, digit] of Object.entries(WORD_TO_DIGIT)) {
@@ -41,11 +41,17 @@ function normalizePolicyNumber(raw: string): string {
   }
 
   normalized = normalized.replace(/\b(em em eye|m m i)\b/g, 'mmi');
-  normalized = normalized.replace(/[^a-z0-9]/g, '');
 
-  const match = /^([a-z]+)(\d+)$/.exec(normalized);
+  // Look for a policy prefix (2 to 5 letters) and numbers (4 to 8 digits) anywhere in the normalized string
+  const match = /([a-z]{2,5})\s*[-_]?\s*(\d{4,8})/i.exec(normalized);
   if (match && match[1] && match[2]) {
     return `${match[1].toUpperCase()}-${match[2]}`;
+  }
+
+  const cleaned = raw.replace(/[^a-z0-9]/gi, '').toUpperCase();
+  const cleanedMatch = /([A-Z]{2,5})(\d{4,8})/.exec(cleaned);
+  if (cleanedMatch && cleanedMatch[1] && cleanedMatch[2]) {
+    return `${cleanedMatch[1]}-${cleanedMatch[2]}`;
   }
 
   return raw.trim().toUpperCase();

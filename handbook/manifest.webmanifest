@@ -1,0 +1,10 @@
+{
+  "name": "FNOL Interview Cockpit",
+  "short_name": "FNOL Cockpit",
+  "description": "Repository-grounded, keyboard-first interview reference.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f0e8",
+  "theme_color": "#f4f0e8",
+  "icons": []
+}

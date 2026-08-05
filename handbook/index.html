@@ -1,83 +1,63 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FNOL Voice Agent | Staff Engineering Handbook</title>
-  
-  <!-- Google Fonts: Inter & JetBrains Mono -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  
-  <!-- Prism CSS for syntax highlighting -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
-  
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-
-  <!-- Mobile Header -->
-  <header class="mobile-header">
-    <button id="menu-btn" class="menu-btn">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="3" y1="12" x2="21" y2="12"></line>
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <line x1="3" y1="18" x2="21" y2="18"></line>
-      </svg>
-    </button>
-    <div class="logo">FNOL Handbook</div>
-    <button id="night-mode-btn-mobile" class="icon-btn" title="Toggle Night Before Interview Mode">🌙 Night</button>
-  </header>
-
-  <div class="layout">
-    
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <div class="logo-group">
-          <div class="logo">FNOL Voice Agent</div>
-          <div class="subtitle">Staff Handbook SPA</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4f0e8" />
+    <meta name="description" content="A keyboard-first, offline-capable interview cockpit for the Meridian FNOL Voice Agent." />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>FNOL / Interview Cockpit</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to answer</a>
+    <div class="app-shell">
+      <aside class="rail" id="rail" aria-label="Interview cockpit navigation">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">M</span>
+          <div>
+            <p class="eyebrow">Meridian / FNOL</p>
+            <p class="brand-name">Interview cockpit</p>
+          </div>
         </div>
-        <div class="theme-toggle-group">
-          <button id="night-mode-btn" class="icon-btn" title="Toggle Night Before Interview Mode">
-            <span>🌙</span>
-            <span class="btn-text">Night</span>
-          </button>
+
+        <button class="command-trigger" id="command-trigger" type="button" aria-haspopup="dialog">
+          <span>Search the system</span><kbd>⌘ K</kbd>
+        </button>
+
+        <nav class="rail-nav" id="rail-nav" aria-label="Primary"></nav>
+        <div class="rail-footer">
+          <p><span class="status-dot"></span>Repository-grounded</p>
+          <button class="quiet-button" id="install-button" type="button" hidden>Install offline app</button>
+          <p class="shortcut-hint"><kbd>/</kbd> search · <kbd>?</kbd> shortcuts</p>
         </div>
-      </div>
-      
-      <div class="search-container">
-        <input type="text" id="search-input" placeholder="Search modules, code, protocols...">
-      </div>
-      
-      <div id="mode-banner" class="mode-banner hidden">
-        ⚡ <strong>NIGHT BEFORE MODE ACTIVE</strong><br>Showing high-yield 15-min essentials only.
-      </div>
+      </aside>
 
-      <nav id="nav-container"></nav>
-    </aside>
-
-    <!-- Main Content Area -->
-    <main class="main-content">
-      <div id="content" class="markdown-body">
-        <div class="loading">Loading Handbook...</div>
+      <div class="workspace">
+        <header class="topbar">
+          <button class="menu-button" id="menu-button" type="button" aria-label="Open navigation">Menu</button>
+          <p id="crumbs" class="crumbs">Cockpit / Briefing</p>
+          <div class="topbar-actions">
+            <button class="text-button" id="shortcuts-button" type="button">Shortcuts <kbd>?</kbd></button>
+            <button class="panic-button" data-route="panic" type="button">Panic mode</button>
+          </div>
+        </header>
+        <main id="main" class="main" tabindex="-1"></main>
       </div>
-      <footer class="doc-footer">
-        Meridian FNOL Voice Agent — Staff Software Architecture & Interview Defense Manual
-      </footer>
-    </main>
+    </div>
 
-  </div>
+    <div class="palette-backdrop" id="palette-backdrop" hidden></div>
+    <section class="command-palette" id="command-palette" role="dialog" aria-modal="true" aria-label="Search the interview cockpit" hidden>
+      <div class="palette-input-wrap">
+        <span aria-hidden="true">⌕</span>
+        <input id="palette-input" type="search" autocomplete="off" placeholder="Ask about a file, method, concept, or interview question…" />
+        <kbd>Esc</kbd>
+      </div>
+      <div class="palette-results" id="palette-results" role="listbox"></div>
+      <p class="palette-help"><kbd>↑</kbd><kbd>↓</kbd> move <kbd>↵</kbd> open <kbd>⌘ K</kbd> close</p>
+    </section>
 
-  <!-- Marked JS for Markdown parsing -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <!-- Prism JS for Syntax Highlighting -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
-  
-  <script src="app.js"></script>
-</body>
+    <template id="toast-template"><div class="toast" role="status"></div></template>
+    <script src="app.js" defer></script>
+  </body>
 </html>

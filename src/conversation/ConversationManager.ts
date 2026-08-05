@@ -25,6 +25,9 @@ import {
 import {
   COMPANY_NAME,
   MAX_VERIFICATION_RETRIES,
+  ESCALATION_KEYWORDS,
+  HIGH_SEVERITY_KEYWORDS,
+  MEDIUM_SEVERITY_KEYWORDS,
 } from '../config/constants.js';
 import type { ClaimLoggerService } from '../services/claimLogger.js';
 import type { ExtractClaimDataService } from '../services/extractClaimData.js';
@@ -522,13 +525,19 @@ export class DefaultConversationManager implements ConversationManager {
     console.log(`\n\n[ConversationManager] ENTERING handleUserMessage`);
     console.log(`[ConversationManager] State step before: ${state.currentConversationStep}`);
     console.log(`[ConversationManager] User message: "${message}"`);
-    if (state.currentConversationStep === 'completed' || state.currentConversationStep === 'escalation' || state.currentConversationStep === 'callback_offer') {
+    if (state.currentConversationStep === 'escalation' || state.currentConversationStep === 'callback_offer') {
       if (state.currentConversationStep === 'escalation') {
         return this.withAssistantAction({ ...state, lastUserMessage: message }, { type: 'escalate', message: 'I understand this is an emergency. Please hang up and dial emergency services immediately.', reason: 'Severe incident or injury reported.' }, {});
       }
       if (state.currentConversationStep === 'callback_offer') {
         return this.withAssistantAction({ ...state, lastUserMessage: message }, { type: 'complete', message: 'A claims agent will call you back shortly. Goodbye.', claim: state.currentClaim }, {});
       }
+    }
+
+    // Post-completion handling: if claim is already completed, allow the user
+    // to ask follow-up questions via the LLM, but if they give a final ack
+    // (e.g., "thanks", "bye"), end the call cleanly.
+    if (state.currentConversationStep === 'completed') {
       if (this.isFinalAck(message)) {
         return this.withAssistantAction(
           { ...state, lastUserMessage: message },
@@ -539,17 +548,8 @@ export class DefaultConversationManager implements ConversationManager {
           },
           {}
         );
-      } else {
-        return this.withAssistantAction(
-          { ...state, lastUserMessage: message },
-          {
-            type: 'complete',
-            message: "Your claim has been submitted. Have a safe day.",
-            claim: state.currentClaim,
-          },
-          {}
-        );
       }
+      // Non-final-ack: pass through to LLM so user can ask follow-up questions
     }
 
     const historyWithUser = appendMessage(state.conversationHistory, 'user', message);
@@ -624,12 +624,33 @@ export class DefaultConversationManager implements ConversationManager {
     // Answer: "Because LLMs can hallucinate or fail to recognize nuanced emergencies. 
     // By using regex on the output stream deterministically, we guarantee compliance 
     // and safety overrides immediately, regardless of what the LLM 'thinks'."
+    const escalationText = [
+      updatedClaim.injuryDetails || '',
+      updatedClaim.incidentDescription || '',
+      message,
+    ].join(' ').toLowerCase();
+
+    const matchedEscalationKeyword = ESCALATION_KEYWORDS.find(kw => escalationText.includes(kw));
+
     if (updatedClaim.injuriesReported === true || 
-        /whiplash|neck|ambulance|hospital/i.test(updatedClaim.injuryDetails || '') || 
+        matchedEscalationKeyword ||
         /major|rollover|fire|fatal/i.test(updatedClaim.incidentDescription || '')) {
         isEscalated = true;
-        escalationReason = 'Severe incident or injury reported.';
-        state.severity = 'high';
+        escalationReason = matchedEscalationKeyword 
+          ? `Escalation keyword detected: "${matchedEscalationKeyword}".`
+          : 'Severe incident or injury reported.';
+
+        // Determine severity: HIGH takes precedence over MEDIUM
+        const isHighSeverity = HIGH_SEVERITY_KEYWORDS.some(kw => escalationText.includes(kw));
+        state.severity = isHighSeverity ? 'high' : 'high';
+    }
+
+    // Assign medium severity for injury-adjacent keywords that don't trigger full escalation
+    if (!isEscalated && !state.severity) {
+      const isMediumSeverity = MEDIUM_SEVERITY_KEYWORDS.some(kw => escalationText.includes(kw.toLowerCase()));
+      if (isMediumSeverity) {
+        state.severity = 'medium';
+      }
     }
 
     if (isEscalated) {
@@ -670,6 +691,15 @@ export class DefaultConversationManager implements ConversationManager {
             verificationAttempts++;
             if (verificationAttempts >= 2) {
                 callbackOffered = true;
+            } else {
+                // Attempt 1 failed: Override pre-verification LLM response to prevent asking for FNOL details
+                const failedPolicy = updatedClaim.policyNumber;
+                const failedName = updatedClaim.callerName;
+                accumulatedResponse = `I'm sorry, I was unable to verify policy number ${failedPolicy} for ${failedName}. Could you please check and provide your policy number and full name again?`;
+
+                // Reset policyNumber and callerName on claim patch so they are re-prompted
+                delete updatedClaim.policyNumber;
+                delete updatedClaim.callerName;
             }
         }
     }
@@ -689,9 +719,10 @@ export class DefaultConversationManager implements ConversationManager {
             escalationRequired: false
         });
 
+        const callbackMsg = 'I apologize, but I am unable to verify your policy details at this time. A claims agent will call you back shortly to assist you. Goodbye.';
         return this.withAssistantAction(
             nextState,
-            { type: 'complete', message: accumulatedResponse.trim() || 'I apologize, but I am unable to verify your policy details at this time. A claims agent will call you back shortly to assist you. Goodbye.', claim: updatedClaim },
+            { type: 'complete', message: callbackMsg, claim: updatedClaim },
             finalExtractionResult.debugMetrics
         );
     }

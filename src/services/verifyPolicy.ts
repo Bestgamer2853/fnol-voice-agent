@@ -20,6 +20,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { normalizePolicyNumber } from './normalizeClaimData.js';
 import type { CoverageType, Policy } from '../types/policy.js';
 
 export interface VerifyPolicyInput {
@@ -55,22 +56,6 @@ const policiesFilePath = join(moduleDirectory, '../config/policies.json');
 
 function normalizeWhitespace(value: string): string {
   return value.trim().replace(/\s+/g, ' ');
-}
-
-function normalizePolicyNumber(policyNumber: string): string {
-  const wordToNumber: Record<string, string> = {
-    zero: '0', one: '1', two: '2', three: '3', four: '4',
-    five: '5', six: '6', seven: '7', eight: '8', nine: '9'
-  };
-  
-  let normalized = policyNumber.toLowerCase();
-  
-  for (const [word, num] of Object.entries(wordToNumber)) {
-    const regex = new RegExp(`\\b${word}\\b`, 'gi');
-    normalized = normalized.replace(regex, num);
-  }
-  
-  return normalized.replace(/[^a-z0-9]/gi, '').toUpperCase();
 }
 
 /**

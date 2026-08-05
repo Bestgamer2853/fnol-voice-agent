@@ -97,7 +97,7 @@ const BOOLEAN_FIELDS = [
 ] as const satisfies readonly ExtractableBooleanField[];
 
 const VEHICLE_FIELDS = ['make', 'model', 'registration'] as const satisfies readonly (keyof Vehicle)[];
-const POLICY_NUMBER_PATTERN = /\b[A-Z]{2,5}-\d{4,8}\b/i;
+const POLICY_NUMBER_PATTERN = /\b([A-Z]{2,5})[-\s]?(\d{4,8})\b/i;
 const ISO_DATE_PATTERN = /\b\d{4}-\d{2}-\d{2}\b/;
 const TIME_PATTERN = /\b(?:[01]?\d|2[0-3]):[0-5]\d\s*(?:am|pm)?\b/i;
 
@@ -225,16 +225,19 @@ function sentenceCaseName(value: string): string {
 
 function extractCallerName(message: string): string | undefined {
   const patterns = [
-    /\bmy name is\s+([A-Z][A-Za-z.'-]*(?:\s+[A-Z][A-Za-z.'-]*){0,3})/i,
-    /\bi am\s+([A-Z][A-Za-z.'-]*(?:\s+[A-Z][A-Za-z.'-]*){0,3})/i,
-    /\bthis is\s+([A-Z][A-Za-z.'-]*(?:\s+[A-Z][A-Za-z.'-]*){0,3})/i,
+    /\bmy name is\s+([a-z.'-]+(?:\s+[a-z.'-]+){0,2})/i,
+    /\bi am\s+([a-z.'-]+(?:\s+[a-z.'-]+){0,2})/i,
+    /\bthis is\s+([a-z.'-]+(?:\s+[a-z.'-]+){0,2})/i,
   ];
 
   for (const pattern of patterns) {
     const match = pattern.exec(message);
 
     if (match?.[1]) {
-      return sentenceCaseName(match[1]);
+      const namePart = match[1].split(/\b(?:and|my|policy|with|here|calling|is|a|an)\b/i)[0]?.trim();
+      if (namePart && namePart.length > 0) {
+        return sentenceCaseName(namePart);
+      }
     }
   }
 
@@ -281,7 +284,10 @@ function extractTimeOfIncident(message: string): string | undefined {
 
 function extractFallbackClaimPatch(message: string): Partial<Claim> {
   const patch: Partial<Claim> = {};
-  const policyNumber = POLICY_NUMBER_PATTERN.exec(message)?.[0]?.toUpperCase();
+  const policyMatch = POLICY_NUMBER_PATTERN.exec(message);
+  const policyNumber = policyMatch && policyMatch[1] && policyMatch[2]
+    ? `${policyMatch[1].toUpperCase()}-${policyMatch[2]}`
+    : undefined;
   const callerName = extractCallerName(message);
   const dateOfIncident = ISO_DATE_PATTERN.exec(message)?.[0];
   const timeOfIncident = extractTimeOfIncident(message);
