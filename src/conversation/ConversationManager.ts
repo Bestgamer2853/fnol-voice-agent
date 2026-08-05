@@ -241,9 +241,13 @@ function isKeywordNegated(text: string, keyword: string): boolean {
   
   if (keywordIndex === -1) return false;
   
-  // Check for negation patterns before the keyword (within 15 characters)
-  const beforeKeyword = lowerText.substring(Math.max(0, keywordIndex - 15), keywordIndex);
-  const negationPatterns = ['no ', 'not ', 'never ', 'nobody ', 'without ', 'none ', 'nothing ', 'zero '];
+  // Check for negation patterns before the keyword (within 20 characters to catch contractions)
+  const beforeKeyword = lowerText.substring(Math.max(0, keywordIndex - 20), keywordIndex);
+  const negationPatterns = [
+    'no ', 'not ', 'never ', 'nobody', 'without ', 'none ', 'nothing ', 'zero ',
+    'no one', 'nobody\'s', 'everyone is fine', 'everyone is okay', 'not injured',
+    'not hurt', 'no injuries', 'no injury', 'never injured'
+  ];
   
   return negationPatterns.some(pattern => beforeKeyword.includes(pattern));
 }
