@@ -613,17 +613,29 @@ export class DefaultConversationManager implements ConversationManager {
         const claimReferenceNumber = updatedClaim.claimReferenceNumber ?? this.dependencies.claimNumberGenerator.generate();
         updatedClaim.claimReferenceNumber = claimReferenceNumber;
         
-        await this.dependencies.claimLogger.log({
-            claimNumber: claimReferenceNumber,
-            summary: `Connection failed: FALLBACK_EXHAUSTED. Saving current progress.`,
-            timestamp: timestamp(),
-            claim: updatedClaim,
-            ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}),
-            conversationHistory: historyWithUser,
-            escalationRequired: false
+        // Log claim asynchronously to avoid blocking the response
+        Promise.resolve(
+            this.dependencies.claimLogger.log({
+                claimNumber: claimReferenceNumber,
+                summary: `Connection failed: FALLBACK_EXHAUSTED. Saving current progress.`,
+                timestamp: timestamp(),
+                claim: updatedClaim,
+                ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}),
+                conversationHistory: historyWithUser,
+                escalationRequired: false
+            })
+        ).catch((err: unknown) => {
+            console.error(`[ConversationManager] Emergency claim logging error for ${claimReferenceNumber}:`, err);
         });
 
-        const nextState = this.updateFieldTracking({ ...state, currentClaim: updatedClaim, conversationHistory: historyWithUser });
+        // Keep conversation in current state but respond with error message
+        // Don't complete the call - let it continue for recovery
+        const nextState = this.updateFieldTracking({ 
+            ...state, 
+            currentClaim: updatedClaim, 
+            conversationHistory: historyWithUser,
+            currentConversationStep: state.currentConversationStep
+        });
         return this.withAssistantAction(
             nextState,
             { type: 'respond', message: accumulatedResponse },
@@ -681,8 +693,7 @@ export class DefaultConversationManager implements ConversationManager {
     const matchedEscalationKeyword = ESCALATION_KEYWORDS.find(kw => escalationText.includes(kw));
 
     if (updatedClaim.injuriesReported === true || 
-        matchedEscalationKeyword ||
-        /major|rollover|fire|fatal/i.test(updatedClaim.incidentDescription || '')) {
+        matchedEscalationKeyword) {
         isEscalated = true;
         escalationReason = matchedEscalationKeyword 
           ? `Escalation keyword detected: "${matchedEscalationKeyword}".`
