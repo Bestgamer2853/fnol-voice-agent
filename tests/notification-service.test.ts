@@ -21,6 +21,7 @@ describe('Notification Service (P0)', () => {
       policyholderName: 'Arjun Rao',
       coverageType: 'Comprehensive',
       towingIncluded: true,
+      rentalCarIncluded: true,
       vehicle: {
         make: 'Hyundai',
         model: 'i20',

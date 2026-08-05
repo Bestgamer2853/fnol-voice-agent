@@ -40,6 +40,7 @@ export type VerifyPolicyResult =
       policy: Policy;
       coverageType: CoverageType;
       towingIncluded: boolean;
+      rentalCarIncluded: boolean;
     }
   | {
       verified: false;
@@ -162,6 +163,7 @@ function isPolicy(value: unknown): value is Policy {
     typeof record.policyholderName === 'string' &&
     typeof record.coverageType === 'string' &&
     typeof record.towingIncluded === 'boolean' &&
+    (record.rentalCarIncluded === undefined || typeof record.rentalCarIncluded === 'boolean') &&
     typeof vehicle === 'object' &&
     vehicle !== null
   );
@@ -248,6 +250,7 @@ function verifyAgainstPolicies(
     policy: matchedPolicy,
     coverageType: matchedPolicy.coverageType,
     towingIncluded: matchedPolicy.towingIncluded,
+    rentalCarIncluded: Boolean(matchedPolicy.rentalCarIncluded),
   };
 }
 

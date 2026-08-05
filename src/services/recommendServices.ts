@@ -67,6 +67,9 @@ export function recommendServices(
     addRecommendation(recommendations, 'roadside assistance');
   }
 
+  // Rental car is offered by default for all accident claims
+  addRecommendation(recommendations, 'rental car');
+
   if (
     claim.injuriesReported === true ||
     claim.policeReportFiled === true ||

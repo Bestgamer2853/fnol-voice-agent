@@ -260,6 +260,33 @@ function isConfirmationRequested(message: string): boolean {
   ].includes(normalized);
 }
 
+function parseServiceChoices(initialServices: string[] | undefined, userMessage: string): string[] {
+  const msg = userMessage.toLowerCase();
+  const current = new Set(initialServices ?? []);
+
+  // Check explicit decline of towing
+  if (/\b(no towing|don'?t need towing|no tow truck|no tow)\b/i.test(msg)) {
+    current.delete('towing');
+    current.delete('roadside assistance');
+  } else if (/\b(towing|tow truck|tow my car|yes to towing)\b/i.test(msg)) {
+    current.add('towing');
+  }
+
+  // Check explicit decline of rental car
+  if (/\b(no rental|don'?t need a rental|no car rental|don'?t need to rent|no rent)\b/i.test(msg)) {
+    current.delete('rental car');
+  } else if (/\b(rental|rent a car|car rental|rent car|need a car|rental car|rent)\b/i.test(msg)) {
+    current.add('rental car');
+  }
+
+  // Check for complete decline of all services
+  if (/\b(no thanks|neither|none|don'?t need any|no services|no help)\b/i.test(msg)) {
+    return [];
+  }
+
+  return Array.from(current);
+}
+
 function mergeVehicle(
   currentVehicle: Vehicle | undefined,
   patchVehicle: Vehicle | undefined,
@@ -739,6 +766,27 @@ export class DefaultConversationManager implements ConversationManager {
                 const recommendations = await this.dependencies.recommendServices.recommend({ claim: updatedClaim, policy: verifiedPolicyObj });
                 if (recommendations.recommendations.length > 0) {
                     updatedClaim.recommendedServices = recommendations.recommendations;
+                    const recList = recommendations.recommendations;
+                    const hasTowing = recList.includes('towing') || recList.includes('roadside assistance');
+                    const hasRental = recList.includes('rental car');
+                    
+                    let servicePrompt = '';
+                    if (hasTowing && hasRental) {
+                        servicePrompt = 'Would you like us to arrange towing for your vehicle and a rental car for you?';
+                    } else if (hasTowing) {
+                        servicePrompt = 'Would you like us to arrange towing or roadside assistance for your vehicle?';
+                    } else if (hasRental) {
+                        servicePrompt = 'Would you like us to arrange a rental car for you?';
+                    } else {
+                        servicePrompt = 'Do you need any additional assistance with your claim?';
+                    }
+
+                    const rawResponse = accumulatedResponse.trim();
+                    const alreadyAsked = /towing|roadside|rental car|rent a car/i.test(rawResponse);
+                    const responseMessage = alreadyAsked || !rawResponse
+                        ? (rawResponse || servicePrompt)
+                        : `${rawResponse} ${servicePrompt}`;
+
                     const trackedState = this.updateFieldTracking({
                         ...state,
                         currentClaim: updatedClaim,
@@ -752,13 +800,15 @@ export class DefaultConversationManager implements ConversationManager {
                     });
                     return this.withAssistantAction(trackedState, {
                         type: 'respond',
-                        message: accumulatedResponse.trim() || 'Do you need towing or roadside assistance?'
+                        message: responseMessage
                     }, finalExtractionResult.debugMetrics);
                 } else {
                     // No services to recommend, proceed to complete
                     claimCompleted = true;
                 }
             } else {
+                const currentServices = updatedClaim.recommendedServices ?? state.currentClaim.recommendedServices;
+                updatedClaim.recommendedServices = parseServiceChoices(currentServices, message);
                 claimCompleted = true;
             }
         }

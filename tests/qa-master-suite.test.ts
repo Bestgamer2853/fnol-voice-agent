@@ -13,6 +13,7 @@ const verifiedPolicy: Policy = {
   policyholderName: 'Arjun Rao',
   coverageType: 'Comprehensive',
   towingIncluded: true,
+  rentalCarIncluded: true,
   vehicle: { make: 'Honda', model: 'City', registration: 'KA01AB1234' },
 };
 
@@ -50,7 +51,7 @@ function createDeps(extractor: ScriptedExtractor, logs: ClaimLogRecord[]): Conve
     verifyPolicy: {
       async verify(input) {
         if (input.policyNumber === verifiedPolicy.policyNumber && input.callerName === verifiedPolicy.policyholderName)
-          return { verified: true, policy: verifiedPolicy, coverageType: verifiedPolicy.coverageType, towingIncluded: verifiedPolicy.towingIncluded };
+          return { verified: true, policy: verifiedPolicy, coverageType: verifiedPolicy.coverageType, towingIncluded: verifiedPolicy.towingIncluded, rentalCarIncluded: verifiedPolicy.rentalCarIncluded };
         return { verified: false, reason: 'policy_not_found', message: 'Policy not found.' };
       },
     },

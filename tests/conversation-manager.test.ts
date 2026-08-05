@@ -13,6 +13,7 @@ const verifiedPolicy: Policy = {
   policyholderName: 'Arjun Rao',
   coverageType: 'Comprehensive',
   towingIncluded: true,
+  rentalCarIncluded: true,
   vehicle: {
     make: 'Honda',
     model: 'City',
@@ -68,6 +69,7 @@ function createDependencies(extractor: ScriptedExtractor, claimLogs: ClaimLogRec
             policy: verifiedPolicy,
             coverageType: verifiedPolicy.coverageType,
             towingIncluded: verifiedPolicy.towingIncluded,
+            rentalCarIncluded: verifiedPolicy.rentalCarIncluded,
           };
         }
 
@@ -83,6 +85,9 @@ function createDependencies(extractor: ScriptedExtractor, claimLogs: ClaimLogRec
         const recommendations: string[] = [];
         if (input.claim.vehicleDrivable === false && input.policy.towingIncluded) {
           recommendations.push('towing');
+        }
+        if (input.policy.rentalCarIncluded && (input.claim.vehicleDrivable === false || input.policy.coverageType === 'Comprehensive')) {
+          recommendations.push('rental car');
         }
         if (input.claim.policeReportFiled === true) {
           recommendations.push('adjuster callback');
@@ -180,10 +185,101 @@ describe('ConversationManager P0 replay harness', () => {
     assert.deepEqual(actions, ['respond', 'respond', 'complete']);
     assert.equal(state.currentConversationStep, 'completed');
     assert.equal(state.currentClaim.claimReferenceNumber, 'CLM-20260731-0001');
-    assert.deepEqual(state.currentClaim.recommendedServices, ['towing', 'adjuster callback']);
+    assert.deepEqual(state.currentClaim.recommendedServices, ['towing', 'rental car', 'adjuster callback']);
     assert.equal(logs.length, 1);
     assert.equal(logs[0]?.claimNumber, 'CLM-20260731-0001');
     assert.equal(extractor.inputs.length, 2);
+  });
+
+  it('asks caller about towing and rental car services explicitly when required fields are complete', async () => {
+    const completeClaim: Partial<Claim> = {
+      policyNumber: 'MMI-10234',
+      callerName: 'Arjun Rao',
+      dateOfIncident: '2026-07-30',
+      timeOfIncident: '19:00',
+      locationOfIncident: 'MG Road, Bengaluru',
+      incidentDescription: 'Car hit a pole',
+      insuredVehicle: { make: 'Honda', model: 'City', registration: 'KA01AB1234' },
+      injuriesReported: false,
+      policeReportFiled: false,
+      photosAvailable: true,
+      vehicleDrivable: false,
+    };
+
+    const extractor = new ScriptedExtractor([
+      {
+        // LLM response without explicit service question
+        responseToUser: 'I have logged all your accident details.',
+        extractedData: completeClaim,
+      },
+      {
+        responseToUser: 'I have added towing and a rental car reservation to your claim file.',
+        extractedData: {},
+      },
+    ]);
+
+    const logs: ClaimLogRecord[] = [];
+    const manager = createConversationManager(createDependencies(extractor, logs));
+    let state = manager.start();
+
+    // Turn 1: Caller provides all details
+    const result1 = await manager.handleUserMessage(state, 'All claim details provided.');
+    state = result1.state;
+
+    // Assert that towing and rental car question was explicitly appended/asked
+    assert.equal(result1.action.type, 'respond');
+    assert.equal(state.currentConversationStep, 'recommending_services');
+    assert.ok(result1.action.message.includes('Would you like us to arrange towing for your vehicle and a rental car for you?'));
+
+    // Turn 2: Caller responds to towing and rental car question
+    const result2 = await manager.handleUserMessage(state, 'Yes please, I need towing and a rental car.');
+    state = result2.state;
+
+    assert.equal(result2.action.type, 'respond');
+    assert.equal(state.currentConversationStep, 'completed');
+    assert.ok(state.currentClaim.recommendedServices?.includes('towing'));
+    assert.ok(state.currentClaim.recommendedServices?.includes('rental car'));
+  });
+
+  it('correctly records rental car preference when caller declines towing', async () => {
+    const completeClaim: Partial<Claim> = {
+      policyNumber: 'MMI-10234',
+      callerName: 'Arjun Rao',
+      dateOfIncident: '2026-07-30',
+      timeOfIncident: '19:00',
+      locationOfIncident: 'MG Road, Bengaluru',
+      incidentDescription: 'Car hit a pole',
+      insuredVehicle: { make: 'Honda', model: 'City', registration: 'KA01AB1234' },
+      injuriesReported: false,
+      policeReportFiled: false,
+      photosAvailable: true,
+      vehicleDrivable: false,
+    };
+
+    const extractor = new ScriptedExtractor([
+      { responseToUser: 'All details recorded.', extractedData: completeClaim },
+      { responseToUser: 'Understood. Rental car has been arranged.', extractedData: {} },
+    ]);
+
+    const logs: ClaimLogRecord[] = [];
+    const manager = createConversationManager(createDependencies(extractor, logs));
+    let state = manager.start();
+
+    // Turn 1: Details collected
+    const res1 = await manager.handleUserMessage(state, 'Details sent.');
+    state = res1.state;
+    assert.equal(state.currentConversationStep, 'recommending_services');
+
+    // Turn 2: Caller chooses rental car but explicitly declines towing
+    const res2 = await manager.handleUserMessage(state, 'I need a rental car, but no towing needed.');
+    state = res2.state;
+
+    assert.equal(state.currentConversationStep, 'completed');
+    assert.ok(state.currentClaim.recommendedServices?.includes('rental car'));
+    assert.ok(!state.currentClaim.recommendedServices?.includes('towing'));
+    assert.equal(logs.length, 1);
+    assert.ok(logs[0]?.claim.recommendedServices?.includes('rental car'));
+    assert.ok(!logs[0]?.claim.recommendedServices?.includes('towing'));
   });
 
   it('handles conversational call termination variants correctly', async () => {

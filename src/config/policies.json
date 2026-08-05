@@ -8,7 +8,8 @@
       "registration": "TN-58-AB-1234"
     },
     "coverageType": "Comprehensive",
-    "towingIncluded": true
+    "towingIncluded": true,
+    "rentalCarIncluded": true
   },
   {
     "policyNumber": "MMI-10871",
@@ -19,7 +20,8 @@
       "registration": "KL-07-CD-5678"
     },
     "coverageType": "Third party only",
-    "towingIncluded": false
+    "towingIncluded": false,
+    "rentalCarIncluded": false
   },
   {
     "policyNumber": "MMI-11450",
@@ -30,7 +32,8 @@
       "registration": "MH-12-EF-9012"
     },
     "coverageType": "Comprehensive",
-    "towingIncluded": true
+    "towingIncluded": true,
+    "rentalCarIncluded": true
   },
   {
     "policyNumber": "MMI-12093",
@@ -41,7 +44,8 @@
       "registration": "KA-05-GH-3456"
     },
     "coverageType": "Third party only",
-    "towingIncluded": false
+    "towingIncluded": false,
+    "rentalCarIncluded": false
   },
   {
     "policyNumber": "MMI-12677",
@@ -52,6 +56,7 @@
       "registration": "TN-09-JK-7890"
     },
     "coverageType": "Comprehensive",
-    "towingIncluded": true
+    "towingIncluded": true,
+    "rentalCarIncluded": true
   }
 ]

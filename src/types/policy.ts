@@ -8,4 +8,5 @@ export interface Policy {
   vehicle: Vehicle;
   coverageType: CoverageType;
   towingIncluded: boolean;
+  rentalCarIncluded: boolean;
 }
