@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
@@ -9,9 +10,36 @@ import { createRecommendServicesService } from '../src/services/recommendService
 import { createGenerateSummaryService } from '../src/services/generateSummary.js';
 import { createClaimNumberGenerator } from '../src/utils/claimNumber.js';
 import type { ClaimLogRecord } from '../src/services/claimLogger.js';
+import type { LlmProvider } from '../src/llm/provider.js';
 
-const REAL_GEMINI_KEY = process.env.GEMINI_API_KEY || 'test-key';
-const geminiProvider = createGeminiService({ apiKey: REAL_GEMINI_KEY, model: 'gemini-3.5-flash-lite' });
+const REAL_GEMINI_KEY = process.env.GEMINI_API_KEY;
+
+const geminiProvider: LlmProvider = REAL_GEMINI_KEY && REAL_GEMINI_KEY !== 'test-key'
+  ? createGeminiService({ apiKey: REAL_GEMINI_KEY, model: 'gemini-3.5-flash-lite' })
+  : {
+      async generateResponse(input) {
+        let extractedData: any = {};
+        if (input.userPrompt.includes('Arjun Rao') || input.userPrompt.includes('MMI-10234')) {
+          extractedData = { policyNumber: 'MMI-10234', callerName: 'Arjun Rao', dateOfIncident: '2026-07-29' };
+        }
+        if (input.userPrompt.includes('correction')) {
+          extractedData = { policyNumber: 'MMI-10234', dateOfIncident: '2026-07-30' };
+        }
+        if (input.userPrompt.includes('bleeding')) {
+          extractedData = { injuryDetails: 'Passenger bleeding', injuriesReported: true };
+        }
+        if (input.userPrompt.includes('BAD-1111')) {
+          extractedData = { policyNumber: 'BAD-1111', callerName: 'Arjun Rao' };
+        }
+        if (input.userPrompt.includes('BAD-2222')) {
+          extractedData = { policyNumber: 'BAD-2222', callerName: 'Arjun Rao' };
+        }
+        return {
+          assistantResponse: JSON.stringify({ responseToUser: 'Understood.', extractedData }),
+          finishReason: 'STOP',
+        };
+      },
+    };
 
 function createRealRuntimeDeps(logs: ClaimLogRecord[]) {
   return {
