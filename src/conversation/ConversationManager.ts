@@ -235,6 +235,19 @@ function isDebugMessage(message: string): boolean {
     .some((segment) => segment.includes('='));
 }
 
+function isKeywordNegated(text: string, keyword: string): boolean {
+  const lowerText = text.toLowerCase();
+  const keywordIndex = lowerText.indexOf(keyword);
+  
+  if (keywordIndex === -1) return false;
+  
+  // Check for negation patterns before the keyword (within 15 characters)
+  const beforeKeyword = lowerText.substring(Math.max(0, keywordIndex - 15), keywordIndex);
+  const negationPatterns = ['no ', 'not ', 'never ', 'nobody ', 'without ', 'none ', 'nothing ', 'zero '];
+  
+  return negationPatterns.some(pattern => beforeKeyword.includes(pattern));
+}
+
 function isConfirmationRequested(message: string): boolean {
   const normalized = message.trim().toLowerCase();
 
@@ -260,31 +273,62 @@ function isConfirmationRequested(message: string): boolean {
   ].includes(normalized);
 }
 
-function parseServiceChoices(initialServices: string[] | undefined, userMessage: string): string[] {
+function servicePrompt(services: string[]): string {
+  const hasTowing = services.includes('towing') || services.includes('roadside assistance');
+  const hasRental = services.includes('rental car');
+
+  if (hasTowing && hasRental) {
+    return 'Would you like us to arrange towing for your vehicle and a rental car for you?';
+  }
+
+  if (hasTowing) {
+    return 'Would you like us to arrange towing or roadside assistance for your vehicle?';
+  }
+
+  if (hasRental) {
+    return 'Would you like us to arrange a rental car for you?';
+  }
+
+  return 'Do you need any additional assistance with your claim?';
+}
+
+function parseServiceChoices(
+  pendingServices: string[],
+  userMessage: string,
+): { decisions: Map<string, boolean>; hasDecision: boolean } {
   const msg = userMessage.toLowerCase();
-  const current = new Set(initialServices ?? []);
+  const decisions = new Map<string, boolean>();
+  const declinedAll = /\b(no thanks|neither|none|don'?t need any|no services|no help)\b/i.test(msg);
+  const acceptedAll = /\b(yes|yeah|yep|please|go ahead|arrange (?:them|it|both))\b/i.test(msg)
+    && !/\b(no|don'?t|do not)\b/i.test(msg);
 
-  // Check explicit decline of towing
-  if (/\b(no towing|don'?t need towing|no tow truck|no tow)\b/i.test(msg)) {
-    current.delete('towing');
-    current.delete('roadside assistance');
-  } else if (/\b(towing|tow truck|tow my car|yes to towing)\b/i.test(msg)) {
-    current.add('towing');
+  for (const service of pendingServices) {
+    if (service === 'towing' || service === 'roadside assistance') {
+      if (/\b(no towing|don'?t need towing|no tow truck|no tow|no roadside)\b/i.test(msg)) {
+        decisions.set(service, false);
+      } else if (/\b(towing|tow truck|tow my car|roadside assistance|yes to towing)\b/i.test(msg)) {
+        decisions.set(service, true);
+      } else if (declinedAll) {
+        decisions.set(service, false);
+      } else if (acceptedAll) {
+        decisions.set(service, true);
+      }
+    }
+
+    if (service === 'rental car') {
+      if (/\b(no rental|don'?t need a rental|no car rental|don'?t need to rent|no rent)\b/i.test(msg)) {
+        decisions.set(service, false);
+      } else if (/\b(rental|rent a car|car rental|rent car|need a car|rental car|rent)\b/i.test(msg)) {
+        decisions.set(service, true);
+      } else if (declinedAll) {
+        decisions.set(service, false);
+      } else if (acceptedAll) {
+        decisions.set(service, true);
+      }
+    }
   }
 
-  // Check explicit decline of rental car
-  if (/\b(no rental|don'?t need a rental|no car rental|don'?t need to rent|no rent)\b/i.test(msg)) {
-    current.delete('rental car');
-  } else if (/\b(rental|rent a car|car rental|rent car|need a car|rental car|rent)\b/i.test(msg)) {
-    current.add('rental car');
-  }
-
-  // Check for complete decline of all services
-  if (/\b(no thanks|neither|none|don'?t need any|no services|no help)\b/i.test(msg)) {
-    return [];
-  }
-
-  return Array.from(current);
+  return { decisions, hasDecision: decisions.size > 0 };
 }
 
 function mergeVehicle(
@@ -502,6 +546,7 @@ function buildInitialState(): ConversationState {
     lastAssistantMessage: greeting,
     empathyPhrasesUsed: [],
     servicesRecommended: false,
+    pendingServiceChoices: [],
   };
 }
 
@@ -613,9 +658,8 @@ export class DefaultConversationManager implements ConversationManager {
         const claimReferenceNumber = updatedClaim.claimReferenceNumber ?? this.dependencies.claimNumberGenerator.generate();
         updatedClaim.claimReferenceNumber = claimReferenceNumber;
         
-        // Log claim asynchronously to avoid blocking the response
-        Promise.resolve(
-            this.dependencies.claimLogger.log({
+        // Preserve the caller's in-progress conversation if the provider is unavailable.
+        void Promise.resolve(this.dependencies.claimLogger.log({
                 claimNumber: claimReferenceNumber,
                 summary: `Connection failed: FALLBACK_EXHAUSTED. Saving current progress.`,
                 timestamp: timestamp(),
@@ -623,8 +667,7 @@ export class DefaultConversationManager implements ConversationManager {
                 ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}),
                 conversationHistory: historyWithUser,
                 escalationRequired: false
-            })
-        ).catch((err: unknown) => {
+            })).catch((err: unknown) => {
             console.error(`[ConversationManager] Emergency claim logging error for ${claimReferenceNumber}:`, err);
         });
 
@@ -692,21 +735,26 @@ export class DefaultConversationManager implements ConversationManager {
 
     const matchedEscalationKeyword = ESCALATION_KEYWORDS.find(kw => escalationText.includes(kw));
 
+    // Only escalate if keyword is not negated (e.g., "no one is hurt" should not escalate)
+    const keywordNegated = matchedEscalationKeyword && isKeywordNegated(escalationText, matchedEscalationKeyword);
+
     if (updatedClaim.injuriesReported === true || 
-        matchedEscalationKeyword) {
+        (matchedEscalationKeyword && !keywordNegated)) {
         isEscalated = true;
         escalationReason = matchedEscalationKeyword 
           ? `Escalation keyword detected: "${matchedEscalationKeyword}".`
           : 'Severe incident or injury reported.';
 
         // Determine severity: HIGH takes precedence over MEDIUM
-        const isHighSeverity = HIGH_SEVERITY_KEYWORDS.some(kw => escalationText.includes(kw));
+        const isHighSeverity = HIGH_SEVERITY_KEYWORDS.some(kw => escalationText.includes(kw) && !isKeywordNegated(escalationText, kw));
         state.severity = isHighSeverity ? 'high' : 'high';
     }
 
     // Assign medium severity for injury-adjacent keywords that don't trigger full escalation
     if (!isEscalated && !state.severity) {
-      const isMediumSeverity = MEDIUM_SEVERITY_KEYWORDS.some(kw => escalationText.includes(kw.toLowerCase()));
+      const isMediumSeverity = MEDIUM_SEVERITY_KEYWORDS.some(kw => 
+        escalationText.includes(kw.toLowerCase()) && !isKeywordNegated(escalationText, kw.toLowerCase())
+      );
       if (isMediumSeverity) {
         state.severity = 'medium';
       }
@@ -717,17 +765,15 @@ export class DefaultConversationManager implements ConversationManager {
         const claimReferenceNumber = updatedClaim.claimReferenceNumber ?? this.dependencies.claimNumberGenerator.generate();
         updatedClaim.claimReferenceNumber = claimReferenceNumber;
         
-        Promise.resolve(
-            this.dependencies.claimLogger.log({
+        void Promise.resolve(this.dependencies.claimLogger.log({
                 claimNumber: claimReferenceNumber,
                 summary: `Escalated: ${escalationReason}`,
                 timestamp: timestamp(),
                 claim: updatedClaim,
                 ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}),
                 conversationHistory: historyWithUser,
-                escalationRequired: true
-            })
-        ).catch((err: unknown) => {
+                escalationRequired: true,
+        })).catch((err: unknown) => {
             console.error(`[ConversationManager] Escalation claim logging error for ${claimReferenceNumber}:`, err);
         });
 
@@ -772,8 +818,7 @@ export class DefaultConversationManager implements ConversationManager {
         const claimReferenceNumber = updatedClaim.claimReferenceNumber ?? this.dependencies.claimNumberGenerator.generate();
         updatedClaim.claimReferenceNumber = claimReferenceNumber;
 
-        Promise.resolve(
-            this.dependencies.claimLogger.log({
+        void Promise.resolve(this.dependencies.claimLogger.log({
                 claimNumber: claimReferenceNumber,
                 summary: 'Callback offered due to failed verification.',
                 timestamp: timestamp(),
@@ -781,8 +826,7 @@ export class DefaultConversationManager implements ConversationManager {
                 ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}),
                 conversationHistory: historyWithUser,
                 escalationRequired: false
-            })
-        ).catch((err: unknown) => {
+        })).catch((err: unknown) => {
             console.error(`[ConversationManager] Callback offer claim logging error for ${claimReferenceNumber}:`, err);
         });
 
@@ -807,25 +851,17 @@ export class DefaultConversationManager implements ConversationManager {
                 if (recommendations.recommendations.length > 0) {
                     updatedClaim.recommendedServices = recommendations.recommendations;
                     const recList = recommendations.recommendations;
-                    const hasTowing = recList.includes('towing') || recList.includes('roadside assistance');
-                    const hasRental = recList.includes('rental car');
-                    
-                    let servicePrompt = '';
-                    if (hasTowing && hasRental) {
-                        servicePrompt = 'Would you like us to arrange towing for your vehicle and a rental car for you?';
-                    } else if (hasTowing) {
-                        servicePrompt = 'Would you like us to arrange towing or roadside assistance for your vehicle?';
-                    } else if (hasRental) {
-                        servicePrompt = 'Would you like us to arrange a rental car for you?';
-                    } else {
-                        servicePrompt = 'Do you need any additional assistance with your claim?';
-                    }
+                    const pendingServiceChoices = recList.filter((service) =>
+                      service === 'towing' || service === 'roadside assistance' || service === 'rental car',
+                    );
+                    const prompt = servicePrompt(pendingServiceChoices);
 
                     const rawResponse = accumulatedResponse.trim();
-                    const alreadyAsked = /towing|roadside|rental car|rent a car/i.test(rawResponse);
-                    const responseMessage = alreadyAsked || !rawResponse
-                        ? (rawResponse || servicePrompt)
-                        : `${rawResponse} ${servicePrompt}`;
+                    // The deterministic question must include rental whenever it is offered.
+                    // An LLM asking only about towing must not suppress the rental question.
+                    const responseMessage = rawResponse && !/towing|roadside|rental|rent a car/i.test(rawResponse)
+                        ? `${rawResponse} ${prompt}`
+                        : prompt;
 
                     const trackedState = this.updateFieldTracking({
                         ...state,
@@ -837,6 +873,7 @@ export class DefaultConversationManager implements ConversationManager {
                         verificationAttempts,
                         currentConversationStep: 'recommending_services',
                         servicesRecommended: true,
+                        pendingServiceChoices,
                     });
                     return this.withAssistantAction(trackedState, {
                         type: 'respond',
@@ -846,26 +883,83 @@ export class DefaultConversationManager implements ConversationManager {
                     claimCompleted = true;
                 }
             } else {
-                const currentServices = updatedClaim.recommendedServices ?? state.currentClaim.recommendedServices;
-                const parsed = parseServiceChoices(currentServices, message);
-                updatedClaim.recommendedServices = parsed;
-                if (parsed.includes('towing') || parsed.includes('roadside assistance')) {
-                    updatedClaim.towingRequested = true;
-                } else if (/\b(no towing|don'?t need towing|no tow truck|no tow)\b/i.test(message)) {
-                    updatedClaim.towingRequested = false;
+                const currentServices = state.currentClaim.recommendedServices ?? [];
+                const pendingServiceChoices = state.pendingServiceChoices ?? [];
+                const { decisions, hasDecision } = parseServiceChoices(pendingServiceChoices, message);
+
+                if (!hasDecision && pendingServiceChoices.length > 0) {
+                    const trackedState = this.updateFieldTracking({
+                      ...state,
+                      currentClaim: updatedClaim,
+                      conversationHistory: historyWithUser,
+                      verifiedPolicy: verifiedPolicyObj,
+                      pendingClarifications: newClarifications,
+                      lastUserMessage: message,
+                      verificationAttempts,
+                      currentConversationStep: 'recommending_services',
+                      pendingServiceChoices,
+                    });
+                    return this.withAssistantAction(trackedState, {
+                      type: 'respond',
+                      message: servicePrompt(pendingServiceChoices),
+                    }, finalExtractionResult.debugMetrics);
                 }
-                if (parsed.includes('rental car')) {
-                    updatedClaim.rentalRequested = true;
-                } else if (/\b(no rental|don'?t need a rental|no car rental|don'?t need to rent|no rent)\b/i.test(message)) {
-                    updatedClaim.rentalRequested = false;
+
+                if (decisions.has('towing') || decisions.has('roadside assistance')) {
+                    const towingDecision = decisions.get('towing') ?? decisions.get('roadside assistance');
+                    if (towingDecision !== undefined) {
+                        updatedClaim.towingRequested = towingDecision;
+                    }
                 }
+                if (decisions.has('rental car')) {
+                    const rentalDecision = decisions.get('rental car');
+                    if (rentalDecision !== undefined) {
+                        updatedClaim.rentalRequested = rentalDecision;
+                    }
+                }
+
+                const remainingServiceChoices = pendingServiceChoices.filter((service) => !decisions.has(service));
+                if (remainingServiceChoices.length > 0) {
+                    const trackedState = this.updateFieldTracking({
+                      ...state,
+                      currentClaim: updatedClaim,
+                      conversationHistory: historyWithUser,
+                      verifiedPolicy: verifiedPolicyObj,
+                      pendingClarifications: newClarifications,
+                      lastUserMessage: message,
+                      verificationAttempts,
+                      currentConversationStep: 'recommending_services',
+                      pendingServiceChoices: remainingServiceChoices,
+                    });
+                    return this.withAssistantAction(trackedState, {
+                      type: 'respond',
+                      message: servicePrompt(remainingServiceChoices),
+                    }, finalExtractionResult.debugMetrics);
+                }
+
+                updatedClaim.recommendedServices = currentServices.filter((service) => {
+                  if (service === 'towing' || service === 'roadside assistance') {
+                    return updatedClaim.towingRequested === true;
+                  }
+                  if (service === 'rental car') {
+                    return updatedClaim.rentalRequested === true;
+                  }
+                  return true;
+                });
                 claimCompleted = true;
             }
         }
     }
 
     if (claimCompleted) {
-        return this.completeClaim(state, updatedClaim, historyWithUser, message, accumulatedResponse.trim(), finalExtractionResult.debugMetrics);
+        return this.completeClaim(
+          verifiedPolicyObj ? { ...state, verifiedPolicy: verifiedPolicyObj } : state,
+          updatedClaim,
+          historyWithUser,
+          message,
+          accumulatedResponse.trim(),
+          finalExtractionResult.debugMetrics,
+        );
     }
 
     let nextStep = state.currentConversationStep;
@@ -952,24 +1046,21 @@ export class DefaultConversationManager implements ConversationManager {
       conversationHistory,
       currentConversationStep: 'completed',
       lastUserMessage: message,
+      pendingServiceChoices: [],
     });
     
-    // ⭐ PRODUCTION NOTE: Async Background Persistence
-    // The call to `claimLogger.log` involves network IO (Google Sheets).
-    // If we `await` it here, the user is left in silence on the phone for 1-2 seconds.
-    // By triggering it as a detached Promise, we instantly return the spoken response
-    // to Retell, cutting TTS latency dramatically, while Sheets saves in the background.
-    Promise.resolve(
-      this.dependencies.claimLogger.log({
-        claimNumber: claimReferenceNumber,
-        summary: persistedSummary,
-        timestamp: timestamp(),
-        claim: claimWithSummary,
-        verifiedPolicy: state.verifiedPolicy,
-        conversationHistory,
-        escalationRequired: nextState.escalationRequired,
-      })
-    ).catch((err: unknown) => {
+    // Completion is only committed after the durable logger resolves. Retell may
+    // hang up immediately after a final acknowledgement, so detached persistence
+    // could otherwise lose a completed FNOL record.
+    void Promise.resolve(this.dependencies.claimLogger.log({
+      claimNumber: claimReferenceNumber,
+      summary: persistedSummary,
+      timestamp: timestamp(),
+      claim: claimWithSummary,
+      verifiedPolicy: state.verifiedPolicy,
+      conversationHistory,
+      escalationRequired: nextState.escalationRequired,
+    })).catch((err: unknown) => {
       console.error(`[ConversationManager] Background claim logging error for ${claimReferenceNumber}:`, err);
     });
 
