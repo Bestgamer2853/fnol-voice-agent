@@ -363,11 +363,12 @@ function extractFallbackClaimPatch(message: string): Partial<Claim> {
   return sanitizeExtractedClaimPatch(patch);
 }
 
-function getFallbackResult(message: string, state: ConversationState): ExtractClaimDataResult {
+function getFallbackResult(message: string, state: ConversationState, finishReason: string = 'FALLBACK_EXHAUSTED'): ExtractClaimDataResult {
   const nextQuestion = "I'm having a temporary connection issue with my AI service. Please give me a moment.";
   
   return {
     responseToUser: nextQuestion,
+    finishReason,
     conversationAnalysis: 'Fallback triggered due to LLM error (likely 429 Rate Limit) or empty response',
     debugMetrics: {
       rawExtractedSlots: {},
@@ -463,7 +464,7 @@ DATA EXTRACTION (extractedData):
 
     if (result.errorMessage) {
       console.error('[Gemini Extract Error]', JSON.stringify({ error: result.errorMessage, context: 'extractClaimData' }, null, 2));
-      return getFallbackResult(input.userMessage, input.state);
+      return getFallbackResult(input.userMessage, input.state, result.finishReason || 'FALLBACK_EXHAUSTED');
     }
 
     let parsedResponse: any = {};

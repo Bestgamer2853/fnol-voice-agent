@@ -706,14 +706,18 @@ export class DefaultConversationManager implements ConversationManager {
         const claimReferenceNumber = updatedClaim.claimReferenceNumber ?? this.dependencies.claimNumberGenerator.generate();
         updatedClaim.claimReferenceNumber = claimReferenceNumber;
         
-        await this.dependencies.claimLogger.log({
-            claimNumber: claimReferenceNumber,
-            summary: `Escalated: ${escalationReason}`,
-            timestamp: timestamp(),
-            claim: updatedClaim,
-            ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}),
-            conversationHistory: historyWithUser,
-            escalationRequired: true
+        Promise.resolve(
+            this.dependencies.claimLogger.log({
+                claimNumber: claimReferenceNumber,
+                summary: `Escalated: ${escalationReason}`,
+                timestamp: timestamp(),
+                claim: updatedClaim,
+                ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}),
+                conversationHistory: historyWithUser,
+                escalationRequired: true
+            })
+        ).catch((err: unknown) => {
+            console.error(`[ConversationManager] Escalation claim logging error for ${claimReferenceNumber}:`, err);
         });
 
         return this.withAssistantAction(
@@ -757,14 +761,18 @@ export class DefaultConversationManager implements ConversationManager {
         const claimReferenceNumber = updatedClaim.claimReferenceNumber ?? this.dependencies.claimNumberGenerator.generate();
         updatedClaim.claimReferenceNumber = claimReferenceNumber;
 
-        await this.dependencies.claimLogger.log({
-            claimNumber: claimReferenceNumber,
-            summary: 'Callback offered due to failed verification.',
-            timestamp: timestamp(),
-            claim: updatedClaim,
-            ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}),
-            conversationHistory: historyWithUser,
-            escalationRequired: false
+        Promise.resolve(
+            this.dependencies.claimLogger.log({
+                claimNumber: claimReferenceNumber,
+                summary: 'Callback offered due to failed verification.',
+                timestamp: timestamp(),
+                claim: updatedClaim,
+                ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}),
+                conversationHistory: historyWithUser,
+                escalationRequired: false
+            })
+        ).catch((err: unknown) => {
+            console.error(`[ConversationManager] Callback offer claim logging error for ${claimReferenceNumber}:`, err);
         });
 
         const callbackMsg = 'I apologize, but I am unable to verify your policy details at this time. A claims agent will call you back shortly to assist you. Goodbye.';
