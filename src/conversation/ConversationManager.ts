@@ -37,6 +37,7 @@ import type { RecommendServicesService } from '../services/recommendServices.js'
 import type { VerifyPolicyService } from '../services/verifyPolicy.js';
 import { normalizeClaimPatch } from '../services/normalizeClaimData.js';
 import type { Claim } from '../types/claim.js';
+import type { Policy } from '../types/policy.js';
 import type { Vehicle } from '../types/common.js';
 import type { ClaimNumberGenerator } from '../utils/claimNumber.js';
 import type {
@@ -241,15 +242,19 @@ function isKeywordNegated(text: string, keyword: string): boolean {
   
   if (keywordIndex === -1) return false;
   
-  // Check for negation patterns before the keyword (within 20 characters to catch contractions)
-  const beforeKeyword = lowerText.substring(Math.max(0, keywordIndex - 20), keywordIndex);
+  const beforeKeyword = lowerText.substring(Math.max(0, keywordIndex - 30), keywordIndex);
+  
+  // If there is a clause separator (comma, period, semicolon) before the keyword, only check text after the separator
+  const separatorMatch = /[,;.]\s*([^,;.]*)$/.exec(beforeKeyword);
+  const relevantText = separatorMatch ? separatorMatch[1] : beforeKeyword;
+
   const negationPatterns = [
     'no ', 'not ', 'never ', 'nobody', 'without ', 'none ', 'nothing ', 'zero ',
     'no one', 'nobody\'s', 'everyone is fine', 'everyone is okay', 'not injured',
     'not hurt', 'no injuries', 'no injury', 'never injured'
   ];
   
-  return negationPatterns.some(pattern => beforeKeyword.includes(pattern));
+  return negationPatterns.some(pattern => (relevantText || '').includes(pattern));
 }
 
 function isConfirmationRequested(message: string): boolean {
@@ -506,6 +511,111 @@ function firstMissingFieldPrompt(fields: TrackableFnolField[]): string {
   return `Please provide the ${FIELD_LABELS[firstField]}.`;
 }
 
+function buildDeterministicCollectionPrompt(
+  missingFields: TrackableFnolField[],
+  claim: Claim,
+  policy?: Policy,
+): string {
+  const field = missingFields[0];
+
+  if (!field) {
+    return 'Thank you. I have the details I need so far.';
+  }
+
+  switch (field) {
+    case 'policyNumber':
+      return 'Could you please provide your policy number?';
+    case 'callerName':
+      return 'May I have your full name as it appears on the policy?';
+    case 'dateOfIncident':
+      return 'What date did the incident happen?';
+    case 'timeOfIncident':
+      return 'What time did the incident happen?';
+    case 'locationOfIncident':
+      return 'Where did the incident take place?';
+    case 'incidentDescription':
+      return 'Could you briefly describe what happened?';
+    case 'insuredVehicle':
+      if (policy?.vehicle && hasCompleteVehicle(policy.vehicle)) {
+        const vehicle = policy.vehicle;
+        return `I have your insured vehicle as a ${vehicle.make} ${vehicle.model}, registration ${vehicle.registration}. Is that the vehicle involved in this incident?`;
+      }
+      return 'Could you confirm the make, model, and registration number of your insured vehicle?';
+    case 'injuriesReported':
+      return 'Were there any injuries?';
+    case 'injuryDetails':
+      return 'Could you briefly describe the injuries?';
+    case 'policeReportFiled':
+      return 'Was a police report filed for this incident?';
+    case 'policeReportReference':
+      return 'Do you have the police report reference number?';
+    case 'photosAvailable':
+      return 'Do you have photos of the damage available?';
+    case 'vehicleDrivable':
+      return 'Is your vehicle still drivable after the incident?';
+    case 'otherParties':
+      return 'Were any other parties or vehicles involved?';
+    default:
+      return firstMissingFieldPrompt(missingFields);
+  }
+}
+
+function extractBriefAcknowledgment(message: string): string | undefined {
+  const trimmed = message.trim();
+  const sentenceMatch = /^(.{0,80}?[.!])\s/m.exec(trimmed);
+
+  if (!sentenceMatch?.[1]) {
+    return undefined;
+  }
+
+  const prefix = sentenceMatch[1].trim();
+  const questionCount = (prefix.match(/\?/g) ?? []).length;
+
+  if (questionCount > 0 || prefix.length > 90) {
+    return undefined;
+  }
+
+  return prefix;
+}
+
+function resolveCollectionResponse(
+  llmResponse: string,
+  missingFields: TrackableFnolField[],
+  claim: Claim,
+  policy: Policy | undefined,
+  step: ConversationState['currentConversationStep'],
+  pendingClarifications: PendingClarification[],
+): string {
+  if (pendingClarifications.length > 0) {
+    return llmResponse.trim() || firstMissingFieldPrompt(missingFields);
+  }
+
+  if (
+    step !== 'collecting_fnol'
+    && step !== 'verification'
+    && step !== 'clarifying'
+  ) {
+    return llmResponse.trim() || 'Thank you for that information.';
+  }
+
+  if (missingFields.length === 0) {
+    return llmResponse.trim() || 'Thank you for that information.';
+  }
+
+  const deterministicPrompt = buildDeterministicCollectionPrompt(
+    missingFields,
+    claim,
+    policy,
+  );
+  const acknowledgment = extractBriefAcknowledgment(llmResponse);
+
+  if (acknowledgment) {
+    return `${acknowledgment} ${deterministicPrompt}`;
+  }
+
+  return deterministicPrompt;
+}
+
 function toConversationContradiction(contradiction: {
   field: TrackableFnolField;
   description: string;
@@ -708,6 +818,17 @@ export class DefaultConversationManager implements ConversationManager {
         const normalizedPatch = normalizeClaimPatch(validatedPatch);
         
         updatedClaim = mergeClaim(updatedClaim, normalizedPatch);
+
+        if (
+          verifiedPolicyObj?.vehicle
+          && hasCompleteVehicle(verifiedPolicyObj.vehicle)
+          && !hasCompleteVehicle(updatedClaim.insuredVehicle)
+          && /\b(yes|yeah|yep|correct|that'?s right|that is correct)\b/i.test(message)
+        ) {
+          updatedClaim = mergeClaim(updatedClaim, {
+            insuredVehicle: verifiedPolicyObj.vehicle,
+          });
+        }
         
         if (pendingClarifications.length > 0) {
             for (const c of pendingClarifications) {
@@ -741,37 +862,56 @@ export class DefaultConversationManager implements ConversationManager {
     // Only escalate if keyword is not negated (e.g., "no one is hurt" should not escalate)
     const keywordNegated = matchedEscalationKeyword && isKeywordNegated(escalationText, matchedEscalationKeyword);
 
+    let turnSeverity = state.severity;
+    let turnEscalationRequired = state.escalationRequired;
+    let turnEscalationReason = state.escalationReason;
+
     if (updatedClaim.injuriesReported === true || 
         (matchedEscalationKeyword && !keywordNegated)) {
         isEscalated = true;
-        escalationReason = matchedEscalationKeyword 
+        turnEscalationRequired = true;
+        turnEscalationReason = matchedEscalationKeyword 
           ? `Escalation keyword detected: "${matchedEscalationKeyword}".`
           : 'Severe incident or injury reported.';
 
-        // Determine severity: HIGH takes precedence over MEDIUM
-        const isHighSeverity = HIGH_SEVERITY_KEYWORDS.some(kw => escalationText.includes(kw) && !isKeywordNegated(escalationText, kw));
-        state.severity = isHighSeverity ? 'high' : 'high';
+        // Determine severity: Escalated claims default to high severity
+        turnSeverity = 'high';
     }
 
     // Assign medium severity for injury-adjacent keywords that don't trigger full escalation
-    if (!isEscalated && !state.severity) {
+    if (!isEscalated && !turnSeverity) {
       const isMediumSeverity = MEDIUM_SEVERITY_KEYWORDS.some(kw => 
         escalationText.includes(kw.toLowerCase()) && !isKeywordNegated(escalationText, kw.toLowerCase())
       );
       if (isMediumSeverity) {
-        state.severity = 'medium';
+        turnSeverity = 'medium';
       }
     }
 
+    state = {
+      ...state,
+      ...(turnSeverity ? { severity: turnSeverity } : {}),
+      escalationRequired: turnEscalationRequired,
+      ...(turnEscalationReason ? { escalationReason: turnEscalationReason } : {}),
+    };
+
     if (isEscalated) {
-        // Flag escalation but continue collecting FNOL data
-        // Only end call after all required data is collected
-        state.escalationRequired = true;
-        state.escalationReason = escalationReason;
-        console.log(`[ConversationManager] Escalation flagged: ${escalationReason}. Continuing data collection.`);
-        
-        // Don't immediately return - continue with normal flow to collect required data
-        // The escalation will be handled during claim completion
+        console.log(`[ConversationManager] Escalation flagged: ${turnEscalationReason}. Continuing data collection.`);
+        const claimReferenceNumber = updatedClaim.claimReferenceNumber ?? this.dependencies.claimNumberGenerator.generate();
+        updatedClaim.claimReferenceNumber = claimReferenceNumber;
+
+        void Promise.resolve(this.dependencies.claimLogger.log({
+          claimNumber: claimReferenceNumber,
+          summary: `Escalated: ${turnEscalationReason}`,
+          timestamp: timestamp(),
+          claim: updatedClaim,
+          ...(verifiedPolicyObj ? { verifiedPolicy: verifiedPolicyObj } : {}),
+          conversationHistory: historyWithUser,
+          escalationRequired: true,
+          severity: turnSeverity,
+        })).catch((err: unknown) => {
+          console.error(`[ConversationManager] Escalation claim logging error for ${claimReferenceNumber}:`, err);
+        });
     }
 
     // --- DETERMINISTIC POLICY VERIFICATION ---
@@ -786,6 +926,11 @@ export class DefaultConversationManager implements ConversationManager {
         });
         if (verifyResult.verified && verifyResult.policy) {
             verifiedPolicyObj = verifyResult.policy;
+            if (hasCompleteVehicle(verifyResult.policy.vehicle)) {
+              updatedClaim = mergeClaim(updatedClaim, {
+                insuredVehicle: verifyResult.policy.vehicle,
+              });
+            }
         } else {
             verificationAttempts++;
             if (verificationAttempts >= 2) {
@@ -954,7 +1099,9 @@ export class DefaultConversationManager implements ConversationManager {
 
     let nextStep = state.currentConversationStep;
 
-    if (nextStep === 'safety_check') {
+    if (state.escalationRequired || isEscalated) {
+        nextStep = 'escalation';
+    } else if (nextStep === 'safety_check') {
         if (!verifiedPolicyObj) {
             nextStep = 'verification';
         } else {
@@ -982,11 +1129,22 @@ export class DefaultConversationManager implements ConversationManager {
       verificationAttempts,
       currentConversationStep: nextStep,
     });
+
+    const responseMessage = resolveCollectionResponse(
+      accumulatedResponse,
+      trackedState.missingFields,
+      trackedState.currentClaim,
+      verifiedPolicyObj,
+      trackedState.currentConversationStep,
+      newClarifications,
+    );
     
-    console.log(`[ConversationManager] EXITING handleUserMessage normally. Action message: "${accumulatedResponse.trim()}"`);
+    console.log(`[ConversationManager] EXITING handleUserMessage normally. Action message: "${responseMessage}"`);
+    const isEscalation = trackedState.escalationRequired;
     return this.withAssistantAction(trackedState, {
-       type: 'respond',
-       message: accumulatedResponse.trim() || 'I have updated your claim details.'
+       type: isEscalation ? 'escalate' : 'respond',
+       message: responseMessage,
+       ...(isEscalation ? { reason: trackedState.escalationReason || 'Escalation required' } : {}),
     }, finalExtractionResult.debugMetrics);
   }
 
@@ -1109,15 +1267,31 @@ export class DefaultConversationManager implements ConversationManager {
   }
 
   private isFinalAck(userMessage: string): boolean {
-    const normalized = userMessage.trim().toLowerCase();
+    const normalized = userMessage.trim().toLowerCase().replace(/['.!,-]/g, '');
     
-    if (/\b(what|when|how|where|why|can|could|will|would|is|do|does|have|one more|another)\b/i.test(normalized) || normalized.includes('?')) {
+    if (normalized.length > 60) {
       return false;
     }
-    
-    const completionPattern = /\b(no|nope|nah|nothing|that's all|thats all|all set|i'm good|im good|thanks|thank you|bye|goodbye|that's it|thats it|nothing else|no thanks|no thank you|everything|all good)\b/i;
-    
-    return completionPattern.test(normalized);
+
+    if (/\b(what|when|how|where|why|can|could|will|would|is|do|does|have|one more|another|need|forgot|change|correct)\b/i.test(normalized) || userMessage.includes('?')) {
+      return false;
+    }
+
+    const exactCompletionPatterns = [
+      'no', 'nope', 'nah', 'nothing', 'thats all', 'that is all', 'all set',
+      'im good', 'i am good', 'thanks', 'thank you', 'bye', 'goodbye',
+      'thats it', 'that is it', 'nothing else', 'no thanks', 'no thank you',
+      'everything', 'all good', 'no further questions', 'im done', 'i am done',
+      'no thats everything', 'no that is everything', 'thats everything', 'that is everything',
+      'no thats all', 'no that is all', 'no thats it', 'no that is it', 'no nothing else'
+    ];
+
+    if (exactCompletionPatterns.includes(normalized)) {
+      return true;
+    }
+
+    const shortCompletionRegex = /^(no|nope|nah|thanks|thank you|bye|goodbye|thats all|thats it|all good|no thanks|no thats everything|thats everything)( very much| a lot)?$/i;
+    return shortCompletionRegex.test(normalized);
   }
 }
 

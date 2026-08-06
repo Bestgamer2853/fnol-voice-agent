@@ -1,0 +1,492 @@
+[
+  {
+    "name": "NEGATION_STRESS_06 - I don't think I am okay.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I don't think I am okay. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_07 - No police came but an ambulance arrived.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. No police came but an ambulance arrived. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_08 - I don't have photos yet.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I don't have photos yet. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_09 - Car isn't undrivable.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Car isn't undrivable. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_10 - I wasn't injured but my passenger was.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I wasn't injured but my passenger was. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_11 - I don't think I am okay.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I don't think I am okay. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_12 - No police came but an ambulance arrived.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. No police came but an ambulance arrived. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_13 - I don't have photos yet.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I don't have photos yet. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_14 - Car isn't undrivable.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Car isn't undrivable. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_15 - I wasn't injured but my passenger was.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I wasn't injured but my passenger was. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_01 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_02 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_03 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_04 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_05 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_06 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_07 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_08 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_09 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_10 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_11 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_12 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_13 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_14 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_15 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_16 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_17 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_18 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_19 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_20 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "REGRESSION_01 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_02 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_03 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_04 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_05 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_06 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_07 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_08 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_09 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_10 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_11 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_12 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_13 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_14 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_15 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_16 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_17 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_18 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_19 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_20 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  }
+]

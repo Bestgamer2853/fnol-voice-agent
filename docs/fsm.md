@@ -30,7 +30,7 @@ There is no active assignment to `verification`, `collecting_details`, or `clari
 | `pendingClarifications` | registration/confidence validation; next prompt consumes first entry |
 | `contradictions`, `followUpQuestions`, `empathyPhrasesUsed`, `retryCount` | declared, presently unused in active orchestration |
 | `severity`, `escalationRequired` | severity set only to high by escalation branch; `escalationRequired` not updated |
-| `servicesRecommended` | prevents repeating service recommendations |
+| `servicesRecommended`, `pendingServiceChoices` | records that services were offered and which towing/rental answer(s) still require an explicit caller decision; unrelated or repeated turns cannot complete the claim |
 
 ## Required-field logic
 

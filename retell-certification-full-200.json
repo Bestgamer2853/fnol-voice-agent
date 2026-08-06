@@ -1,0 +1,1987 @@
+[
+  {
+    "name": "HAPPY_PATH_01 - Cooperative Caller Scenario 1",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-101. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_02 - Cooperative Caller Scenario 2",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-102. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_03 - Cooperative Caller Scenario 3",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-103. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_04 - Cooperative Caller Scenario 4",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-104. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_05 - Cooperative Caller Scenario 5",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-105. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_06 - Cooperative Caller Scenario 6",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-106. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_07 - Cooperative Caller Scenario 7",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-107. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_08 - Cooperative Caller Scenario 8",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-108. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_09 - Cooperative Caller Scenario 9",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-109. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_10 - Cooperative Caller Scenario 10",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-1010. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_11 - Cooperative Caller Scenario 11",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-1011. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_12 - Cooperative Caller Scenario 12",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-1012. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_13 - Cooperative Caller Scenario 13",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-1013. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_14 - Cooperative Caller Scenario 14",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-1014. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_15 - Cooperative Caller Scenario 15",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-1015. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_01 - Exact match",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI-10234 under Arjun Rao.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_02 - Lowercase and whitespace",
+    "user_prompt": "Hi, I want to file a claim. Policy is mmi 10234 under arjun rao.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_03 - Partial name",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI-10234 under Arjun.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_04 - Spoken digit pauses",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI 102 34 under Arjun Rao.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_05 - Invalid policy number",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI-00000 under Arjun Rao.",
+    "metrics": [
+      "Agent handled policy verification failure correctly",
+      "Agent prompted for correct policy details or offered callback after 2 attempts",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_06 - Wrong policyholder name",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI-10234 under Wrong Person.",
+    "metrics": [
+      "Agent handled policy verification failure correctly",
+      "Agent prompted for correct policy details or offered callback after 2 attempts",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_07 - Completely invalid policy",
+    "user_prompt": "Hi, I want to file a claim. Policy is BAD-999 under John Doe.",
+    "metrics": [
+      "Agent handled policy verification failure correctly",
+      "Agent prompted for correct policy details or offered callback after 2 attempts",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_08 - No dash in policy",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI10234 under Arjun R.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_09 - Exact match",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI-10234 under Arjun Rao.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_10 - Lowercase and whitespace",
+    "user_prompt": "Hi, I want to file a claim. Policy is mmi 10234 under arjun rao.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_11 - Partial name",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI-10234 under Arjun.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_12 - Spoken digit pauses",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI 102 34 under Arjun Rao.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_13 - Invalid policy number",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI-00000 under Arjun Rao.",
+    "metrics": [
+      "Agent handled policy verification failure correctly",
+      "Agent prompted for correct policy details or offered callback after 2 attempts",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_14 - Wrong policyholder name",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI-10234 under Wrong Person.",
+    "metrics": [
+      "Agent handled policy verification failure correctly",
+      "Agent prompted for correct policy details or offered callback after 2 attempts",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_15 - Completely invalid policy",
+    "user_prompt": "Hi, I want to file a claim. Policy is BAD-999 under John Doe.",
+    "metrics": [
+      "Agent handled policy verification failure correctly",
+      "Agent prompted for correct policy details or offered callback after 2 attempts",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_16 - No dash in policy",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI10234 under Arjun R.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_17 - Exact match",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI-10234 under Arjun Rao.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_18 - Lowercase and whitespace",
+    "user_prompt": "Hi, I want to file a claim. Policy is mmi 10234 under arjun rao.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_19 - Partial name",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI-10234 under Arjun.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_20 - Spoken digit pauses",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI 102 34 under Arjun Rao.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_01 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_02 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_03 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_04 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_05 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_06 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_07 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_08 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_09 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_10 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_11 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_12 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_13 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_14 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_15 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_16 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_17 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_18 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_19 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_20 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_21 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_22 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_23 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_24 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_25 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_01 - It happened Tuesday... wait, Wednes",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. It happened Tuesday... wait, Wednesday at 3pm. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_02 - I have photos... sorry my phone die",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I have photos... sorry my phone died so no photos. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_03 - No injuries... actually my wife has",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. No injuries... actually my wife has neck pain. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_04 - Car is drivable... wait, engine won",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Car is drivable... wait, engine won't start so not drivable. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_05 - My policy is MMI-12677... actually ",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. My policy is MMI-12677... actually no, MMI-10234. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_06 - It happened Tuesday... wait, Wednes",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. It happened Tuesday... wait, Wednesday at 3pm. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_07 - I have photos... sorry my phone die",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I have photos... sorry my phone died so no photos. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_08 - No injuries... actually my wife has",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. No injuries... actually my wife has neck pain. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_09 - Car is drivable... wait, engine won",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Car is drivable... wait, engine won't start so not drivable. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_10 - My policy is MMI-12677... actually ",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. My policy is MMI-12677... actually no, MMI-10234. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_11 - It happened Tuesday... wait, Wednes",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. It happened Tuesday... wait, Wednesday at 3pm. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_12 - I have photos... sorry my phone die",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I have photos... sorry my phone died so no photos. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_13 - No injuries... actually my wife has",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. No injuries... actually my wife has neck pain. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_14 - Car is drivable... wait, engine won",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Car is drivable... wait, engine won't start so not drivable. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_15 - My policy is MMI-12677... actually ",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. My policy is MMI-12677... actually no, MMI-10234. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_16 - It happened Tuesday... wait, Wednes",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. It happened Tuesday... wait, Wednesday at 3pm. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_17 - I have photos... sorry my phone die",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I have photos... sorry my phone died so no photos. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_18 - No injuries... actually my wife has",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. No injuries... actually my wife has neck pain. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_19 - Car is drivable... wait, engine won",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Car is drivable... wait, engine won't start so not drivable. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_20 - My policy is MMI-12677... actually ",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. My policy is MMI-12677... actually no, MMI-10234. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "ESCALATION_01 - I think I broke my arm in the ",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. I think I broke my arm in the crash. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_02 - Airbags deployed and chest hur",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Airbags deployed and chest hurts. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_03 - There is a vehicle fire on the",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. There is a vehicle fire on the highway! Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_04 - Rollover crash, ambulance is o",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Rollover crash, ambulance is on the way. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_05 - My neck feels very stiff and p",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. My neck feels very stiff and painful. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_06 - Someone was taken to the hospi",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Someone was taken to the hospital. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_07 - My passenger is bleeding heavi",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. My passenger is bleeding heavily! Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_08 - I think I broke my arm in the ",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. I think I broke my arm in the crash. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_09 - Airbags deployed and chest hur",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Airbags deployed and chest hurts. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_10 - There is a vehicle fire on the",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. There is a vehicle fire on the highway! Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_11 - Rollover crash, ambulance is o",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Rollover crash, ambulance is on the way. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_12 - My neck feels very stiff and p",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. My neck feels very stiff and painful. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_13 - Someone was taken to the hospi",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Someone was taken to the hospital. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_14 - My passenger is bleeding heavi",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. My passenger is bleeding heavily! Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_15 - I think I broke my arm in the ",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. I think I broke my arm in the crash. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_16 - Airbags deployed and chest hur",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Airbags deployed and chest hurts. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_17 - There is a vehicle fire on the",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. There is a vehicle fire on the highway! Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_18 - Rollover crash, ambulance is o",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Rollover crash, ambulance is on the way. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_19 - My neck feels very stiff and p",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. My neck feels very stiff and painful. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_20 - Someone was taken to the hospi",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Someone was taken to the hospital. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_01 - Summary Verification 1",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_02 - Summary Verification 2",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_03 - Summary Verification 3",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_04 - Summary Verification 4",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_05 - Summary Verification 5",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_06 - Summary Verification 6",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_07 - Summary Verification 7",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_08 - Summary Verification 8",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_09 - Summary Verification 9",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_10 - Summary Verification 10",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_11 - Summary Verification 11",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_12 - Summary Verification 12",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_13 - Summary Verification 13",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_14 - Summary Verification 14",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_15 - Summary Verification 15",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_01 - Drivable: false",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is not drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent offered towing service for undrivable vehicle",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_02 - Drivable: true",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent did not force unneeded towing",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_03 - Drivable: false",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is not drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent offered towing service for undrivable vehicle",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_04 - Drivable: true",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent did not force unneeded towing",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_05 - Drivable: false",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is not drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent offered towing service for undrivable vehicle",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_06 - Drivable: true",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent did not force unneeded towing",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_07 - Drivable: false",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is not drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent offered towing service for undrivable vehicle",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_08 - Drivable: true",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent did not force unneeded towing",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_09 - Drivable: false",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is not drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent offered towing service for undrivable vehicle",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_10 - Drivable: true",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent did not force unneeded towing",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_11 - Drivable: false",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is not drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent offered towing service for undrivable vehicle",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_12 - Drivable: true",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent did not force unneeded towing",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_13 - Drivable: false",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is not drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent offered towing service for undrivable vehicle",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_14 - Drivable: true",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent did not force unneeded towing",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_15 - Drivable: false",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is not drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent offered towing service for undrivable vehicle",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_01 - Partial Info 1",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_02 - Partial Info 2",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_03 - Partial Info 3",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_04 - Partial Info 4",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_05 - Partial Info 5",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_06 - Partial Info 6",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_07 - Partial Info 7",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_08 - Partial Info 8",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_09 - Partial Info 9",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_10 - Partial Info 10",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_11 - Partial Info 11",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_12 - Partial Info 12",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_13 - Partial Info 13",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_14 - Partial Info 14",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_15 - Partial Info 15",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_01 - I don't think I am okay.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I don't think I am okay. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_02 - No police came but an ambulance arrived.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. No police came but an ambulance arrived. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_03 - I don't have photos yet.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I don't have photos yet. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_04 - Car isn't undrivable.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Car isn't undrivable. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_05 - I wasn't injured but my passenger was.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I wasn't injured but my passenger was. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_06 - I don't think I am okay.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I don't think I am okay. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_07 - No police came but an ambulance arrived.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. No police came but an ambulance arrived. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_08 - I don't have photos yet.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I don't have photos yet. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_09 - Car isn't undrivable.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Car isn't undrivable. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_10 - I wasn't injured but my passenger was.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I wasn't injured but my passenger was. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_11 - I don't think I am okay.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I don't think I am okay. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_12 - No police came but an ambulance arrived.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. No police came but an ambulance arrived. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_13 - I don't have photos yet.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I don't have photos yet. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_14 - Car isn't undrivable.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Car isn't undrivable. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_15 - I wasn't injured but my passenger was.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I wasn't injured but my passenger was. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_01 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_02 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_03 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_04 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_05 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_06 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_07 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_08 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_09 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_10 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_11 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_12 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_13 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_14 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_15 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_16 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_17 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_18 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_19 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "ADVERSARIAL_20 - Fast Emotional Speaker",
+    "user_prompt": "Hi I am super stressed out! Policy MMI-10234 Arjun Rao. My car hit a guardrail at 100mph near Exit 4! Is my insurance going to cover this?!",
+    "metrics": [
+      "Agent maintained empathetic, calm tone",
+      "Agent extracted core FNOL facts despite emotional language",
+      "Agent never crashed or produced invalid JSON",
+      "Agent completed registration smoothly"
+    ]
+  },
+  {
+    "name": "REGRESSION_01 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_02 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_03 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_04 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_05 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_06 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_07 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_08 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_09 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_10 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_11 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_12 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_13 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_14 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_15 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_16 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_17 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_18 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_19 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  },
+  {
+    "name": "REGRESSION_20 - Anti premature call termination",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Happened yesterday. Car not drivable. Severe injury reported.",
+    "metrics": [
+      "Agent survived known regression vector",
+      "Agent did not terminate call prematurely",
+      "Agent assigned valid claim number",
+      "Agent completed turn without unhandled exceptions"
+    ]
+  }
+]

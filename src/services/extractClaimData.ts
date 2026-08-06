@@ -296,7 +296,70 @@ function extractTimeOfIncident(message: string): string | undefined {
   return dayPart?.toLowerCase();
 }
 
-function extractFallbackClaimPatch(message: string): Partial<Claim> {
+function extractContextualBoolean(
+  message: string,
+  lastAssistantMessage?: string,
+): Partial<Claim> {
+  const normalized = message.trim().toLowerCase();
+
+  if (!/^(yes|yeah|yep|no|nope|nah)\.?$/i.test(normalized)) {
+    return {};
+  }
+
+  const isYes = /^(yes|yeah|yep)\.?$/i.test(normalized);
+  const isNo = /^(no|nope|nah)\.?$/i.test(normalized);
+  const context = (lastAssistantMessage ?? '').toLowerCase();
+  const patch: Partial<Claim> = {};
+
+  if (/\bdrivable|drive\b/.test(context)) {
+    patch.vehicleDrivable = isYes;
+  }
+
+  if (/\bpolice report|report filed|police\b/.test(context)) {
+    patch.policeReportFiled = isYes;
+  }
+
+  if (/\bphoto|picture|image\b/.test(context)) {
+    patch.photosAvailable = isYes;
+  }
+
+  if (/\binjur|hurt|pain\b/.test(context)) {
+    patch.injuriesReported = isYes;
+  }
+
+  if (/\bvehicle involved|insured vehicle|make and model|registration\b/.test(context)) {
+    if (isYes && !patch.insuredVehicle) {
+      patch.insuredVehicle = {};
+    }
+  }
+
+  if (/\btowing|roadside\b/.test(context)) {
+    (patch as Claim).towingRequested = isYes;
+  }
+
+  if (/\brental\b/.test(context)) {
+    (patch as Claim).rentalRequested = isYes;
+  }
+
+  if (isNo && Object.keys(patch).length === 0) {
+    if (/\bdrivable|drive\b/.test(context)) {
+      patch.vehicleDrivable = false;
+    } else if (/\bpolice report|report filed|police\b/.test(context)) {
+      patch.policeReportFiled = false;
+    } else if (/\bphoto|picture|image\b/.test(context)) {
+      patch.photosAvailable = false;
+    } else if (/\binjur|hurt|pain\b/.test(context)) {
+      patch.injuriesReported = false;
+    }
+  }
+
+  return patch;
+}
+
+function extractFallbackClaimPatch(
+  message: string,
+  lastAssistantMessage?: string,
+): Partial<Claim> {
   const patch: Partial<Claim> = {};
   const policyMatch = POLICY_NUMBER_PATTERN.exec(message);
   const policyNumber = policyMatch && policyMatch[1] && policyMatch[2]
@@ -338,13 +401,13 @@ function extractFallbackClaimPatch(message: string): Partial<Claim> {
     patch.injuriesReported = true;
   }
 
-  if (/\b(no police report|police report was not|no report was filed)\b/i.test(message)) {
+  if (/\b(no police report|police report was not|no report was filed|didn'?t file|did not file|wasn'?t filed|was not filed)\b/i.test(message)) {
     patch.policeReportFiled = false;
   } else if (/\b(police report|police came|reported to police|fir)\b/i.test(message)) {
     patch.policeReportFiled = true;
   }
 
-  if (/\b(no photos|no pictures|without photos)\b/i.test(message)) {
+  if (/\b(no photos|no pictures|without photos|don'?t have photos|don'?t have pictures|didn'?t take|did not take|haven'?t taken)\b/i.test(message)) {
     patch.photosAvailable = false;
   } else if (/\b(photos|pictures|images)\b/i.test(message)) {
     patch.photosAvailable = true;
@@ -360,7 +423,10 @@ function extractFallbackClaimPatch(message: string): Partial<Claim> {
     patch.otherParties = 'Other party involved';
   }
 
-  return sanitizeExtractedClaimPatch(patch);
+  return sanitizeExtractedClaimPatch({
+    ...patch,
+    ...extractContextualBoolean(message, lastAssistantMessage),
+  });
 }
 
 function getFallbackResult(message: string, state: ConversationState, finishReason: string = 'FALLBACK_EXHAUSTED'): ExtractClaimDataResult {
@@ -448,7 +514,7 @@ DATA EXTRACTION (extractedData):
         const recommendedServices = input.state.currentClaim.recommendedServices?.join(' and ') || 'towing';
         fsmInstruction = `Recommend ${recommendedServices} and ask if needed.`;
     } else if (input.state.currentConversationStep === 'completed') {
-        fsmInstruction = "Summarize claim verbally; adjuster contacts within 24h.";
+        fsmInstruction = "Thank the caller, confirm their FNOL claim has been logged with reference number, and provide a clear 2-sentence summary of the logged details.";
     }
 
     const conversationContext = buildExtractionContext(input.state, fsmInstruction, JSON.stringify(schemaObj));
@@ -486,7 +552,10 @@ DATA EXTRACTION (extractedData):
     // Merge deterministic fallback extraction to ensure 100% out-of-order accuracy.
     // If the LLM failed to extract a field (e.g. policy number) but our Regex caught it,
     // we use the Regex value. This guarantees high precision for patterned fields.
-    const fallbackPatch = extractFallbackClaimPatch(input.userMessage);
+    const fallbackPatch = extractFallbackClaimPatch(
+      input.userMessage,
+      input.state.lastAssistantMessage,
+    );
     const llmSlots = sanitizeExtractedClaimPatch(parsedResponse.extractedData || {});
     const mergedSlots = {
       ...fallbackPatch,

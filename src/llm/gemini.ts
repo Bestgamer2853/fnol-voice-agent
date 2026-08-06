@@ -6,7 +6,7 @@ interface GeminiServiceOptions {
   endpointBaseUrl?: string;
 }
 
-const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
+const DEFAULT_MODEL = 'gemini-2.5-flash-lite';
 const DEFAULT_ENDPOINT_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 function readEnvironmentValue(name: string): string | undefined {
@@ -22,7 +22,7 @@ function fallbackResponse(errorMessage: string): GenerateResponseResult {
   };
 }
 
-const MAX_RETRIES = 1;
+const MAX_RETRIES = 0; // For Voice AI, 0 retries on timeout prevents compounding latency past Retell's 5s window
 const RETRYABLE_STATUS_CODES = new Set([429, 503, 502, 500, 408]);
 
 function sleep(ms: number): Promise<void> {
@@ -125,7 +125,7 @@ export class GeminiService implements LlmProvider {
       // We pass an AbortSignal down the stack so we can aggressively terminate the HTTP request.
       // This saves API tokens and prevents processing stale text.
       const controller = new AbortController();
-      const timeoutMs = 12000; // Increased to 12000ms for better network resilience
+      const timeoutMs = 3500; // 3.5s timeout guarantees response frame is sent before Retell's 5s socket window
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
       const onParentAbort = () => { controller.abort(); };
       if (input.abortSignal) {

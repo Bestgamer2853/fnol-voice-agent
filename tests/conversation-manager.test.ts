@@ -179,7 +179,7 @@ describe('ConversationManager P0 replay harness', () => {
           extractedData: {},
         },
       ],
-      ['All details in one message.', 'Yes, please arrange towing.', "No, that's everything."],
+      ['All details in one message.', 'Yes, please arrange towing and a rental car.', "No, that's everything."],
     );
 
     assert.deepEqual(actions, ['respond', 'respond', 'complete']);
@@ -282,6 +282,93 @@ describe('ConversationManager P0 replay harness', () => {
     assert.ok(!logs[0]?.claim.recommendedServices?.includes('towing'));
   });
 
+  it('does not complete or persist until every offered towing/rental choice is explicit', async () => {
+    const completeClaim: Partial<Claim> = {
+      policyNumber: 'MMI-10234',
+      callerName: 'Arjun Rao',
+      dateOfIncident: '2026-07-30',
+      timeOfIncident: '19:00',
+      locationOfIncident: 'MG Road, Bengaluru',
+      incidentDescription: 'Car hit a pole',
+      insuredVehicle: { make: 'Honda', model: 'City', registration: 'KA01AB1234' },
+      injuriesReported: false,
+      policeReportFiled: false,
+      photosAvailable: true,
+      vehicleDrivable: false,
+    };
+    const extractor = new ScriptedExtractor([
+      { responseToUser: 'Do you need towing?', extractedData: completeClaim },
+      { responseToUser: 'Okay.', extractedData: {} },
+      { responseToUser: 'Your claim has been logged.', extractedData: {} },
+    ]);
+    const logs: ClaimLogRecord[] = [];
+    const manager = createConversationManager(createDependencies(extractor, logs));
+    let state = manager.start();
+
+    const offer = await manager.handleUserMessage(state, 'Details sent.');
+    state = offer.state;
+    assert.ok(offer.action.message.includes('rental car'));
+
+    const towingOnly = await manager.handleUserMessage(state, 'No towing needed.');
+    state = towingOnly.state;
+    assert.equal(state.currentConversationStep, 'recommending_services');
+    assert.deepEqual(state.pendingServiceChoices, ['rental car']);
+    assert.equal(logs.length, 0);
+    assert.ok(towingOnly.action.message.includes('rental car'));
+
+    const rental = await manager.handleUserMessage(state, 'Yes, I need a rental car.');
+    assert.equal(rental.state.currentConversationStep, 'completed');
+    assert.equal(rental.state.currentClaim.towingRequested, false);
+    assert.equal(rental.state.currentClaim.rentalRequested, true);
+    assert.equal(logs.length, 1);
+  });
+
+  it('waits for durable claim persistence before reporting a claim as completed', async () => {
+    const completeClaim: Partial<Claim> = {
+      policyNumber: 'MMI-10234',
+      callerName: 'Arjun Rao',
+      dateOfIncident: '2026-07-30',
+      timeOfIncident: '19:00',
+      locationOfIncident: 'MG Road, Bengaluru',
+      incidentDescription: 'Car hit a pole',
+      insuredVehicle: { make: 'Honda', model: 'City', registration: 'KA01AB1234' },
+      injuriesReported: false,
+      policeReportFiled: false,
+      photosAvailable: false,
+      vehicleDrivable: true,
+    };
+    const extractor = new ScriptedExtractor([
+      { responseToUser: 'Your claim has been logged.', extractedData: completeClaim },
+    ]);
+    const logs: ClaimLogRecord[] = [];
+    let releasePersistence: (() => void) | undefined;
+    const persistenceGate = new Promise<void>((resolve) => { releasePersistence = resolve; });
+    const dependencies = createDependencies(extractor, logs);
+    dependencies.recommendServices = { async recommend() { return { recommendations: [] }; } };
+    dependencies.claimLogger = {
+      async log(record) {
+        await persistenceGate;
+        logs.push(record);
+      },
+    };
+    const manager = createConversationManager(dependencies);
+    let settled = false;
+    const pendingResult = manager.handleUserMessage(manager.start(), 'All claim details provided.').then((result) => {
+      settled = true;
+      return result;
+    });
+
+    await Promise.resolve();
+    await Promise.resolve();
+    assert.equal(settled, false);
+    assert.equal(logs.length, 0);
+
+    releasePersistence?.();
+    const result = await pendingResult;
+    assert.equal(result.state.currentConversationStep, 'completed');
+    assert.equal(logs.length, 1);
+  });
+
   it('handles conversational call termination variants correctly', async () => {
     const completeClaim: Partial<Claim> = {
       policyNumber: 'MMI-10234',
@@ -307,7 +394,7 @@ describe('ConversationManager P0 replay harness', () => {
     const managerA = createConversationManager(createDependencies(extractorA, []));
     let stateA = managerA.start();
     const actionsA: string[] = [];
-    for (const msg of ['Details provided.', 'No towing needed.', 'Thanks.']) {
+    for (const msg of ['Details provided.', 'No towing needed and I need a rental car.', 'Thanks.']) {
       const res = await managerA.handleUserMessage(stateA, msg);
       stateA = res.state;
       console.error(`[DEBUG TURN] msg: "${msg}", stepAfter: "${stateA.currentConversationStep}", actionType: "${res.action.type}"`);
@@ -322,7 +409,7 @@ describe('ConversationManager P0 replay harness', () => {
         { responseToUser: 'Claim logged. Anything else?', extractedData: {} },
         { responseToUser: 'Closing statement.', extractedData: {} },
       ],
-      ['Details provided.', 'No towing needed.', 'Bye.'],
+      ['Details provided.', 'No towing needed and I need a rental car.', 'Bye.'],
     );
     assert.deepEqual(testBye.actions, ['respond', 'respond', 'complete']);
 
@@ -333,7 +420,7 @@ describe('ConversationManager P0 replay harness', () => {
         { responseToUser: 'Claim logged. Anything else?', extractedData: {} },
         { responseToUser: 'Yes, repairs usually take 3-5 business days. Anything else?', extractedData: {} },
       ],
-      ['Details provided.', 'No towing needed.', 'Actually I have one more question about repairs...'],
+      ['Details provided.', 'No towing needed and I need a rental car.', 'Actually I have one more question about repairs...'],
     );
     assert.deepEqual(testQuestion.actions, ['respond', 'respond', 'respond']);
     assert.equal(testQuestion.state.currentConversationStep, 'completed');

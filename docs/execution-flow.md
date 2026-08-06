@@ -13,7 +13,7 @@
 2. `call_details` is acknowledged by avoiding a second greeting; `ping_pong` is echoed; `ping` receives an empty final response; `update_only` is ignored.
 3. For `response_required` or `reminder_required`, the latest `transcript` entry with `role === 'user'` is selected. The full transcript is otherwise not persisted into state by this adapter.
 4. Per-session `activeResponseIds` rejects equal/older response IDs. The manager is invoked asynchronously inside `AsyncLocalStorage` request context.
-5. Model chunks are searched for the JSON `responseToUser` string and forwarded as `content_complete:false` fragments. When orchestration finishes, remaining content (or whole fallback message) is sent with `content_complete:true`; `end_call` is true only for a `complete` action.
+5. Model chunks are searched for the JSON `responseToUser` string and forwarded as `content_complete:false` fragments. When orchestration finishes, remaining content (or whole fallback message) is sent with `content_complete:true`. `end_call` is true only for a final acknowledgement after a verified claim is fully complete, has a reference number, has no missing fields, and has been persisted. Callback offers, escalations, and repeated Retell transcripts never terminate the call.
 
 ## Single manager turn
 
@@ -40,7 +40,7 @@ flowchart TD
 
 ## Completion path
 
-`completeClaim()` generates `CLM-YYYYMMDD-NNNN`, builds deterministic summary, sets `completed`, awaits both loggers (`Promise.all`), then returns `complete`. Google Sheets catches its own errors; local JSON errors reject the entire turn. The completed claim’s history contains every assistant response created through `withAssistantAction`, including the completion response only after logging call construction.
+`completeClaim()` generates `CLM-YYYYMMDD-NNNN`, builds a deterministic summary, sets `completed`, then awaits durable logging before it replies that the claim has been logged. A later caller acknowledgement is the only normal path that produces Retell `end_call`. Google Sheets catches its own errors; local JSON errors reject the entire turn.
 
 ## Execution-path notes
 

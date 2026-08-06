@@ -1,0 +1,522 @@
+[
+  {
+    "name": "INFO_COLLECTION_16 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_17 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_18 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_19 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_20 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_21 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_22 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_23 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_24 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "INFO_COLLECTION_25 - Out of order fields",
+    "user_prompt": "I am calling about a crash at Anna Salai. My car KA01AB1234 is not drivable. Policy MMI-12677, name Rahul Menon. Occurred yesterday 5pm. No injuries. Police report 443 filed. Photos available.",
+    "metrics": [
+      "Agent extracted out-of-order fields accurately",
+      "Agent asked follow-up questions only for uncollected fields",
+      "Agent tracked missing fields dynamically without duplicate prompts",
+      "Agent completed FNOL registration with 100% field coverage"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_01 - It happened Tuesday... wait, Wednes",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. It happened Tuesday... wait, Wednesday at 3pm. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_02 - I have photos... sorry my phone die",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I have photos... sorry my phone died so no photos. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_03 - No injuries... actually my wife has",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. No injuries... actually my wife has neck pain. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_04 - Car is drivable... wait, engine won",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Car is drivable... wait, engine won't start so not drivable. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_05 - My policy is MMI-12677... actually ",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. My policy is MMI-12677... actually no, MMI-10234. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_06 - It happened Tuesday... wait, Wednes",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. It happened Tuesday... wait, Wednesday at 3pm. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_07 - I have photos... sorry my phone die",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I have photos... sorry my phone died so no photos. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_08 - No injuries... actually my wife has",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. No injuries... actually my wife has neck pain. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_09 - Car is drivable... wait, engine won",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Car is drivable... wait, engine won't start so not drivable. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_10 - My policy is MMI-12677... actually ",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. My policy is MMI-12677... actually no, MMI-10234. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_11 - It happened Tuesday... wait, Wednes",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. It happened Tuesday... wait, Wednesday at 3pm. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_12 - I have photos... sorry my phone die",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I have photos... sorry my phone died so no photos. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_13 - No injuries... actually my wife has",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. No injuries... actually my wife has neck pain. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_14 - Car is drivable... wait, engine won",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Car is drivable... wait, engine won't start so not drivable. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_15 - My policy is MMI-12677... actually ",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. My policy is MMI-12677... actually no, MMI-10234. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_16 - It happened Tuesday... wait, Wednes",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. It happened Tuesday... wait, Wednesday at 3pm. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_17 - I have photos... sorry my phone die",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I have photos... sorry my phone died so no photos. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_18 - No injuries... actually my wife has",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. No injuries... actually my wife has neck pain. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_19 - Car is drivable... wait, engine won",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Car is drivable... wait, engine won't start so not drivable. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "EDGE_CASE_CORRECTION_20 - My policy is MMI-12677... actually ",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. My policy is MMI-12677... actually no, MMI-10234. Location is MG Road.",
+    "metrics": [
+      "Agent captured the latest corrected information",
+      "Agent updated claim draft state dynamically",
+      "Agent did not store conflicting or superseded values",
+      "Agent maintained correct FSM progression"
+    ]
+  },
+  {
+    "name": "ESCALATION_01 - I think I broke my arm in the ",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. I think I broke my arm in the crash. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_02 - Airbags deployed and chest hur",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Airbags deployed and chest hurts. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_03 - There is a vehicle fire on the",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. There is a vehicle fire on the highway! Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_04 - Rollover crash, ambulance is o",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Rollover crash, ambulance is on the way. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_05 - My neck feels very stiff and p",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. My neck feels very stiff and painful. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_06 - Someone was taken to the hospi",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Someone was taken to the hospital. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_07 - My passenger is bleeding heavi",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. My passenger is bleeding heavily! Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_08 - I think I broke my arm in the ",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. I think I broke my arm in the crash. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_09 - Airbags deployed and chest hur",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Airbags deployed and chest hurts. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_10 - There is a vehicle fire on the",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. There is a vehicle fire on the highway! Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_11 - Rollover crash, ambulance is o",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Rollover crash, ambulance is on the way. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_12 - My neck feels very stiff and p",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. My neck feels very stiff and painful. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_13 - Someone was taken to the hospi",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Someone was taken to the hospital. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_14 - My passenger is bleeding heavi",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. My passenger is bleeding heavily! Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_15 - I think I broke my arm in the ",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. I think I broke my arm in the crash. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_16 - Airbags deployed and chest hur",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Airbags deployed and chest hurts. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_17 - There is a vehicle fire on the",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. There is a vehicle fire on the highway! Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_18 - Rollover crash, ambulance is o",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Rollover crash, ambulance is on the way. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_19 - My neck feels very stiff and p",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. My neck feels very stiff and painful. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  },
+  {
+    "name": "ESCALATION_20 - Someone was taken to the hospi",
+    "user_prompt": "Hello, policy MMI-10234 Arjun Rao. Someone was taken to the hospital. Accident happened on Highway 101.",
+    "metrics": [
+      "Agent detected urgent injury/severity keyword immediately",
+      "Agent set severity to High",
+      "Agent flagged escalationRequired flag in state",
+      "Agent continued FNOL data collection without dropping call",
+      "Agent persisted escalated claim record"
+    ]
+  }
+]

@@ -45,14 +45,29 @@ function showConfirmationNotification(confirmation) {
 
   const toast = document.createElement('div');
   toast.className = 'confirmation-toast';
-  toast.innerHTML = `
-    <div class="confirmation-header">
-      <span class="confirmation-icon">✉</span>
-      <span class="confirmation-label">Simulated ${confirmation.type?.toUpperCase() ?? 'SMS'} Confirmation</span>
-    </div>
-    <div class="confirmation-to">To: ${confirmation.to ?? 'Policyholder'}</div>
-    <div class="confirmation-body">${confirmation.message ?? ''}</div>
-  `;
+
+  const header = document.createElement('div');
+  header.className = 'confirmation-header';
+
+  const icon = document.createElement('span');
+  icon.className = 'confirmation-icon';
+  icon.textContent = '✉';
+
+  const label = document.createElement('span');
+  label.className = 'confirmation-label';
+  label.textContent = `Simulated ${confirmation.type?.toUpperCase() ?? 'SMS'} Confirmation`;
+
+  header.append(icon, label);
+
+  const to = document.createElement('div');
+  to.className = 'confirmation-to';
+  to.textContent = `To: ${confirmation.to ?? 'Policyholder'}`;
+
+  const body = document.createElement('div');
+  body.className = 'confirmation-body';
+  body.textContent = confirmation.message ?? '';
+
+  toast.append(header, to, body);
   document.body.appendChild(toast);
 
   requestAnimationFrame(() => {

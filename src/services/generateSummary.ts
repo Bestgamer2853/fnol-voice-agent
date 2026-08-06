@@ -101,8 +101,21 @@ export function createGenerateSummaryService(
 ): GenerateSummaryService {
   return {
     async generate(input: GenerateSummaryInput): Promise<GenerateSummaryResult> {
-      // Disabled LLM rewrite step to enforce Gemini free tier limits
-      return generateSummary(input);
+      const baseResult = generateSummary(input);
+      if (options.llmProvider) {
+        try {
+          const llmSummary = await buildLlmSummary(input, options.llmProvider, baseResult.summary);
+          if (llmSummary && llmSummary.trim().length > 0) {
+            return {
+              ...baseResult,
+              llmSummary: llmSummary.trim(),
+            };
+          }
+        } catch (e) {
+          console.warn('[GenerateSummaryService] LLM summary rewrite failed, falling back to deterministic summary:', e);
+        }
+      }
+      return baseResult;
     },
   };
 }

@@ -41,6 +41,7 @@ import express, { type Request, type Response } from 'express';
 import type { ConversationState } from './conversation/ConversationState.js';
 import { createRuntimeConversationManager } from './runtime.js';
 import { createNotificationService, globalNotificationState } from './services/notificationService.js';
+import { shouldEndRetellCall, shouldSkipRetellUserTurn } from './transport/retell.js';
 
 interface ChatRequestBody {
   sessionId?: unknown;
@@ -117,10 +118,16 @@ function getOrCreateSession(sessionId: unknown): {
 }
 
 function updateSession(sessionId: string, state: ConversationState): void {
-  sessions.set(sessionId, {
-    state,
-    updatedAt: Date.now(),
-  });
+  const existing = sessions.get(sessionId);
+  if (existing) {
+    existing.state = state;
+    existing.updatedAt = Date.now();
+  } else {
+    sessions.set(sessionId, {
+      state,
+      updatedAt: Date.now(),
+    });
+  }
 }
 
 function sendError(response: Response, status: number, error: string): void {
@@ -469,14 +476,15 @@ wss.on('connection', (ws: WebSocket, req) => {
   logInfo(`Current conversation step after: ${session.state.currentConversationStep}`);
 
   ws.on('close', (code, reason) => {
-    logInfo(`\n========================\nWEBSOCKET CLOSED`);
+    logInfo(`\n========================\nWEBSOCKET CLOSED for session ${sessionId}`);
     logInfo(`Close code: ${code}`);
-    logInfo(`Reason: ${reason.toString()}`);
+    logInfo(`Reason: ${reason ? reason.toString() : 'None'}`);
     logInfo(`Timestamp: ${new Date().toISOString()}\n========================\n`);
+    activeResponseIds.delete(sessionId);
   });
 
   ws.on('error', (err) => {
-    logError(`WEBSOCKET ERROR`, err);
+    logError(`WEBSOCKET ERROR for session ${sessionId}:`, err);
   });
 
   ws.on('message', (data) => {
@@ -606,6 +614,19 @@ wss.on('connection', (ws: WebSocket, req) => {
                     end_call: false,
                   };
                   sendWsJson(ws, payload, 'FallbackNoTurn');
+                  return;
+              }
+
+              if (shouldSkipRetellUserTurn(currentRec.state, lastUserTurn.content)) {
+                  const repeatedResponse = currentRec.state.lastAssistantMessage ?? "I'm here to help. Could you please go ahead?";
+                  logInfo(`Skipping repeated Retell transcript for response_id ${responseId}`);
+                  sendWsJson(ws, {
+                    response_type: 'response',
+                    response_id: responseId,
+                    content: repeatedResponse,
+                    content_complete: true,
+                    end_call: false,
+                  }, 'RepeatedTranscript');
                   return;
               }
 
@@ -739,9 +760,10 @@ wss.on('connection', (ws: WebSocket, req) => {
               if (!turnResult) return; // Superseded or aborted
               const { result, parseState } = turnResult;
 
-              // Retell protocol: if end_call is true, the WebSocket disconnects 
-              // and the phone call drops. We trigger this on normal completion and emergencies.
-              const isComplete = result.action.type === 'complete' || result.action.type === 'escalate';
+              // Retell protocol: end_call immediately disconnects the caller. Only
+              // emit it after a verified, complete, persisted FNOL claim receives a
+              // final acknowledgement; callback and escalation dispositions remain open.
+              const isComplete = shouldEndRetellCall(result.action, result.state);
               
               logInfo(`Current conversation step after: ${result.state.currentConversationStep}`);
               logInfo(`Response action type: ${result.action.type}`);
@@ -804,14 +826,7 @@ wss.on('connection', (ws: WebSocket, req) => {
     }
   });
 
-  ws.on('close', () => {
-    logInfo(`Connection closed for session ${sessionId}`);
-    activeResponseIds.delete(sessionId);
-  });
-  
-  ws.on('error', (error) => {
-    logError(`Error for session ${sessionId}:`, error);
-  });
+  // Handlers attached on connection setup above
 });
 
 process.on('unhandledRejection', (reason, promise) => {

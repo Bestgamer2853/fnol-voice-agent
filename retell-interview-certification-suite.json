@@ -1,0 +1,257 @@
+[
+  {
+    "name": "HAPPY_PATH_01 - Cooperative Caller Scenario 1",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-101. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_02 - Cooperative Caller Scenario 2",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-102. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_03 - Cooperative Caller Scenario 3",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-103. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_04 - Cooperative Caller Scenario 4",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-104. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_05 - Cooperative Caller Scenario 5",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-105. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_06 - Cooperative Caller Scenario 6",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-106. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_07 - Cooperative Caller Scenario 7",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-107. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_08 - Cooperative Caller Scenario 8",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-108. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_09 - Cooperative Caller Scenario 9",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-109. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_10 - Cooperative Caller Scenario 10",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-1010. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_11 - Cooperative Caller Scenario 11",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-1011. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_12 - Cooperative Caller Scenario 12",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-1012. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_13 - Cooperative Caller Scenario 13",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-1013. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_14 - Cooperative Caller Scenario 14",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-1014. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "HAPPY_PATH_15 - Cooperative Caller Scenario 15",
+    "user_prompt": "Hello, I had an accident. My name is Arjun Rao, policy MMI-10234. It happened today at 2pm on Main Street. I hit a parked car. No injuries, police came and filed report PR-1015. I have photos, car is drivable. No rental needed.",
+    "metrics": [
+      "Agent greeted professionally and checked safety",
+      "Agent verified policy number MMI-10234 for Arjun Rao",
+      "Agent collected all mandatory FNOL fields without missing any",
+      "Agent offered service recommendations appropriately",
+      "Agent completed call naturally after farewelling"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_01 - Exact match",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI-10234 under Arjun Rao.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_02 - Lowercase and whitespace",
+    "user_prompt": "Hi, I want to file a claim. Policy is mmi 10234 under arjun rao.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_03 - Partial name",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI-10234 under Arjun.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_04 - Spoken digit pauses",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI 102 34 under Arjun Rao.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_05 - Invalid policy number",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI-00000 under Arjun Rao.",
+    "metrics": [
+      "Agent handled policy verification failure correctly",
+      "Agent prompted for correct policy details or offered callback after 2 attempts",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_06 - Wrong policyholder name",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI-10234 under Wrong Person.",
+    "metrics": [
+      "Agent handled policy verification failure correctly",
+      "Agent prompted for correct policy details or offered callback after 2 attempts",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_07 - Completely invalid policy",
+    "user_prompt": "Hi, I want to file a claim. Policy is BAD-999 under John Doe.",
+    "metrics": [
+      "Agent handled policy verification failure correctly",
+      "Agent prompted for correct policy details or offered callback after 2 attempts",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_08 - No dash in policy",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI10234 under Arjun R.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_09 - Exact match",
+    "user_prompt": "Hi, I want to file a claim. Policy is MMI-10234 under Arjun Rao.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  },
+  {
+    "name": "POLICY_VERIFICATION_10 - Lowercase and whitespace",
+    "user_prompt": "Hi, I want to file a claim. Policy is mmi 10234 under arjun rao.",
+    "metrics": [
+      "Agent successfully verified policy",
+      "Agent proceeded to FNOL field collection",
+      "Agent never crashed or entered an invalid state"
+    ]
+  }
+]

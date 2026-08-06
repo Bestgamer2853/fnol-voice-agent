@@ -1,0 +1,482 @@
+[
+  {
+    "name": "SUMMARY_LOGGING_01 - Summary Verification 1",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_02 - Summary Verification 2",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_03 - Summary Verification 3",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_04 - Summary Verification 4",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_05 - Summary Verification 5",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_06 - Summary Verification 6",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_07 - Summary Verification 7",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_08 - Summary Verification 8",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_09 - Summary Verification 9",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_10 - Summary Verification 10",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_11 - Summary Verification 11",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_12 - Summary Verification 12",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_13 - Summary Verification 13",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_14 - Summary Verification 14",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "SUMMARY_LOGGING_15 - Summary Verification 15",
+    "user_prompt": "Policy MMI-10234, Arjun Rao. Crash on 2026-08-01 at 4pm near Airport Road. Rear-ended by bus. No injuries, police report PR-88, photos yes, car not drivable. Need towing and rental.",
+    "metrics": [
+      "Agent generated non-empty, accurate claim summary",
+      "Summary mentions incident description, severity, and services",
+      "Agent assigned unique CLM- reference number",
+      "Agent logged claim exactly once to storage/sheets"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_01 - Drivable: false",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is not drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent offered towing service for undrivable vehicle",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_02 - Drivable: true",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent did not force unneeded towing",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_03 - Drivable: false",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is not drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent offered towing service for undrivable vehicle",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_04 - Drivable: true",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent did not force unneeded towing",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_05 - Drivable: false",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is not drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent offered towing service for undrivable vehicle",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_06 - Drivable: true",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent did not force unneeded towing",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_07 - Drivable: false",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is not drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent offered towing service for undrivable vehicle",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_08 - Drivable: true",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent did not force unneeded towing",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_09 - Drivable: false",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is not drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent offered towing service for undrivable vehicle",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_10 - Drivable: true",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent did not force unneeded towing",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_11 - Drivable: false",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is not drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent offered towing service for undrivable vehicle",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_12 - Drivable: true",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent did not force unneeded towing",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_13 - Drivable: false",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is not drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent offered towing service for undrivable vehicle",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_14 - Drivable: true",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent did not force unneeded towing",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "RENTAL_TOWING_15 - Drivable: false",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Incident at 1pm. Car is not drivable. No injuries. All details ready.",
+    "metrics": [
+      "Agent offered towing service for undrivable vehicle",
+      "Agent explicitly asked caller about rental car preference when covered",
+      "Agent recorded caller rental selection into claim state"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_01 - Partial Info 1",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_02 - Partial Info 2",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_03 - Partial Info 3",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_04 - Partial Info 4",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_05 - Partial Info 5",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_06 - Partial Info 6",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_07 - Partial Info 7",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_08 - Partial Info 8",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_09 - Partial Info 9",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_10 - Partial Info 10",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_11 - Partial Info 11",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_12 - Partial Info 12",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_13 - Partial Info 13",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_14 - Partial Info 14",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "FOLLOW_UPS_15 - Partial Info 15",
+    "user_prompt": "My policy is MMI-10234 Arjun Rao. I crashed. [Wait for agent question before providing next field].",
+    "metrics": [
+      "Agent identified exact missing mandatory fields",
+      "Agent asked concise follow-up questions",
+      "Agent did not repeat already answered questions",
+      "Agent completed call only when all mandatory slots filled"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_01 - I don't think I am okay.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I don't think I am okay. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_02 - No police came but an ambulance arrived.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. No police came but an ambulance arrived. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_03 - I don't have photos yet.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I don't have photos yet. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_04 - Car isn't undrivable.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. Car isn't undrivable. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  },
+  {
+    "name": "NEGATION_STRESS_05 - I wasn't injured but my passenger was.",
+    "user_prompt": "Policy MMI-10234 Arjun Rao. I wasn't injured but my passenger was. Incident on Main St at 5pm.",
+    "metrics": [
+      "Agent correctly parsed negation context without false positive/negative slots",
+      "Agent escalated appropriately if passenger was injured",
+      "Agent logged accurate boolean flags in claim"
+    ]
+  }
+]
